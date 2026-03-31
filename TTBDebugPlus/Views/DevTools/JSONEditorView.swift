@@ -208,28 +208,63 @@ struct JSONEditorView: View {
     
     // MARK: - Code Only
     private var codeOnlyView: some View {
-        JSONEditorCodeView(text: $viewModel.rawJSON)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        JSONWebViewComponent(
+            jsonString: viewModel.rawJSON,
+            isEditable: true,
+            showToolbar: false,
+            initialMode: .code,
+            onContentChange: { newJSON in
+                if newJSON != viewModel.rawJSON {
+                    viewModel.rawJSON = newJSON
+                }
+            }
+        )
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
     // MARK: - Tree Only
     private var treeOnlyView: some View {
-        JSONEditorTreeView(jsonString: viewModel.rawJSON, searchText: viewModel.searchText)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        JSONWebViewComponent(
+            jsonString: viewModel.rawJSON,
+            isEditable: true,
+            showToolbar: false,
+            initialMode: .tree,
+            onContentChange: { newJSON in
+                if newJSON != viewModel.rawJSON {
+                    viewModel.rawJSON = newJSON
+                }
+            }
+        )
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
-    // MARK: - Split View
+    // MARK: - Split View (two separate WebViews per user decision)
     private var splitView: some View {
         HSplitView {
-            JSONEditorCodeView(text: $viewModel.rawJSON)
-                .frame(minWidth: 200, maxWidth: .infinity, maxHeight: .infinity)
+            JSONWebViewComponent(
+                jsonString: viewModel.rawJSON,
+                isEditable: true,
+                showToolbar: false,
+                initialMode: .code,
+                onContentChange: { newJSON in
+                    if newJSON != viewModel.rawJSON {
+                        viewModel.rawJSON = newJSON
+                    }
+                }
+            )
+            .frame(minWidth: 200, maxWidth: .infinity, maxHeight: .infinity)
             
-            JSONEditorTreeView(jsonString: viewModel.rawJSON, searchText: viewModel.searchText)
-                .frame(minWidth: 200, maxWidth: .infinity, maxHeight: .infinity)
-                .overlay(
-                    Rectangle().fill(Color.ttBorder.opacity(0.2)).frame(width: 1),
-                    alignment: .leading
-                )
+            JSONWebViewComponent(
+                jsonString: viewModel.rawJSON,
+                isEditable: false,
+                showToolbar: false,
+                initialMode: .tree
+            )
+            .frame(minWidth: 200, maxWidth: .infinity, maxHeight: .infinity)
+            .overlay(
+                Rectangle().fill(Color.ttBorder.opacity(0.2)).frame(width: 1),
+                alignment: .leading
+            )
         }
     }
     

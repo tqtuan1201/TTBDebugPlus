@@ -215,10 +215,16 @@ struct NetworkDetailPaneView: View {
             // Payload Card
             if !request.requestBody.isEmpty {
                 sectionCard(title: "PAYLOAD", icon: "doc.text") {
-                    JSONViewer(jsonString: request.requestBody, onOpenInEditor: { json in
-                        onOpenInEditor?(json, "Request Body — \(request.method) \(request.urlPath)")
-                    })
-                        .frame(minHeight: 80)
+                    JSONWebViewComponent(
+                        jsonString: request.requestBody,
+                        isEditable: false,
+                        showToolbar: true,
+                        initialMode: .tree,
+                        onOpenInEditor: { json in
+                            onOpenInEditor?(json, "Request Body — \(request.method) \(request.urlPath)")
+                        }
+                    )
+                    .frame(minHeight: 80)
                 }
             }
         }
@@ -228,9 +234,15 @@ struct NetworkDetailPaneView: View {
     private var previewContent: some View {
         Group {
             if !request.responseBody.isEmpty {
-                JSONViewer(jsonString: request.responseBody, onOpenInEditor: { json in
-                    onOpenInEditor?(json, "Response Preview — \(request.method) \(request.urlPath)")
-                })
+                JSONWebViewComponent(
+                    jsonString: request.responseBody,
+                    isEditable: false,
+                    showToolbar: true,
+                    initialMode: .preview,
+                    onOpenInEditor: { json in
+                        onOpenInEditor?(json, "Response Preview — \(request.method) \(request.urlPath)")
+                    }
+                )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 EmptyStateView(
@@ -264,9 +276,15 @@ struct NetworkDetailPaneView: View {
             
             // Response Body — fills remaining space
             if !request.responseBody.isEmpty {
-                JSONViewer(jsonString: request.responseBody, onOpenInEditor: { json in
-                    onOpenInEditor?(json, "Response Body — \(request.method) \(request.urlPath)")
-                })
+                JSONWebViewComponent(
+                    jsonString: request.responseBody,
+                    isEditable: false,
+                    showToolbar: true,
+                    initialMode: .tree,
+                    onOpenInEditor: { json in
+                        onOpenInEditor?(json, "Response Body — \(request.method) \(request.urlPath)")
+                    }
+                )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 EmptyStateView(

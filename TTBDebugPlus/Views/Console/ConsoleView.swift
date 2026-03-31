@@ -447,10 +447,16 @@ struct EntryDetailPanel: View {
                                 .foregroundColor(.ttTextTertiary)
                         }
                         
-                        JSONViewer(jsonString: payload, showLineNumbers: true, showToolbar: true, onOpenInEditor: { json in
-                            onOpenInEditor?(json, "Console Log Payload — \(entry.level.uppercased())")
-                        })
-                            .frame(minHeight: 150)
+                        JSONWebViewComponent(
+                            jsonString: payload,
+                            isEditable: false,
+                            showToolbar: true,
+                            initialMode: .tree,
+                            onOpenInEditor: { json in
+                                onOpenInEditor?(json, "Console Log Payload — \(entry.level.uppercased())")
+                            }
+                        )
+                        .frame(minHeight: 150)
                     }
                 }
                 
