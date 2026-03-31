@@ -13,7 +13,7 @@ View logs, inspect network requests, export to Postman, analyze API performance,
 | **Platform** | macOS 14.0+ |
 | **Architecture** | SwiftUI + Bonjour (mDNS) + WebSocket |
 | **iOS SDK** | Included in [TTBaseUIKit](https://github.com/tqtuan1201/TTBaseUIKit) (v2.3.0+) |
-| **Download** | [TTBDebugPlus-Installer.dmg](https://tqtuan1201.github.io/public/docs/ttbaseuikit/apps/TTBDebugPlus-Installer.dmg) (~5.8 MB) |
+| **Download** | [Web Download](https://tqtuan1201.github.io/public/docs/ttbaseuikit/apps/TTBDebugPlus-Installer.dmg) · [Repo Installer](apps-build-dmg/TTBDebugPlus-Installer.dmg) (~5.8 MB) |
 | **Documentation** | [Official Docs](https://tqtuan1201.github.io/public/docs/ttbaseuikit/ttbdebugplus.html) |
 
 ---
@@ -79,7 +79,16 @@ TTBDebugPlus uses **Bonjour (mDNS)** for zero-configuration discovery and **WebS
 
 ## Installation (macOS App)
 
+**Option A — Download from web:**
+
 1. **Download** — [TTBDebugPlus-Installer.dmg](https://tqtuan1201.github.io/public/docs/ttbaseuikit/apps/TTBDebugPlus-Installer.dmg)
+
+**Option B — Use the installer bundled in this repo:**
+
+1. **Download** — [`apps-build-dmg/TTBDebugPlus-Installer.dmg`](apps-build-dmg/TTBDebugPlus-Installer.dmg)
+
+**Then:**
+
 2. **Install** — Open the DMG, drag **TTBDebugPlus** to your Applications folder
 3. **Launch** — Open TTBDebugPlus from Applications. It sits in the menu bar ready to go
 
@@ -349,7 +358,8 @@ Always wrap bridge code in `#if DEBUG ... #endif`. The compiler strips it entire
 - 📖 [Official Documentation](https://tqtuan1201.github.io/public/docs/ttbaseuikit/ttbdebugplus.html)
 - 📦 [TTBaseUIKit on GitHub](https://github.com/tqtuan1201/TTBaseUIKit)
 - 🚀 [Getting Started with TTBaseUIKit](https://tqtuan1201.github.io/public/docs/ttbaseuikit/getting-started.html)
-- ⬇️ [Download macOS App](https://tqtuan1201.github.io/public/docs/ttbaseuikit/apps/TTBDebugPlus-Installer.dmg)
+- ⬇️ [Download macOS App (Web)](https://tqtuan1201.github.io/public/docs/ttbaseuikit/apps/TTBDebugPlus-Installer.dmg)
+- 💾 [Download macOS App (Repo)](apps-build-dmg/TTBDebugPlus-Installer.dmg)
 
 ---
 
