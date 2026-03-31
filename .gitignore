@@ -1,0 +1,68 @@
+# ##########################
+# ## Xcode - General      ##
+# ##########################
+.build/
+.swiftpm
+plans/
+build/
+DerivedData/
+*.xcuserstate
+*.xccheckout
+*.xcscmblueprint
+*.itunespackage
+# NEVER commit user data as it causes merge conflicts between developers
+xcuserdata/
+
+# ##########################
+# ## CocoaPods            ##
+# ##########################
+# Ignore the Pods directory to keep the repository lightweight
+Pods/
+# DO NOT ignore Podfile.lock to ensure consistent versions across the team
+!Podfile.lock
+
+# ##########################
+# ## Swift Package Manager ##
+# ##########################
+.build/
+Packages/
+.swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
+# DO NOT ignore Package.resolved to lock library versions
+!Package.resolved
+
+# ##########################
+# ## Carthage             ##
+# ##########################
+Carthage/Build/
+
+# ##########################
+# ## Fastlane             ##
+# ##########################
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# ##########################
+# ## macOS System Files   ##
+# ##########################
+.DS_Store
+*.swp
+*~
+profile
+
+# ##########################
+# ## Security / Secrets   ##
+# ##########################
+# Exclude environment variables and private configuration files
+*.env
+*.env.*
+*.plist.private
+# GoogleService-Info.plist # Uncomment if you want to keep Firebase config private
+
+# ##########################
+# ## Distribution / CI    ##
+# ##########################
+*.ipa
+*.app.zip
+*.app.dSYM.zip
