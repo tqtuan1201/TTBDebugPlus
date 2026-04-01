@@ -76,9 +76,6 @@ struct JSONWebViewComponent: View {
                 bridge.setContent(newValue)
             }
         }
-        .onDisappear {
-            bridge.cleanup()
-        }
     }
     
     // MARK: - Toolbar

@@ -4,6 +4,7 @@
 //
 //  Created by TuanTruong on 2026-03-29.
 //  Detail pane for network request inspection — headers, preview, response, cookies
+//  Uses OnlineJsonViewerView (WKWebView) for JSON display
 //
 
 import SwiftUI
@@ -15,6 +16,7 @@ struct NetworkDetailPaneView: View {
     var onClose: () -> Void = {}
     var onOpenInEditor: ((String, String) -> Void)? = nil
     @State private var copiedHeaderKey: String? = nil
+    @State private var responseHeadersExpanded: Bool = true
     
     /// Available tabs (hide cookies if none)
     private var availableTabs: [NetworkDetailTab] {
@@ -215,16 +217,15 @@ struct NetworkDetailPaneView: View {
             // Payload Card
             if !request.requestBody.isEmpty {
                 sectionCard(title: "PAYLOAD", icon: "doc.text") {
-                    JSONWebViewComponent(
+                    OnlineJsonViewerView(
                         jsonString: request.requestBody,
-                        isEditable: false,
                         showToolbar: true,
-                        initialMode: .tree,
+                        initialMode: "tree",
                         onOpenInEditor: { json in
                             onOpenInEditor?(json, "Request Body — \(request.method) \(request.urlPath)")
                         }
                     )
-                    .frame(minHeight: 80)
+                    .frame(minHeight: 150, idealHeight: 250)
                 }
             }
         }
@@ -234,11 +235,10 @@ struct NetworkDetailPaneView: View {
     private var previewContent: some View {
         Group {
             if !request.responseBody.isEmpty {
-                JSONWebViewComponent(
+                OnlineJsonViewerView(
                     jsonString: request.responseBody,
-                    isEditable: false,
                     showToolbar: true,
-                    initialMode: .preview,
+                    initialMode: "preview",
                     onOpenInEditor: { json in
                         onOpenInEditor?(json, "Response Preview — \(request.method) \(request.urlPath)")
                     }
@@ -258,29 +258,68 @@ struct NetworkDetailPaneView: View {
     // MARK: - Response Tab (fills available space for body)
     private var responseContent: some View {
         VStack(spacing: 0) {
-            // Response Headers — scrollable section at top
+            // Response Headers — collapsible section at top
             if !request.responseHeaders.isEmpty {
                 VStack(spacing: 0) {
-                    sectionCard(title: "RESPONSE HEADERS", icon: "arrow.down.doc", count: request.responseHeaders.count) {
-                        VStack(alignment: .leading, spacing: 0) {
-                            ForEach(Array(request.responseHeaders.keys.sorted()), id: \.self) { key in
-                                headerRow(key: key, value: request.responseHeaders[key] ?? "")
+                    // Collapsible header toggle
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.15)) {
+                            responseHeadersExpanded.toggle()
+                        }
+                    }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: responseHeadersExpanded ? "chevron.down" : "chevron.right")
+                                .font(.ttIcon(TTIcon.xs))
+                                .foregroundColor(.ttTextTertiary)
+                            Image(systemName: "arrow.down.doc")
+                                .font(.ttIcon(TTIcon.xs))
+                                .foregroundColor(.ttPrimary)
+                            Text("RESPONSE HEADERS")
+                                .font(TTFont.labelSmall)
+                                .foregroundColor(.ttTextSecondary)
+                                .tracking(0.8)
+                            Text("\(request.responseHeaders.count)")
+                                .font(.ttIcon(TTIcon.xs))
+                                .foregroundColor(.ttTextTertiary)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 1)
+                                .background(Capsule().fill(Color.ttSurface.opacity(0.6)))
+                            Spacer()
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .background(Color.ttSurface.opacity(0.2))
+                    
+                    if responseHeadersExpanded {
+                        ScrollView {
+                            VStack(alignment: .leading, spacing: 0) {
+                                ForEach(Array(request.responseHeaders.keys.sorted()), id: \.self) { key in
+                                    headerRow(key: key, value: request.responseHeaders[key] ?? "")
+                                }
                             }
                         }
+                        .frame(maxHeight: 200)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
                     }
                 }
-                .padding(.horizontal, 16)
-                .padding(.top, 16)
-                .frame(maxHeight: 200) // Cap headers height
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.ttBorder.opacity(0.2), lineWidth: 1)
+                )
+                .padding(.horizontal, 12)
+                .padding(.top, 8)
             }
             
             // Response Body — fills remaining space
             if !request.responseBody.isEmpty {
-                JSONWebViewComponent(
+                OnlineJsonViewerView(
                     jsonString: request.responseBody,
-                    isEditable: false,
                     showToolbar: true,
-                    initialMode: .tree,
+                    initialMode: "tree",
                     onOpenInEditor: { json in
                         onOpenInEditor?(json, "Response Body — \(request.method) \(request.urlPath)")
                     }

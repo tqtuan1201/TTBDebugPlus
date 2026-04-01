@@ -172,7 +172,7 @@ struct NetworkView: View {
                         appState.openInJSONEditor(json: json, source: source)
                     }
                 )
-                .frame(minWidth: 380, idealWidth: 450)
+                .frame(minWidth: 350, idealWidth: 500)
             }
         }
     }

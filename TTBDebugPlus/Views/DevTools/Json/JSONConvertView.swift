@@ -13,13 +13,14 @@ struct JSONConvertView: View {
     @State private var selectedFormat: ConvertFormat = .yaml
     @State private var convertResult: ConvertResult?
     @State private var isCopied: Bool = false
+    @State private var hoveredFormat: ConvertFormat? = nil
     
     var body: some View {
         VStack(spacing: 0) {
             // Header bar
             convertHeader
             
-            Divider().background(Color.ttBorder.opacity(0.2))
+            Divider().background(Color.ttBorder.opacity(0.3))
             
             if jsonString.isEmpty {
                 emptyState
@@ -34,6 +35,7 @@ struct JSONConvertView: View {
             }
         }
         .background(Color.ttBackground)
+        .frame(minWidth: 400, minHeight: 300)
         .onChange(of: selectedFormat) { _, _ in
             convert()
         }
@@ -48,93 +50,167 @@ struct JSONConvertView: View {
     // MARK: - Header
     private var convertHeader: some View {
         HStack(spacing: 12) {
-            Image(systemName: "arrow.triangle.swap")
-                .font(.ttIcon(TTIcon.lg))
-                .foregroundColor(.ttPrimary)
+            // Icon with glow
+            ZStack {
+                Circle()
+                    .fill(Color.ttPrimary.opacity(0.08))
+                    .frame(width: 28, height: 28)
+                Image(systemName: "arrow.triangle.swap")
+                    .font(.ttIcon(TTIcon.lg))
+                    .foregroundColor(.ttPrimary)
+            }
             
-            Text("Convert JSON to:")
-                .font(TTFont.labelMedium)
+            Text("Convert to:")
+                .font(TTFont.labelLarge)
                 .foregroundColor(.ttTextSecondary)
             
-            // Format picker
-            HStack(spacing: 2) {
+            // Format picker — pill style
+            HStack(spacing: 3) {
                 ForEach(ConvertFormat.allCases.filter { $0 != .json }) { format in
-                    Button(action: { selectedFormat = format }) {
-                        HStack(spacing: 4) {
+                    Button(action: { 
+                        withAnimation(.easeInOut(duration: 0.15)) {
+                            selectedFormat = format
+                        }
+                    }) {
+                        HStack(spacing: 5) {
                             Image(systemName: format.icon)
                                 .font(.ttIcon(TTIcon.sm))
                             Text(format.rawValue)
-                                .font(TTFont.labelSmall)
+                                .font(TTFont.labelMedium)
                         }
                         .foregroundColor(selectedFormat == format ? .white : .ttTextTertiary)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 5)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
                         .background(
                             Capsule()
-                                .fill(selectedFormat == format ? Color.ttPrimary.opacity(0.5) : Color.clear)
+                                .fill(selectedFormat == format ? Color.ttPrimary.opacity(0.5) : 
+                                      (hoveredFormat == format ? Color.ttSurface.opacity(0.6) : Color.clear))
                         )
                     }
                     .buttonStyle(.plain)
+                    .onHover { isHovered in
+                        hoveredFormat = isHovered ? format : nil
+                    }
                 }
             }
+            .padding(3)
+            .background(
+                Capsule()
+                    .fill(Color.ttSurface.opacity(0.2))
+            )
             
             Spacer()
             
+            // Output size
+            if let result = convertResult, result.isSuccess {
+                Text(formatBytes(result.output.utf8.count))
+                    .font(.system(size: 9, weight: .medium, design: .monospaced))
+                    .foregroundColor(.ttTextMuted)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(
+                        RoundedRectangle(cornerRadius: 3)
+                            .fill(Color.ttSurface.opacity(0.3))
+                    )
+            }
+            
             // Copy
             Button(action: copyResult) {
-                HStack(spacing: 3) {
-                    Image(systemName: isCopied ? "checkmark" : "doc.on.doc")
+                HStack(spacing: 4) {
+                    Image(systemName: isCopied ? "checkmark.circle.fill" : "doc.on.doc")
                         .font(.ttIcon(TTIcon.sm))
-                    Text(isCopied ? "Copied" : "Copy")
+                    Text(isCopied ? "Copied!" : "Copy")
                         .font(TTFont.labelSmall)
                 }
                 .foregroundColor(isCopied ? .ttSuccess : .ttTextSecondary)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 5)
+                .background(
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(isCopied ? Color.ttSuccess.opacity(0.08) : Color.ttSurface.opacity(0.3))
+                )
             }
-            .buttonStyle(.ttGhost)
+            .buttonStyle(.plain)
             .disabled(convertResult?.isSuccess != true)
             
             // Save
             Button(action: saveResult) {
-                HStack(spacing: 3) {
+                HStack(spacing: 4) {
                     Image(systemName: "square.and.arrow.down")
                         .font(.ttIcon(TTIcon.sm))
                     Text("Save")
                         .font(TTFont.labelSmall)
                 }
                 .foregroundColor(.ttTextSecondary)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 5)
+                .background(
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(Color.ttSurface.opacity(0.3))
+                )
             }
-            .buttonStyle(.ttGhost)
+            .buttonStyle(.plain)
             .disabled(convertResult?.isSuccess != true)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(Color.ttSurface.opacity(0.1))
     }
     
     // MARK: - Result
     private func resultView(_ output: String) -> some View {
         ScrollView([.horizontal, .vertical]) {
             Text(output)
-                .font(TTFont.codeMedium)
+                .font(.system(size: 12, weight: .regular, design: .monospaced))
                 .foregroundColor(.ttTextPrimary)
                 .textSelection(.enabled)
-                .fixedSize(horizontal: true, vertical: false)
                 .padding(16)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .overlay(
+            // Format badge
+            VStack {
+                HStack {
+                    Spacer()
+                    HStack(spacing: 4) {
+                        Image(systemName: selectedFormat.icon)
+                            .font(.ttIcon(TTIcon.xs))
+                        Text(selectedFormat.rawValue)
+                            .font(.system(size: 9, weight: .bold))
+                    }
+                    .foregroundColor(.ttPrimary.opacity(0.6))
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(
+                        Capsule()
+                            .fill(Color.ttSurface.opacity(0.8))
+                            .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
+                    )
+                    .padding(12)
+                }
+                Spacer()
+            }
+        )
     }
     
     // MARK: - States
     
     private var emptyState: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "arrow.triangle.swap")
-                .font(TTFont.heading1)
-                .foregroundColor(.ttTextTertiary)
-            Text("No JSON data to convert")
-                .font(TTFont.labelMedium)
+        VStack(spacing: 14) {
+            ZStack {
+                Circle()
+                    .fill(Color.ttSurface.opacity(0.5))
+                    .frame(width: 56, height: 56)
+                Image(systemName: "arrow.triangle.swap")
+                    .font(.system(size: 24))
+                    .foregroundColor(.ttTextMuted)
+            }
+            Text("No JSON Data")
+                .font(TTFont.heading3)
                 .foregroundColor(.ttTextSecondary)
             Text("Enter or paste JSON in the Editor tab first")
-                .font(TTFont.codeSmall)
+                .font(TTFont.bodySmall)
                 .foregroundColor(.ttTextTertiary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -142,23 +218,31 @@ struct JSONConvertView: View {
     
     private func errorState(_ error: String) -> some View {
         VStack(spacing: 12) {
-            Image(systemName: "exclamationmark.triangle")
-                .font(TTFont.heading1)
-                .foregroundColor(.ttWarning)
+            ZStack {
+                Circle()
+                    .fill(Color.ttWarning.opacity(0.08))
+                    .frame(width: 56, height: 56)
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.system(size: 24))
+                    .foregroundColor(.ttWarning)
+            }
             Text("Conversion Error")
-                .font(TTFont.labelMedium)
+                .font(TTFont.heading3)
                 .foregroundColor(.ttWarning)
             Text(error)
                 .font(TTFont.codeSmall)
                 .foregroundColor(.ttTextSecondary)
                 .multilineTextAlignment(.center)
+                .padding(.horizontal, 20)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
     private var loadingState: some View {
-        HStack(spacing: 8) {
-            ProgressView().scaleEffect(0.6)
+        VStack(spacing: 10) {
+            ProgressView()
+                .scaleEffect(0.7)
+                .tint(.ttPrimary)
             Text("Converting...")
                 .font(TTFont.codeSmall)
                 .foregroundColor(.ttTextTertiary)
@@ -208,5 +292,11 @@ struct JSONConvertView: View {
                 try? output.write(to: url, atomically: true, encoding: .utf8)
             }
         }
+    }
+    
+    private func formatBytes(_ bytes: Int) -> String {
+        if bytes < 1024 { return "\(bytes) B" }
+        if bytes < 1024 * 1024 { return String(format: "%.1f KB", Double(bytes) / 1024) }
+        return String(format: "%.1f MB", Double(bytes) / (1024 * 1024))
     }
 }

@@ -3,31 +3,39 @@
 //  TTBDebugPlus
 //
 //  Created by TuanTruong on 2026-03-29.
-//  Container for Dev Tools (JSON Editor, and future tools)
+//  Container for Dev Tools — JSON category with sub-tools, extensible for future tools
 //
 
 import SwiftUI
 
 struct DevToolsView: View {
     @Environment(AppState.self) var appState
-    @State private var selectedTool: DevTool = .jsonEditor
+    @State private var selectedTool: DevTool = .json
     @State private var viewModel = JSONEditorViewModel()
-    @State private var selectedEditorTab: JSONEditorTab = .editor
+    @State private var selectedJsonTool: JSONTool = .editor
+    @State private var hoveredJsonTool: JSONTool? = nil
     
     var body: some View {
         VStack(spacing: 0) {
-            // Tool selector + Editor tab picker
+            // Top: Tool category selector
             toolHeader
             
-            // Content
+            // Sub-tool header (for JSON category)
+            if selectedTool == .json {
+                jsonSubToolHeader
+            }
+            
+            // Content — fills all remaining space
             switch selectedTool {
-            case .jsonEditor:
-                jsonEditorContent
+            case .json:
+                jsonContent
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             default:
                 comingSoonView(selectedTool)
             }
         }
         .background(Color.ttBackground)
+        .frame(minWidth: 600, minHeight: 400)
         .onAppear {
             loadPayloadIfNeeded()
         }
@@ -36,98 +44,116 @@ struct DevToolsView: View {
         }
     }
     
-    // MARK: - Tool Header
+    // MARK: - Tool Header (Category Tabs)
     private var toolHeader: some View {
-        VStack(spacing: 0) {
-            HStack(spacing: 0) {
-                // Tool picker
-                HStack(spacing: 2) {
-                    ForEach(DevTool.allCases) { tool in
-                        Button(action: {
-                            if tool.isAvailable {
-                                withAnimation(.easeInOut(duration: 0.15)) {
-                                    selectedTool = tool
-                                }
+        HStack(spacing: 0) {
+            HStack(spacing: 2) {
+                ForEach(DevTool.allCases) { tool in
+                    Button(action: {
+                        if tool.isAvailable {
+                            withAnimation(.easeInOut(duration: 0.15)) {
+                                selectedTool = tool
                             }
-                        }) {
-                            HStack(spacing: 5) {
-                                Image(systemName: tool.icon)
-                                    .font(.ttIcon(TTIcon.md))
-                                Text(tool.rawValue)
-                                    .font(TTFont.tabLabel)
-                            }
-                            .foregroundColor(
-                                !tool.isAvailable ? .ttTextMuted :
-                                (selectedTool == tool ? .ttPrimary : .ttTextSecondary)
-                            )
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 8)
-                            .overlay(
-                                Rectangle()
-                                    .fill(selectedTool == tool ? Color.ttPrimary : Color.clear)
-                                    .frame(height: 2),
-                                alignment: .bottom
-                            )
                         }
-                        .buttonStyle(.plain)
-                        .disabled(!tool.isAvailable)
-                        .help(tool.isAvailable ? tool.rawValue : "\(tool.rawValue) — Coming Soon")
-                    }
-                }
-                
-                Spacer()
-                
-                // Editor sub-tabs (only for JSON Editor)
-                if selectedTool == .jsonEditor {
-                    HStack(spacing: 2) {
-                        ForEach(JSONEditorTab.allCases) { tab in
-                            Button(action: {
-                                withAnimation(.easeInOut(duration: 0.12)) {
-                                    selectedEditorTab = tab
-                                }
-                            }) {
-                                HStack(spacing: 4) {
-                                    Image(systemName: tab.icon)
-                                        .font(.ttIcon(TTIcon.sm))
-                                    Text(tab.rawValue)
-                                        .font(TTFont.labelSmall)
-                                }
-                                .foregroundColor(selectedEditorTab == tab ? .white : .ttTextTertiary)
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 5)
-                                .background(
-                                    Capsule()
-                                        .fill(selectedEditorTab == tab ? Color.ttPrimary.opacity(0.4) : Color.clear)
-                                )
-                            }
-                            .buttonStyle(.plain)
+                    }) {
+                        HStack(spacing: 5) {
+                            Image(systemName: tool.icon)
+                                .font(.ttIcon(TTIcon.md))
+                            Text(tool.rawValue)
+                                .font(TTFont.tabLabel)
                         }
+                        .foregroundColor(
+                            !tool.isAvailable ? .ttTextMuted :
+                            (selectedTool == tool ? .ttPrimary : .ttTextSecondary)
+                        )
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .overlay(
+                            Rectangle()
+                                .fill(selectedTool == tool ? Color.ttPrimary : Color.clear)
+                                .frame(height: 2),
+                            alignment: .bottom
+                        )
                     }
-                    .padding(.trailing, 12)
+                    .buttonStyle(.plain)
+                    .disabled(!tool.isAvailable)
+                    .help(tool.isAvailable ? tool.rawValue : "\(tool.rawValue) — Coming Soon")
                 }
             }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(Color.ttSurface.opacity(0.2))
-            .overlay(
-                Rectangle().fill(Color.ttBorder.opacity(0.2)).frame(height: 1),
-                alignment: .bottom
-            )
+            
+            Spacer()
         }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(Color.ttSurface.opacity(0.2))
+        .overlay(
+            Rectangle().fill(Color.ttBorder.opacity(0.2)).frame(height: 1),
+            alignment: .bottom
+        )
     }
     
-    // MARK: - JSON Editor Content
+    // MARK: - JSON Sub-Tool Header
+    private var jsonSubToolHeader: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 3) {
+                ForEach(JSONTool.allCases) { tool in
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.12)) {
+                            selectedJsonTool = tool
+                        }
+                    }) {
+                        HStack(spacing: 5) {
+                            Image(systemName: tool.icon)
+                                .font(.ttIcon(TTIcon.sm))
+                            Text(tool.rawValue)
+                                .font(TTFont.labelMedium)
+                        }
+                        .foregroundColor(
+                            selectedJsonTool == tool ? .white :
+                            (hoveredJsonTool == tool ? .ttTextSecondary : .ttTextTertiary)
+                        )
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(
+                            Capsule()
+                                .fill(
+                                    selectedJsonTool == tool ? Color.ttPrimary.opacity(0.4) :
+                                    (hoveredJsonTool == tool ? Color.ttSurface.opacity(0.4) : Color.clear)
+                                )
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .onHover { isHovered in
+                        hoveredJsonTool = isHovered ? tool : nil
+                    }
+                    .help(tool.description)
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 5)
+        }
+        .frame(minHeight: 32)
+        .background(Color.ttSurface.opacity(0.08))
+        .overlay(
+            Rectangle().fill(Color.ttBorder.opacity(0.12)).frame(height: 1),
+            alignment: .bottom
+        )
+    }
+    
+    // MARK: - JSON Content (routed by JSONTool)
     @ViewBuilder
-    private var jsonEditorContent: some View {
-        switch selectedEditorTab {
+    private var jsonContent: some View {
+        switch selectedJsonTool {
         case .editor:
-            JSONEditorView(viewModel: viewModel)
+            OnlineJsonEditorView(viewModel: viewModel)
         case .query:
             JSONQueryView(jsonString: viewModel.rawJSON)
         case .diff:
             JSONDiffView(initialLeft: viewModel.rawJSON)
         case .convert:
             JSONConvertView(jsonString: viewModel.rawJSON)
+        case .graph:
+            JSONGraphView(jsonString: viewModel.rawJSON)
         }
     }
     
@@ -141,8 +167,8 @@ struct DevToolsView: View {
                     .fill(Color.ttSurface.opacity(0.5))
                     .frame(width: 80, height: 80)
                 Image(systemName: tool.icon)
-                    .font(TTFont.displayLarge)
-                    .foregroundColor(.ttTextTertiary)
+                    .font(.system(size: 32))
+                    .foregroundColor(.ttTextMuted)
             }
             
             Text(tool.rawValue)
@@ -152,11 +178,15 @@ struct DevToolsView: View {
             Text("Coming Soon")
                 .font(TTFont.bodyMedium)
                 .foregroundColor(.ttTextTertiary)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 4)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 5)
                 .background(
                     Capsule()
-                        .fill(Color.ttSurface)
+                        .fill(Color.ttSurface.opacity(0.5))
+                        .overlay(
+                            Capsule()
+                                .stroke(Color.ttBorder.opacity(0.2), lineWidth: 0.5)
+                        )
                 )
             
             Spacer()
@@ -168,8 +198,8 @@ struct DevToolsView: View {
     private func loadPayloadIfNeeded() {
         if let payload = appState.jsonEditorPayload {
             viewModel.loadJSON(payload.json, source: payload.sourceLabel)
-            selectedTool = .jsonEditor
-            selectedEditorTab = .editor
+            selectedTool = .json
+            selectedJsonTool = .editor
             appState.jsonEditorPayload = nil
         }
     }

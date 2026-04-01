@@ -21,8 +21,7 @@ class JSONEditorViewModel {
         }
     }
     
-    var editMode: JSONEditMode = .split
-    var activeTab: JSONEditorTab = .editor
+
     var isValid: Bool = true
     var validationErrors: [JSONValidationError] = []
     var sourceLabel: String? = nil

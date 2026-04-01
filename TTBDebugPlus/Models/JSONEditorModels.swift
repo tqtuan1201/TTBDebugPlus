@@ -8,24 +8,7 @@
 
 import SwiftUI
 
-// MARK: - Editor Mode
-enum JSONEditMode: String, CaseIterable, Identifiable {
-    case code = "Code"
-    case tree = "Tree"
-    case split = "Split"
-    case graph = "Graph"
-    
-    var id: String { rawValue }
-    
-    var icon: String {
-        switch self {
-        case .code: return "chevron.left.forwardslash.chevron.right"
-        case .tree: return "list.bullet.indent"
-        case .split: return "rectangle.split.2x1"
-        case .graph: return "point.3.connected.trianglepath.dotted"
-        }
-    }
-}
+
 
 // MARK: - JSON Value Type (for tree badges)
 enum JSONValueType {
@@ -70,28 +53,42 @@ enum JSONValueType {
     }
 }
 
-// MARK: - Editor Sub-Tab (tools within editor)
-enum JSONEditorTab: String, CaseIterable, Identifiable {
-    case editor = "Editor"
+
+
+// MARK: - JSON Sub-Tools (nested within JSON category)
+enum JSONTool: String, CaseIterable, Identifiable {
+    case editor = "JSON Editor"
     case query = "Query"
     case diff = "Diff"
     case convert = "Convert"
+    case graph = "Graph"
     
     var id: String { rawValue }
     
     var icon: String {
         switch self {
-        case .editor: return "doc.text"
+        case .editor: return "curlybraces"
         case .query: return "magnifyingglass"
         case .diff: return "rectangle.on.rectangle"
         case .convert: return "arrow.triangle.swap"
+        case .graph: return "point.3.connected.trianglepath.dotted"
+        }
+    }
+    
+    var description: String {
+        switch self {
+        case .editor: return "Dual-panel JSON editor"
+        case .query: return "JSONPath queries"
+        case .diff: return "Compare two JSONs"
+        case .convert: return "JSON ↔ YAML/XML/CSV"
+        case .graph: return "Visual graph view"
         }
     }
 }
 
 // MARK: - Dev Tools Category
 enum DevTool: String, CaseIterable, Identifiable {
-    case jsonEditor = "JSON Editor"
+    case json = "JSON"
     case base64 = "Base64"
     case urlEncode = "URL Encode"
     case hashGenerator = "Hash"
@@ -101,7 +98,7 @@ enum DevTool: String, CaseIterable, Identifiable {
     
     var icon: String {
         switch self {
-        case .jsonEditor: return "curlybraces"
+        case .json: return "curlybraces"
         case .base64: return "textformat.abc"
         case .urlEncode: return "link"
         case .hashGenerator: return "number"
@@ -111,7 +108,7 @@ enum DevTool: String, CaseIterable, Identifiable {
     
     var isAvailable: Bool {
         switch self {
-        case .jsonEditor: return true
+        case .json: return true
         default: return false
         }
     }

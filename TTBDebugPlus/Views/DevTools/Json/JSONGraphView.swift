@@ -19,6 +19,7 @@ struct JSONGraphView: View {
     @State private var collapsedNodeIds: Set<String> = []
     @State private var selectedNodeId: String? = nil
     @State private var hoveredNodeId: String? = nil
+    @State private var canvasSize: CGSize = .zero
     
     // Zoom limits
     private let minScale: CGFloat = 0.15
@@ -26,7 +27,7 @@ struct JSONGraphView: View {
     
     var body: some View {
         ZStack {
-            // Background
+            // Background with subtle grid
             Color.ttBackground
                 .ignoresSafeArea()
             
@@ -48,6 +49,7 @@ struct JSONGraphView: View {
                 Spacer()
             }
         }
+        .frame(minWidth: 500, minHeight: 400)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .task(id: jsonString.hashValue) {
             await buildLayout()
@@ -63,6 +65,10 @@ struct JSONGraphView: View {
             )
             
             ZStack(alignment: .topLeading) {
+                // Grid pattern background
+                gridPattern(size: geometry.size, offset: totalOffset)
+                    .allowsHitTesting(false)
+                
                 // Edge lines (drawn first, behind nodes)
                 Canvas { context, _ in
                     drawEdges(context: context, offset: totalOffset)
@@ -99,37 +105,88 @@ struct JSONGraphView: View {
                     }
             )
             .onAppear {
+                canvasSize = geometry.size
                 fitToWindow(size: geometry.size)
+            }
+            .onChange(of: geometry.size) { _, newSize in
+                canvasSize = newSize
+            }
+        }
+    }
+    
+    // MARK: - Grid Pattern
+    private func gridPattern(size: CGSize, offset: CGSize) -> some View {
+        Canvas { context, canvasSize in
+            let gridSize: CGFloat = 40 * scale
+            guard gridSize > 5 else { return }
+            
+            let opacity = min(1.0, max(0.0, (gridSize - 5) / 20)) * 0.06
+            
+            let startX = offset.width.truncatingRemainder(dividingBy: gridSize)
+            let startY = offset.height.truncatingRemainder(dividingBy: gridSize)
+            
+            var x = startX
+            while x < canvasSize.width {
+                var path = Path()
+                path.move(to: CGPoint(x: x, y: 0))
+                path.addLine(to: CGPoint(x: x, y: canvasSize.height))
+                context.stroke(path, with: .color(Color.ttBorder.opacity(opacity)), lineWidth: 0.5)
+                x += gridSize
+            }
+            
+            var y = startY
+            while y < canvasSize.height {
+                var path = Path()
+                path.move(to: CGPoint(x: 0, y: y))
+                path.addLine(to: CGPoint(x: canvasSize.width, y: y))
+                context.stroke(path, with: .color(Color.ttBorder.opacity(opacity)), lineWidth: 0.5)
+                y += gridSize
             }
         }
     }
     
     // MARK: - Node View
     private func graphNodeView(_ node: GraphNode) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
+        let nodeScale = max(0.5, scale) // Minimum visible scale for readability
+        
+        return VStack(alignment: .leading, spacing: 0) {
             // Header
             HStack(spacing: 6) {
                 // Type badge
                 Text(node.valueType.badge)
-                    .font(.system(size: max(8, 10 * scale), weight: .bold, design: .monospaced))
+                    .font(.system(size: max(9, 10 * nodeScale), weight: .bold, design: .monospaced))
                     .foregroundColor(.white)
                 
                 Text(node.label)
-                    .font(.system(size: max(8, 11 * scale), weight: .semibold))
+                    .font(.system(size: max(9, 11 * nodeScale), weight: .semibold))
                     .foregroundColor(.white)
                     .lineLimit(1)
                 
                 Spacer()
                 
                 if !node.childIds.isEmpty {
-                    Image(systemName: collapsedNodeIds.contains(node.id) ? "chevron.right" : "chevron.down")
-                        .font(.system(size: max(6, 8 * scale), weight: .bold))
-                        .foregroundColor(.white.opacity(0.7))
+                    HStack(spacing: 2) {
+                        Text("\(node.childIds.count)")
+                            .font(.system(size: max(7, 8 * nodeScale), weight: .bold, design: .monospaced))
+                            .foregroundColor(.white.opacity(0.7))
+                        Image(systemName: collapsedNodeIds.contains(node.id) ? "chevron.right" : "chevron.down")
+                            .font(.system(size: max(7, 8 * nodeScale), weight: .bold))
+                            .foregroundColor(.white.opacity(0.7))
+                    }
                 }
             }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 5)
-            .background(node.headerColor.opacity(0.8))
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(
+                node.headerColor.opacity(0.85)
+                    .overlay(
+                        LinearGradient(
+                            colors: [.white.opacity(0.05), .clear],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+            )
             
             // Entries
             if !node.entries.isEmpty {
@@ -140,56 +197,62 @@ struct JSONGraphView: View {
                             Text(entry.key)
                                 .foregroundColor(.ttJsonKey)
                             Text(":")
-                                .foregroundColor(.ttJsonBrace)
+                                .foregroundColor(.ttJsonBrace.opacity(0.5))
                             Text(entry.value)
                                 .foregroundColor(entry.type.badgeColor)
                                 .lineLimit(1)
                         }
-                        .font(.system(size: max(7, 10 * scale), design: .monospaced))
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 2)
+                        .font(.system(size: max(8, 10 * nodeScale), design: .monospaced))
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 3)
                     }
                     
                     if node.entries.count > 8 {
-                        Text("... +\(node.entries.count - 8) more")
-                            .font(.system(size: max(7, 9 * scale), design: .monospaced))
-                            .foregroundColor(.ttTextTertiary)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 2)
+                        HStack(spacing: 3) {
+                            Image(systemName: "ellipsis")
+                                .font(.system(size: max(7, 8 * nodeScale)))
+                            Text("+\(node.entries.count - 8) more")
+                                .font(.system(size: max(7, 9 * nodeScale), design: .monospaced))
+                        }
+                        .foregroundColor(.ttTextTertiary)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 3)
                     }
                 }
                 .padding(.vertical, 4)
             }
         }
-        .frame(width: node.size.width * scale)
+        .frame(width: max(120, node.size.width * scale))
         .background(
-            RoundedRectangle(cornerRadius: 8 * scale)
+            RoundedRectangle(cornerRadius: max(6, 8 * scale))
                 .fill(Color.ttSurface)
                 .shadow(
-                    color: selectedNodeId == node.id ? node.headerColor.opacity(0.3) : Color.black.opacity(0.2),
-                    radius: selectedNodeId == node.id ? 8 : 3,
+                    color: selectedNodeId == node.id ? node.headerColor.opacity(0.4) : Color.black.opacity(0.2),
+                    radius: selectedNodeId == node.id ? 10 : 4,
                     x: 0, y: 2
                 )
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 8 * scale)
+            RoundedRectangle(cornerRadius: max(6, 8 * scale))
                 .stroke(
                     selectedNodeId == node.id ? node.headerColor :
                     (hoveredNodeId == node.id ? Color.ttPrimary.opacity(0.5) : Color.ttBorder.opacity(0.3)),
                     lineWidth: selectedNodeId == node.id ? 2 : 1
                 )
         )
-        .clipShape(RoundedRectangle(cornerRadius: 8 * scale))
+        .clipShape(RoundedRectangle(cornerRadius: max(6, 8 * scale)))
         .onHover { isHovered in
             hoveredNodeId = isHovered ? node.id : nil
         }
         .onTapGesture {
-            selectedNodeId = node.id
-            if !node.childIds.isEmpty {
-                if collapsedNodeIds.contains(node.id) {
-                    collapsedNodeIds.remove(node.id)
-                } else {
-                    collapsedNodeIds.insert(node.id)
+            withAnimation(.easeInOut(duration: 0.15)) {
+                selectedNodeId = node.id
+                if !node.childIds.isEmpty {
+                    if collapsedNodeIds.contains(node.id) {
+                        collapsedNodeIds.remove(node.id)
+                    } else {
+                        collapsedNodeIds.insert(node.id)
+                    }
                 }
             }
         }
@@ -227,19 +290,19 @@ struct JSONGraphView: View {
             let isHighlighted = selectedNodeId == edge.fromId || selectedNodeId == edge.toId
             context.stroke(
                 path,
-                with: .color(isHighlighted ? Color.ttPrimary : Color.ttBorder.opacity(0.4)),
+                with: .color(isHighlighted ? Color.ttPrimary : Color.ttBorder.opacity(0.35)),
                 lineWidth: isHighlighted ? 2 : 1
             )
             
             // Arrow at endpoint
-            let arrowSize: CGFloat = 5 * scale
+            let arrowSize: CGFloat = max(3, 5 * scale)
             var arrowPath = Path()
             arrowPath.move(to: CGPoint(x: toPoint.x - arrowSize, y: toPoint.y - arrowSize * 1.5))
             arrowPath.addLine(to: toPoint)
             arrowPath.addLine(to: CGPoint(x: toPoint.x + arrowSize, y: toPoint.y - arrowSize * 1.5))
             context.fill(
                 arrowPath,
-                with: .color(isHighlighted ? Color.ttPrimary : Color.ttBorder.opacity(0.4))
+                with: .color(isHighlighted ? Color.ttPrimary : Color.ttBorder.opacity(0.35))
             )
         }
     }
@@ -263,7 +326,7 @@ struct JSONGraphView: View {
     
     // MARK: - Graph Toolbar
     private var graphToolbar: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 5) {
             // Zoom controls
             Button(action: { withAnimation(.easeInOut(duration: 0.2)) { scale = max(minScale, scale * 0.8) } }) {
                 Image(systemName: "minus.magnifyingglass")
@@ -273,9 +336,10 @@ struct JSONGraphView: View {
             .help("Zoom Out")
             
             Text("\(Int(scale * 100))%")
-                .font(TTFont.codeSmall)
+                .font(.system(size: 10, weight: .medium, design: .monospaced))
                 .foregroundColor(.ttTextTertiary)
-                .frame(width: 40)
+                .frame(width: 44)
+                .monospacedDigit()
             
             Button(action: { withAnimation(.easeInOut(duration: 0.2)) { scale = min(maxScale, scale * 1.25) } }) {
                 Image(systemName: "plus.magnifyingglass")
@@ -284,15 +348,12 @@ struct JSONGraphView: View {
             .buttonStyle(.ttGhost)
             .help("Zoom In")
             
-            Divider().frame(height: 14)
+            Divider().frame(height: 16)
             
-            // Fit to window
+            // Fit to window — uses stored canvasSize
             Button(action: {
-                if let window = NSApplication.shared.keyWindow {
-                    let contentSize = window.contentView?.bounds.size ?? CGSize(width: 800, height: 600)
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        fitToWindow(size: contentSize)
-                    }
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    fitToWindow(size: canvasSize)
                 }
             }) {
                 Image(systemName: "arrow.up.left.and.arrow.down.right")
@@ -314,27 +375,61 @@ struct JSONGraphView: View {
             .buttonStyle(.ttGhost)
             .help("Reset View")
             
-            Divider().frame(height: 14)
+            Divider().frame(height: 16)
             
-            // Node count
-            Text("\(layout.nodes.count) nodes")
-                .font(TTFont.codeSmall)
-                .foregroundColor(.ttTextTertiary)
+            // Expand/Collapse all
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    if collapsedNodeIds.isEmpty {
+                        // Collapse all with children
+                        for node in layout.nodes where !node.childIds.isEmpty {
+                            collapsedNodeIds.insert(node.id)
+                        }
+                    } else {
+                        collapsedNodeIds.removeAll()
+                    }
+                }
+            }) {
+                Image(systemName: collapsedNodeIds.isEmpty ? "rectangle.compress.vertical" : "rectangle.expand.vertical")
+                    .font(.system(size: 12))
+            }
+            .buttonStyle(.ttGhost)
+            .help(collapsedNodeIds.isEmpty ? "Collapse All" : "Expand All")
+            
+            Divider().frame(height: 16)
+            
+            // Node count badge
+            HStack(spacing: 3) {
+                Circle()
+                    .fill(Color.ttPrimary.opacity(0.5))
+                    .frame(width: 5, height: 5)
+                Text("\(layout.nodes.count)")
+                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                    .foregroundColor(.ttTextSecondary)
+                Text("nodes")
+                    .font(.system(size: 9, weight: .medium))
+                    .foregroundColor(.ttTextMuted)
+            }
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 7)
         .background(
             RoundedRectangle(cornerRadius: 8)
-                .fill(Color.ttSurface.opacity(0.9))
-                .shadow(color: .black.opacity(0.15), radius: 4, x: 0, y: 2)
+                .fill(Color.ttSurface.opacity(0.92))
+                .shadow(color: .black.opacity(0.2), radius: 6, x: 0, y: 2)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.ttBorder.opacity(0.15), lineWidth: 0.5)
+                )
         )
     }
     
     // MARK: - Loading
     private var loadingOverlay: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 14) {
             ProgressView()
                 .scaleEffect(0.8)
+                .tint(.ttPrimary)
             Text("Building graph layout...")
                 .font(TTFont.codeSmall)
                 .foregroundColor(.ttTextTertiary)
@@ -344,15 +439,20 @@ struct JSONGraphView: View {
     
     // MARK: - Empty State
     private var emptyState: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "point.3.connected.trianglepath.dotted")
-                .font(.system(size: 40))
-                .foregroundColor(.ttTextTertiary)
-            Text("No graph to display")
-                .font(TTFont.labelMedium)
+        VStack(spacing: 14) {
+            ZStack {
+                Circle()
+                    .fill(Color.ttSurface.opacity(0.5))
+                    .frame(width: 64, height: 64)
+                Image(systemName: "point.3.connected.trianglepath.dotted")
+                    .font(.system(size: 28))
+                    .foregroundColor(.ttTextMuted)
+            }
+            Text("No Graph Data")
+                .font(TTFont.heading3)
                 .foregroundColor(.ttTextSecondary)
-            Text("Enter valid JSON to visualize")
-                .font(TTFont.codeSmall)
+            Text("Enter valid JSON to visualize its structure")
+                .font(TTFont.bodySmall)
                 .foregroundColor(.ttTextTertiary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -375,6 +475,7 @@ struct JSONGraphView: View {
     
     private func fitToWindow(size: CGSize) {
         guard layout.totalSize.width > 0, layout.totalSize.height > 0 else { return }
+        guard size.width > 0, size.height > 0 else { return }
         
         let padding: CGFloat = 80
         let scaleX = (size.width - padding) / layout.totalSize.width
