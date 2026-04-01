@@ -238,7 +238,7 @@ struct NetworkDetailPaneView: View {
                 OnlineJsonViewerView(
                     jsonString: request.responseBody,
                     showToolbar: true,
-                    initialMode: "preview",
+                    initialMode: "code",
                     onOpenInEditor: { json in
                         onOpenInEditor?(json, "Response Preview — \(request.method) \(request.urlPath)")
                     }
@@ -319,7 +319,7 @@ struct NetworkDetailPaneView: View {
                 OnlineJsonViewerView(
                     jsonString: request.responseBody,
                     showToolbar: true,
-                    initialMode: "tree",
+                    initialMode: "code",
                     onOpenInEditor: { json in
                         onOpenInEditor?(json, "Response Body — \(request.method) \(request.urlPath)")
                     }
