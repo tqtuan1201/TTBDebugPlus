@@ -12,6 +12,38 @@
 		<data>
 		ugvexfowUUsMdQUdXfsddlmVpso=
 		</data>
+		<key>Resources/index.html</key>
+		<data>
+		RN81bmN3GStwesefQAdvLldLZ3M=
+		</data>
+		<key>Resources/jquery.min.js</key>
+		<data>
+		7khZLR//lS/PBs4LZm7UeFSTr9w=
+		</data>
+		<key>Resources/jsoneditor-icons.svg</key>
+		<data>
+		q0lOo5RPZU2SfOZ7wLUV3myE2DY=
+		</data>
+		<key>Resources/jsoneditor.min.css</key>
+		<data>
+		pcB7+ddlbXfCNSWm/Igz7ywkSuw=
+		</data>
+		<key>Resources/jsoneditor.min.js</key>
+		<data>
+		Xma/QApJ/JWNl0pQ4n5wG7zUpFA=
+		</data>
+		<key>Resources/online-json-editor.html</key>
+		<data>
+		LUnTSx+Lqg8j4OT+Big1w43DwX0=
+		</data>
+		<key>Resources/sweetalert2-dark.min.css</key>
+		<data>
+		klY6/e2/A1zCVn9GYWznoRoR1jc=
+		</data>
+		<key>Resources/sweetalert2.min.js</key>
+		<data>
+		fDkM6Yh2+8NsBQ5lKSV3rJC75r0=
+		</data>
 	</dict>
 	<key>files2</key>
 	<dict>
@@ -27,6 +59,62 @@
 			<key>hash2</key>
 			<data>
 			fpfHaGA4BPh0lb057E4pZ5/390Wf8ASi6ccz7k4sYoo=
+			</data>
+		</dict>
+		<key>Resources/index.html</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			pN6Fo2dUPxhSxkpEc08jaTH/D1r+aQMM0rY1t0NU4r8=
+			</data>
+		</dict>
+		<key>Resources/jquery.min.js</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=
+			</data>
+		</dict>
+		<key>Resources/jsoneditor-icons.svg</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			RcmL8O6GXayRBNC/ZZJTudnHui3UPkX1VUSFV1DP0B4=
+			</data>
+		</dict>
+		<key>Resources/jsoneditor.min.css</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			4V053HdAjQjEf/Vbc8uTc9nXlfe1zEdyvnJrCyi19e0=
+			</data>
+		</dict>
+		<key>Resources/jsoneditor.min.js</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			6MBJfIzX17GL4YG0UZb+M9bm2PC3D4Xg45uYMaNqw1w=
+			</data>
+		</dict>
+		<key>Resources/online-json-editor.html</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			EKTKqXMkBUU0NE7Gwqm+W6Hki59tlhbmonfZIbENFU8=
+			</data>
+		</dict>
+		<key>Resources/sweetalert2-dark.min.css</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			PpzFdOmOk7hAm20FVuUQYuZjzEfhA+PYni6S9t84TWg=
+			</data>
+		</dict>
+		<key>Resources/sweetalert2.min.js</key>
+		<dict>
+			<key>hash2</key>
+			<data>
+			ptXAuW1frH2b2m2CnkB3YTGiHqFQG99MjmZMshZASE0=
 			</data>
 		</dict>
 	</dict>

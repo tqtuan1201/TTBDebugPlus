@@ -21,7 +21,6 @@
 		1E49DA7BB3933151CFCF7015 /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EB0EAB1A0B95E6202C68BC /* EmptyStateView.swift */; };
 		1E89943D1543580BD954E640 /* AnnotationEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C01485C84D4793ED034BD252 /* AnnotationEditorView.swift */; };
 		1F4E037198F04CF3823DBA92 /* JSONEditorViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF3A8C5B164C9E4D1C97591B /* JSONEditorViewModel.swift */; };
-
 		28D98C25E431340DF9F44A3F /* ButtonStyles.swift in Sources */ = {isa = PBXBuildFile; fileRef = A42460D58D8CEBA64D99D6B8 /* ButtonStyles.swift */; };
 		2B2ECCD0E0DDA0624FDBB1D1 /* Spacing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C9B7389A8590CA61BA3C11B /* Spacing.swift */; };
 		2C976C72CC15F1388F55FEE9 /* ConsoleViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 435409EEC0AA8FA281F5318C /* ConsoleViewModel.swift */; };
@@ -78,7 +77,6 @@
 		DF0365630E4F601B50B59DEA /* jquery.min.js in Resources */ = {isa = PBXBuildFile; fileRef = C6155074708C93079C92CBD8 /* jquery.min.js */; };
 		E07AB12247786E6860FCB3C4 /* BugReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FCCDD8FB797E81713D4F039 /* BugReport.swift */; };
 		E19BF8FF96ED9592DB59F8B5 /* NetworkDetailPane.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5FFE3D92C865E8951B42A9C /* NetworkDetailPane.swift */; };
-
 		E3C818568AB07094BE1715CD /* StatusBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12026A31EDDBF567F323400B /* StatusBarView.swift */; };
 		E49AC4723AE9F94C6090983A /* CardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE14765C953B017C5C763950 /* CardView.swift */; };
 		EA8B14D93250FB5F19458853 /* FeedbackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FE72CBBAAC8497A746D8E00 /* FeedbackView.swift */; };
@@ -136,9 +134,7 @@
 		7D81A159222000FDF2AF3EF0 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		80B29FAC5DD2726C8485490A /* MenuBarDeviceRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarDeviceRow.swift; sourceTree = "<group>"; };
 		8114B980F6C0236A519DA3F9 /* PerformanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerformanceView.swift; sourceTree = "<group>"; };
-
 		842B737A4D6D516165A7CAB9 /* sweetalert2-dark.min.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = "sweetalert2-dark.min.css"; sourceTree = "<group>"; };
-
 		8C7F8F3CA45FD5A3AA7173FD /* JSONWebViewComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONWebViewComponent.swift; sourceTree = "<group>"; };
 		8D1A6C46F37706CE5ACF07D9 /* ConnectionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionManager.swift; sourceTree = "<group>"; };
 		8FCCDD8FB797E81713D4F039 /* BugReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BugReport.swift; sourceTree = "<group>"; };
@@ -162,7 +158,7 @@
 		C01485C84D4793ED034BD252 /* AnnotationEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnnotationEditorView.swift; sourceTree = "<group>"; };
 		C36E0FA51385E7684D8B9B89 /* WebSocketServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketServer.swift; sourceTree = "<group>"; };
 		C3A21EE6C58F8C1D7C0A8FA6 /* JSONProcessing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONProcessing.swift; sourceTree = "<group>"; };
-		C45B561A50F9C139955BE28E /* jsoneditor-icons.svg */ = {isa = PBXFileReference; path = "jsoneditor-icons.svg"; sourceTree = "<group>"; };
+		C45B561A50F9C139955BE28E /* jsoneditor-icons.svg */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "jsoneditor-icons.svg"; sourceTree = "<group>"; };
 		C6155074708C93079C92CBD8 /* jquery.min.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = jquery.min.js; sourceTree = "<group>"; };
 		C7D6C9B622AE920484E773C9 /* PermissionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionsView.swift; sourceTree = "<group>"; };
 		C8980189EC5087505B801A87 /* ConsoleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsoleView.swift; sourceTree = "<group>"; };
@@ -479,7 +475,6 @@
 			children = (
 				BA9EBF6C003F4EC6603224AD /* JSONConvertView.swift */,
 				533000763E8C723166FA29BB /* JSONDiffView.swift */,
-
 				5CED24174CF00A2B33FF482A /* JSONGraphLayoutEngine.swift */,
 				011E1D9E9301BE77871DEBE9 /* JSONGraphView.swift */,
 				450BB99A0F282C8A3FCD2589 /* JSONQueryView.swift */,
@@ -636,7 +631,6 @@
 				52A1E09A6577F13CC2024ED3 /* JSONDiffEngine.swift in Sources */,
 				BB5731FE1763AD120BDDC7CB /* JSONDiffView.swift in Sources */,
 				89EB35B86FFA8A977644F284 /* JSONEditorModels.swift in Sources */,
-
 				1F4E037198F04CF3823DBA92 /* JSONEditorViewModel.swift in Sources */,
 				1CE7931732DACEBBC19F60D8 /* JSONGraphLayoutEngine.swift in Sources */,
 				F4A1E13866D19658E068C9F1 /* JSONGraphModels.swift in Sources */,
@@ -814,6 +808,8 @@
 				CODE_SIGN_ENTITLEMENTS = TTBDebugPlus/TTBDebugPlus.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 14;
+				DEVELOPMENT_TEAM = NWP32GXP5M;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = TTBDebugPlus/Info.plist;
@@ -821,6 +817,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				MARKETING_VERSION = 1.0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.tuantruong.TTBDebugPlus;
 				PRODUCT_NAME = TTBDebugPlus;
 				SDKROOT = macosx;
@@ -835,6 +832,8 @@
 				CODE_SIGN_ENTITLEMENTS = TTBDebugPlus/TTBDebugPlus.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 14;
+				DEVELOPMENT_TEAM = NWP32GXP5M;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = TTBDebugPlus/Info.plist;
@@ -842,6 +841,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				MARKETING_VERSION = 1.0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.tuantruong.TTBDebugPlus;
 				PRODUCT_NAME = TTBDebugPlus;
 				SDKROOT = macosx;
