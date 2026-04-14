@@ -105,8 +105,6 @@ struct PerformanceDataPoint: Identifiable {
     let timestamp: Date
     
     var formattedTime: String {
-        let f = DateFormatter()
-        f.dateFormat = "HH:mm:ss"
-        return f.string(from: timestamp)
+        TTDateFormatter.timeShort.string(from: timestamp)
     }
 }

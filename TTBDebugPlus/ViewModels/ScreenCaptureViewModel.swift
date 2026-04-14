@@ -87,7 +87,8 @@ final class ScreenCaptureViewModel {
         isCapturing = false
         
         // Decode image on background queue to avoid blocking main thread
-        DispatchQueue.global(qos: .userInitiated).async { [self] in
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self else { return }
             guard let imageData = Data(base64Encoded: response.imageData),
                   let image = NSImage(data: imageData) else {
                 print("[TTBDebug] Failed to decode screenshot")
@@ -101,24 +102,24 @@ final class ScreenCaptureViewModel {
                 screenSize: CGSize(width: response.screenWidth, height: response.screenHeight)
             )
             
-            DispatchQueue.main.async { [self] in
-                currentScreenshot = image
-                screenshotHistory.insert(item, at: 0)
-                selectedHistoryItem = item
+            DispatchQueue.main.async {
+                self.currentScreenshot = image
+                self.screenshotHistory.insert(item, at: 0)
+                self.selectedHistoryItem = item
                 
                 // Add to recording session
-                if recordingSession.isActive {
+                if self.recordingSession.isActive {
                     let frame = RecordingFrame(
                         image: image,
                         timestamp: Date(),
-                        index: recordingSession.frameCount
+                        index: self.recordingSession.frameCount
                     )
-                    recordingSession.frames.append(frame)
+                    self.recordingSession.frames.append(frame)
                 }
                 
                 // Trim history
-                if screenshotHistory.count > maxHistoryCount {
-                    screenshotHistory = Array(screenshotHistory.prefix(maxHistoryCount))
+                if self.screenshotHistory.count > self.maxHistoryCount {
+                    self.screenshotHistory = Array(self.screenshotHistory.prefix(self.maxHistoryCount))
                 }
             }
         }

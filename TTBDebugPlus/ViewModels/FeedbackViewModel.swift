@@ -147,9 +147,7 @@ struct FeedbackReport: Identifiable {
     var isResolved: Bool = false
     
     var formattedDate: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd HH:mm"
-        return formatter.string(from: timestamp)
+        TTDateFormatter.dateTime.string(from: timestamp)
     }
     
     var relativeTime: String {

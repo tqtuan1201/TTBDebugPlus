@@ -145,10 +145,14 @@ extension Color {
         Color(hex: "#F43F5E"), // rose
     ]
     
-    /// Returns a stable color for a given device ID
+    /// Returns a stable color for a given device ID (deterministic across launches)
     static func forDevice(_ deviceId: String) -> Color {
-        let hash = abs(deviceId.hashValue)
-        return deviceColorPalette[hash % deviceColorPalette.count]
+        // DJB2 hash — deterministic unlike Swift's randomized hashValue
+        var hash: UInt64 = 5381
+        for char in deviceId.utf8 {
+            hash = ((hash &<< 5) &+ hash) &+ UInt64(char)
+        }
+        return deviceColorPalette[Int(hash % UInt64(deviceColorPalette.count))]
     }
     
     // Row alternating background

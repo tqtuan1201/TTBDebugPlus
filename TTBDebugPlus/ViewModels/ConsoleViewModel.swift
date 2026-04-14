@@ -107,6 +107,11 @@ final class ConsoleViewModel {
             allLogs = connectionManager.connectedDevices.flatMap { $0.consoleLogs }
         }
         
+        // Guard against source being cleared (count < lastSyncedLogCount)
+        if allLogs.count < lastSyncedLogCount {
+            lastSyncedLogCount = 0
+        }
+        
         // Incremental: only convert new entries
         guard allLogs.count > lastSyncedLogCount else { return }
         let newLogs = allLogs[lastSyncedLogCount...]

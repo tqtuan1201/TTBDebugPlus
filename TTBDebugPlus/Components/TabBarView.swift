@@ -21,10 +21,11 @@ struct TabBarView: View {
             
             // Tab Items (excluding Guide — sidebar-only)
             HStack(spacing: 0) {
-                ForEach(AppTab.tabBarCases) { tab in
+                ForEach(Array(AppTab.tabBarCases.enumerated()), id: \.element.id) { index, tab in
                     TabItemView(
                         tab: tab,
-                        isSelected: appState.selectedTab == tab
+                        isSelected: appState.selectedTab == tab,
+                        shortcutNumber: index + 1
                     ) {
                         withAnimation(.easeInOut(duration: 0.2)) {
                             appState.selectedTab = tab
@@ -71,7 +72,13 @@ struct TabBarView: View {
 struct TabItemView: View {
     let tab: AppTab
     let isSelected: Bool
+    var shortcutNumber: Int = 0
     let action: () -> Void
+    
+    private var shortcutKey: KeyEquivalent {
+        guard shortcutNumber > 0, shortcutNumber <= 9 else { return "0" }
+        return KeyEquivalent(Character("\(shortcutNumber)"))
+    }
     
     var body: some View {
         Button(action: action) {
@@ -83,6 +90,19 @@ struct TabItemView: View {
                     Text(tab.rawValue)
                         .font(TTFont.tabLabel)
                         .foregroundColor(isSelected ? .ttPrimary : .ttTextSecondary)
+                    
+                    // Keyboard shortcut hint
+                    if shortcutNumber > 0 {
+                        Text("⌘\(shortcutNumber)")
+                            .font(.system(size: 9, weight: .medium, design: .rounded))
+                            .foregroundColor(.ttTextMuted)
+                            .padding(.horizontal, 4)
+                            .padding(.vertical, 1)
+                            .background(
+                                RoundedRectangle(cornerRadius: 3)
+                                    .fill(Color.ttSurface.opacity(0.6))
+                            )
+                    }
                 }
                 
                 // Active indicator line
@@ -94,6 +114,7 @@ struct TabItemView: View {
             .padding(.horizontal, 16)
         }
         .buttonStyle(.plain)
+        .keyboardShortcut(shortcutKey, modifiers: .command)
     }
 }
 

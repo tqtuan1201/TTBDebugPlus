@@ -400,12 +400,6 @@ struct NetworkRequestEntry: Identifiable {
     // Pre-formatted timestamp (computed once, not per render)
     let formattedTimestamp: String
     
-    // Static DateFormatters — shared across all instances
-    private static let timestampFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.dateFormat = "HH:mm:ss.SSS"
-        return f
-    }()
     
     /// Convenience init from API payload
     init(from payload: APILogPayload, sourceDeviceId: String, sourceDeviceName: String) {
@@ -433,7 +427,7 @@ struct NetworkRequestEntry: Identifiable {
         
         // Pre-format timestamp once
         let date = Date(timeIntervalSince1970: payload.timestamp / 1000)
-        self.formattedTimestamp = Self.timestampFormatter.string(from: date)
+        self.formattedTimestamp = TTDateFormatter.timeWithMillis.string(from: date)
     }
     
     /// Full memberwise init (for manual construction)
@@ -463,7 +457,7 @@ struct NetworkRequestEntry: Identifiable {
         self.urlDomain = comps?.host ?? "unknown"
         
         let date = Date(timeIntervalSince1970: timestamp / 1000)
-        self.formattedTimestamp = Self.timestampFormatter.string(from: date)
+        self.formattedTimestamp = TTDateFormatter.timeWithMillis.string(from: date)
     }
     
     var formattedTime: String {

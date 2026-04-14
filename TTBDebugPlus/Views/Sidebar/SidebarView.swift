@@ -83,24 +83,50 @@ struct SidebarView: View {
         .padding(.vertical, 16)
     }
     
+    @State private var pulseActive = false
+    
     // MARK: - Server Status
     private var serverStatusBar: some View {
         HStack(spacing: 8) {
-            Circle()
-                .fill(connectionManager.isServerRunning ? Color.ttSuccess : Color.ttError)
-                .frame(width: 8, height: 8)
+            ZStack {
+                // Pulse glow behind the dot when server is active
+                if connectionManager.isServerRunning {
+                    Circle()
+                        .fill(Color.ttSuccess.opacity(0.4))
+                        .frame(width: 14, height: 14)
+                        .opacity(pulseActive ? 0.0 : 0.6)
+                        .animation(
+                            .easeInOut(duration: 1.5).repeatForever(autoreverses: true),
+                            value: pulseActive
+                        )
+                        .onAppear { pulseActive = true }
+                        .onDisappear { pulseActive = false }
+                }
+                Circle()
+                    .fill(connectionManager.isServerRunning ? Color.ttSuccess : Color.ttError)
+                    .frame(width: 8, height: 8)
+            }
             
             Text(connectionManager.isServerRunning ? "Server Active" : "Server Offline")
                 .font(TTFont.labelSmall)
                 .foregroundColor(.ttTextSecondary)
             
             Spacer()
-            
-            if let port = connectionManager.serverPort {
-                Text(":\(port)")
-                    .font(TTFont.codeSmall)
-                    .foregroundColor(.ttTextTertiary)
+
+            // Session management menu
+            DeviceSessionMenuButton()
+
+            // Network interface management menu button
+            NetworkInterfaceMenuButton()
+
+            // Force reconnect (restart Bonjour only, keep logs)
+            Button(action: { connectionManager.forceReconnect() }) {
+                Image(systemName: "arrow.triangle.2.circlepath")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(.ttWarning)
             }
+            .buttonStyle(.plain)
+            .help("Force Reconnect (restart Bonjour, keep logs)")
             
             // Toggle server
             Button(action: {
@@ -167,7 +193,7 @@ struct SidebarView: View {
                         .padding(.leading, 28)
                     }
                     
-                    Button(action: { appState.selectedTab = .device }) {
+                    Button(action: { appState.selectedTab = .connectionHealth }) {
                         Text("View Diagnostics →")
                             .font(TTFont.labelSmall)
                             .foregroundColor(.ttPrimary)
@@ -204,11 +230,12 @@ struct SidebarView: View {
                     withAnimation(.easeInOut(duration: 0.2)) {
                         appState.selectedSidebarItem = section
                         switch section {
-                        case .devices: appState.selectedTab = .device
-                        case .logs: appState.selectedTab = .console
-                        case .network: appState.selectedTab = .network
-                        case .performance: appState.selectedTab = .performance
-                        case .devtools: appState.selectedTab = .devtools
+                        case .devices:          appState.selectedTab = .device
+                        case .logs:             appState.selectedTab = .console
+                        case .network:          appState.selectedTab = .network
+                        case .performance:      appState.selectedTab = .performance
+                        case .devtools:         appState.selectedTab = .devtools
+                        case .connectionHealth: appState.selectedTab = .connectionHealth
                         }
                     }
                 }
@@ -218,11 +245,12 @@ struct SidebarView: View {
     
     private func badgeCount(for section: SidebarSection) -> Int? {
         switch section {
-        case .devices: return connectionManager.onlineDevices.count > 0 ? connectionManager.onlineDevices.count : nil
-        case .logs: return connectionManager.totalConsoleLogs > 0 ? connectionManager.totalConsoleLogs : nil
-        case .network: return connectionManager.totalAPILogs > 0 ? connectionManager.totalAPILogs : nil
-        case .performance: return nil
-        case .devtools: return nil
+        case .devices:          return connectionManager.onlineDevices.count > 0 ? connectionManager.onlineDevices.count : nil
+        case .logs:             return connectionManager.totalConsoleLogs > 0 ? connectionManager.totalConsoleLogs : nil
+        case .network:          return connectionManager.totalAPILogs > 0 ? connectionManager.totalAPILogs : nil
+        case .performance:      return nil
+        case .devtools:         return nil
+        case .connectionHealth: return nil
         }
     }
     

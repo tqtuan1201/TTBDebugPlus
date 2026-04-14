@@ -45,51 +45,55 @@ class AppState {
 
 // MARK: - Tab Navigation
 enum AppTab: String, CaseIterable, Identifiable {
-    case console = "Console"
-    case network = "Network"
-    case device = "Device"
-    case performance = "Performance"
-    case devtools = "Dev Tools"
-    case feedback = "Feedback"
-    case guide = "Guide"
+    case console            = "Console"
+    case network            = "Network"
+    case device             = "Device"
+    case performance        = "Performance"
+    case devtools           = "Dev Tools"
+    case feedback           = "Feedback"
+    case connectionHealth   = "Connection Health"
+    case guide              = "Guide"
     
     var id: String { rawValue }
     
     var icon: String {
         switch self {
-        case .console: return "terminal"
-        case .network: return "network"
-        case .device: return "iphone"
-        case .performance: return "chart.xyaxis.line"
-        case .devtools: return "wrench.and.screwdriver"
-        case .feedback: return "bubble.left.and.text.bubble.right"
-        case .guide: return "book.fill"
+        case .console:           return "terminal"
+        case .network:           return "network"
+        case .device:            return "iphone"
+        case .performance:       return "chart.xyaxis.line"
+        case .devtools:          return "wrench.and.screwdriver"
+        case .feedback:          return "bubble.left.and.text.bubble.right"
+        case .connectionHealth:  return "network.badge.shield.half.filled"
+        case .guide:             return "book.fill"
         }
     }
     
-    /// Tabs shown in the main tab bar (excludes guide — it's sidebar-only)
+    /// Tabs shown in the main tab bar (excludes guide and connectionHealth — sidebar-only)
     static var tabBarCases: [AppTab] {
-        allCases.filter { $0 != .guide }
+        allCases.filter { $0 != .guide && $0 != .connectionHealth }
     }
 }
 
 // MARK: - Sidebar Sections
 enum SidebarSection: String, CaseIterable, Identifiable {
-    case devices = "DEVICES"
-    case logs = "LOGS"
-    case network = "NETWORK"
-    case performance = "PERFORMANCE"
-    case devtools = "DEV TOOLS"
+    case devices          = "DEVICES"
+    case logs             = "LOGS"
+    case network          = "NETWORK"
+    case performance      = "PERFORMANCE"
+    case devtools         = "DEV TOOLS"
+    case connectionHealth = "CONNECTION HEALTH"
     
     var id: String { rawValue }
     
     var icon: String {
         switch self {
-        case .devices: return "desktopcomputer"
-        case .logs: return "doc.text"
-        case .network: return "antenna.radiowaves.left.and.right"
-        case .performance: return "chart.xyaxis.line"
-        case .devtools: return "wrench.and.screwdriver"
+        case .devices:          return "desktopcomputer"
+        case .logs:             return "doc.text"
+        case .network:          return "antenna.radiowaves.left.and.right"
+        case .performance:      return "chart.xyaxis.line"
+        case .devtools:         return "wrench.and.screwdriver"
+        case .connectionHealth: return "network.badge.shield.half.filled"
         }
     }
 }

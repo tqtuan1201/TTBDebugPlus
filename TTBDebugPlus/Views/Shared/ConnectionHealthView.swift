@@ -46,13 +46,23 @@ struct ConnectionHealthView: View {
                 // Quick start code
                 quickStartCard
                     .frame(maxWidth: 800)
+                
+                // ── NEW: Multi-Interface Sections ─────────────────────────
+                VStack(spacing: 16) {
+                    networkInterfacesCard
+                    bonjourStatusCard
+                    if !connectionManager.connectedDevices.isEmpty {
+                        connectedDevicesCard
+                    }
+                }
+                .frame(maxWidth: 800)
             }
             .padding(32)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.ttBackground)
         .onAppear {
-            timer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { _ in
+            timer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: true) { _ in
                 refreshTick += 1
             }
         }
@@ -131,7 +141,7 @@ struct ConnectionHealthView: View {
                         icon: "network",
                         iconColor: .ttPrimary,
                         label: "Port",
-                        value: "\(port)"
+                        value: String(port)
                     )
                 }
                 
@@ -149,16 +159,37 @@ struct ConnectionHealthView: View {
                     value: "\(connectionManager.onlineDevices.count) device(s)"
                 )
                 
-                if !connectionManager.isServerRunning {
-                    Button(action: { connectionManager.startServer() }) {
-                        HStack {
-                            Image(systemName: "play.circle.fill")
-                            Text("Start Server")
+                // ── Action Buttons ──────────────────────────────────────
+                HStack(spacing: 8) {
+                    if connectionManager.isServerRunning {
+                        // Force Reconnect — restart Bonjour without clearing sessions
+                        Button(action: { connectionManager.forceReconnect() }) {
+                            HStack(spacing: 5) {
+                                Image(systemName: "arrow.triangle.2.circlepath")
+                                Text("Force Reconnect")
+                            }
                         }
+                        .buttonStyle(.ttSecondary)
+
+                        // Full Restart — tear down everything and start fresh
+                        Button(action: { connectionManager.restartServer() }) {
+                            HStack(spacing: 5) {
+                                Image(systemName: "arrow.clockwise")
+                                Text("Restart Server")
+                            }
+                        }
+                        .buttonStyle(.ttGhost)
+                    } else {
+                        Button(action: { connectionManager.startServer() }) {
+                            HStack(spacing: 5) {
+                                Image(systemName: "play.circle.fill")
+                                Text("Start Server")
+                            }
+                        }
+                        .buttonStyle(.ttPrimary)
                     }
-                    .buttonStyle(.ttPrimary)
-                    .padding(.top, 4)
                 }
+                .padding(.top, 4)
             }
         }
     }
@@ -202,11 +233,13 @@ struct ConnectionHealthView: View {
                     )
                 }
                 
+                let primaryIface = connectionManager.activeInterfaces
+                    .first(where: { $0.ipAddress != nil })
                 statusRow(
                     icon: "desktopcomputer",
                     iconColor: .ttTextTertiary,
                     label: "Interface",
-                    value: "en0 (Wi-Fi)"
+                    value: primaryIface.map { "\($0.name) (\($0.kind.rawValue))" } ?? "Unknown"
                 )
             }
         }
@@ -394,6 +427,207 @@ struct ConnectionHealthView: View {
                     )
             )
             .textSelection(.enabled)
+    }
+}
+
+// MARK: - Multi-Interface Extension
+
+extension ConnectionHealthView {
+
+    // MARK: Network Interfaces Card
+
+    var networkInterfacesCard: some View {
+        CardView(title: "NETWORK INTERFACES") {
+            VStack(spacing: 0) {
+                if connectionManager.activeInterfaces.isEmpty {
+                    HStack {
+                        Image(systemName: "minus.circle")
+                            .foregroundColor(.ttTextMuted)
+                        Text("No active interfaces detected")
+                            .font(TTFont.bodySmall)
+                            .foregroundColor(.ttTextTertiary)
+                    }
+                    .padding(.vertical, 6)
+                } else {
+                    ForEach(connectionManager.activeInterfaces) { iface in
+                        VStack(spacing: 0) {
+                            HStack(spacing: 12) {
+                                // Toggle
+                                Toggle("", isOn: Binding(
+                                    get: { connectionManager.isInterfaceEnabled(iface.name) },
+                                    set: { connectionManager.setInterfaceEnabled(iface.name, $0) }
+                                ))
+                                .toggleStyle(.switch)
+                                .labelsHidden()
+                                .scaleEffect(0.8)
+
+                                // Kind badge
+                                ifaceBadge(iface.kind)
+
+                                // Name + IP
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(iface.name)
+                                        .font(TTFont.codeMedium)
+                                        .foregroundColor(.ttTextPrimary)
+                                    Text(iface.ipAddress ?? "No IP assigned")
+                                        .font(TTFont.codeSmall)
+                                        .foregroundColor(iface.ipAddress != nil ? .ttTextSecondary : .ttTextTertiary)
+                                }
+
+                                Spacer()
+
+                                Circle()
+                                    .fill(connectionManager.isInterfaceEnabled(iface.name)
+                                          ? (iface.ipAddress != nil ? Color.ttSuccess : Color.ttWarning)
+                                          : Color.ttTextMuted)
+                                    .frame(width: 8, height: 8)
+                            }
+                            .padding(.vertical, 8)
+                            .animation(.easeInOut(duration: 0.2), value: connectionManager.isInterfaceEnabled(iface.name))
+
+                            if iface.id != connectionManager.activeInterfaces.last?.id {
+                                Divider().background(Color.ttBorder)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: Bonjour Status Card
+
+    var bonjourStatusCard: some View {
+        CardView(title: "BONJOUR STATUS") {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(spacing: 8) {
+                    Text("Service")
+                        .font(TTFont.labelSmall)
+                        .foregroundColor(.ttTextTertiary)
+                    Text(BonjourAdvertiser.serviceType)
+                        .font(TTFont.codeSmall)
+                        .foregroundColor(.ttTextSecondary)
+                }
+
+                Divider().background(Color.ttBorder)
+
+                let enabledIfaces = connectionManager.activeInterfaces
+                    .filter { connectionManager.isInterfaceEnabled($0.name) }
+
+                if enabledIfaces.isEmpty {
+                    HStack {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundColor(.ttWarning)
+                        Text("All interfaces disabled — enable at least one above")
+                            .font(TTFont.bodySmall)
+                            .foregroundColor(.ttWarning)
+                    }
+                } else {
+                    ForEach(enabledIfaces) { iface in
+                        HStack(spacing: 12) {
+                            let port = connectionManager.serverPorts[iface.name]
+                            Image(systemName: port != nil ? "checkmark.circle.fill" : "clock.fill")
+                                .font(.system(size: 13))
+                                .foregroundColor(port != nil ? .ttSuccess : .ttWarning)
+
+                            Text(iface.name)
+                                .font(TTFont.codeMedium)
+                                .foregroundColor(.ttTextPrimary)
+
+                            if let port {
+                                Text("→ :" + String(port))
+                                    .font(TTFont.codeSmall)
+                                    .foregroundColor(.ttTextSecondary)
+                            }
+
+                            Spacer()
+
+                            Text(port != nil ? "Advertising" : "Waiting...")
+                                .font(TTFont.labelSmall)
+                                .foregroundColor(port != nil ? .ttSuccess : .ttWarning)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 3)
+                                .background(Capsule().fill((port != nil ? Color.ttSuccess : Color.ttWarning).opacity(0.12)))
+                        }
+                        .padding(.vertical, 4)
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: Connected Devices Card
+
+    var connectedDevicesCard: some View {
+        CardView(title: "DEVICE NETWORK DETAILS") {
+            VStack(spacing: 0) {
+                ForEach(connectionManager.connectedDevices) { session in
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack(spacing: 10) {
+                            Image(systemName: session.isSimulator ? "laptopcomputer" : "iphone")
+                                .font(.system(size: 14))
+                                .foregroundColor(session.isOnline ? .ttSuccess : .ttTextTertiary)
+                            Text(session.displayName)
+                                .font(TTFont.labelLarge)
+                                .foregroundColor(.ttTextPrimary)
+                            Spacer()
+                            let elapsed = Int(Date().timeIntervalSince(session.lastHeartbeat))
+                            Text("♥ \(elapsed)s ago")
+                                .font(TTFont.codeSmall)
+                                .foregroundColor(elapsed < 10 ? .ttSuccess : .ttWarning)
+                        }
+
+                        HStack(spacing: 16) {
+                            if let ip = session.latestDiagnostics?.localIP {
+                                Label(ip, systemImage: "network")
+                                    .font(TTFont.codeSmall)
+                                    .foregroundColor(.ttTextSecondary)
+
+                                // Subnet match
+                                let devicePrefix = ip.split(separator: ".").prefix(3).joined(separator: ".")
+                                let matched = connectionManager.allNetworkPrefixes.values.contains(devicePrefix)
+                                Label(matched ? "Same subnet" : "Different subnet",
+                                      systemImage: matched ? "checkmark.circle.fill" : "xmark.circle.fill")
+                                    .font(TTFont.labelSmall)
+                                    .foregroundColor(matched ? .ttSuccess : .ttError)
+                            } else {
+                                Text("Waiting for diagnostics...")
+                                    .font(TTFont.bodySmall)
+                                    .foregroundColor(.ttTextTertiary)
+                            }
+                        }
+                        .padding(.leading, 24)
+                    }
+                    .padding(.vertical, 8)
+
+                    if session.id != connectionManager.connectedDevices.last?.id {
+                        Divider().background(Color.ttBorder)
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: Interface Kind Badge
+
+    func ifaceBadge(_ kind: InterfaceKind) -> some View {
+        let color: Color
+        switch kind {
+        case .wifi:     color = .ttSuccess
+        case .ethernet: color = .ttInfo
+        case .vpn:      color = Color(hex: "#A855F7")
+        case .other:    color = .ttTextTertiary
+        }
+        return HStack(spacing: 4) {
+            Image(systemName: kind.icon)
+                .font(.system(size: 9, weight: .semibold))
+            Text(kind.rawValue.uppercased())
+                .font(TTFont.badge)
+        }
+        .foregroundColor(color)
+        .padding(.horizontal, 7)
+        .padding(.vertical, 3)
+        .background(Capsule().fill(color.opacity(0.15)))
     }
 }
 

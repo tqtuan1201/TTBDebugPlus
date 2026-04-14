@@ -64,6 +64,8 @@ struct TTBDebugPlusApp: App {
                     .keyboardShortcut("5", modifiers: .command)
                 Button("Feedback") { appState.selectedTab = .feedback }
                     .keyboardShortcut("6", modifiers: .command)
+                Button("Connection Health") { appState.selectedTab = .connectionHealth }
+                    .keyboardShortcut("7", modifiers: .command)
             }
             
             CommandMenu("Debug") {
@@ -100,6 +102,16 @@ struct TTBDebugPlusApp: App {
                         connectionManager.startServer()
                     }
                 }
+                
+                Button("Force Reconnect") {
+                    connectionManager.forceReconnect()
+                }
+                .keyboardShortcut("r", modifiers: [.command, .shift])
+                .disabled(!connectionManager.isServerRunning)
+                
+                Button("Restart Server") {
+                    connectionManager.restartServer()
+                }
             }
             
             // Help menu
@@ -116,7 +128,12 @@ struct TTBDebugPlusApp: App {
         }
         
         // MARK: - Menu Bar Extra
-        MenuBarExtra("TTBDebugPlus", image: "ttbasedebug-logo") {
+        // NOTE: Using SF Symbol instead of custom image.
+        // The original `ttbasedebug-logo` asset is a 1024×1024 JPG promotional image
+        // without alpha channel — macOS menu bar requires small template PNGs (18pt/36pt)
+        // with transparency. `ladybug.fill` matches the app's debug branding and
+        // renders correctly in both light/dark menu bar appearances.
+        MenuBarExtra("TTBDebugPlus", systemImage: "ladybug.fill") {
             MenuBarView()
                 .environment(connectionManager)
         }

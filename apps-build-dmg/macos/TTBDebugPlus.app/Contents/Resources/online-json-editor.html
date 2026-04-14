@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TTBDebugPlus — Online JSON Editor</title>
+
+<!-- Local vendor CSS -->
+<link rel="stylesheet" href="jsoneditor.min.css">
+<link rel="stylesheet" href="sweetalert2-dark.min.css">
+
+<style>
+/* ============================================
+   Minimal icon CSS — replaces FontAwesome
+   ============================================ */
+.fas, .fa { font-style: normal; font-family: system-ui; display: inline-block; text-align: center; }
+.fa-code::before { content: '\276E/\276F'; font-size: 0.7em; }
+.fa-list::before { content: '\2630'; }
+.fa-file-alt::before { content: '\1F4C4'; }
+.fa-align-left::before { content: '\2261'; }
+.fa-chevron-left::before { content: '\276E'; }
+.fa-chevron-right::before { content: '\276F'; }
+.fa-compress-alt::before { content: '\2B0C'; }
+.fa-check-circle::before { content: '\2714'; }
+.fa-copy::before { content: '\2398'; }
+.fa-minus::before { content: '\2212'; }
+.fa-plus::before { content: '+'; }
+.fa-folder-open::before { content: '\1F4C2'; }
+.fa-expand::before { content: '\2922'; }
+.fa-compress::before { content: '\2921'; }
+.fa-search::before { content: '\1F50D'; }
+.fa-download::before { content: '\2B07'; }
+
+/* Override jsoneditor icon paths to local */
+div.jsoneditor-tree button.jsoneditor-button {
+  background-image: url(jsoneditor-icons.svg) !important;
+}
+
+/* ============================================
+   TTBDebugPlus Dark Theme — Online JSON Editor Clone
+   Adapted from classic.online-json.com
+   ============================================ */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%; height: 100%;
+  background: #0F172A;
+  color: #F8FAFC;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  font-size: 14px;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+body.maximized-card { overflow: hidden; }
+
+/* ---------- Navbar ---------- */
+.navbar {
+  display: flex;
+  align-items: center;
+  height: 38px;
+  background: linear-gradient(90deg, #1E293B 0%, #0F172A 100%);
+  border-bottom: 1px solid rgba(51,65,85,0.3);
+  padding: 0 12px;
+  flex-shrink: 0;
+}
+
+.navbar .brand {
+  font-size: 14px;
+  font-weight: 600;
+  color: #60A5FA;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.navbar .brand i { font-size: 16px; }
+
+.navbar .spacer { flex: 1; }
+
+.navbar .nav-btn {
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  border: none; background: transparent;
+  color: #94A3B8; cursor: pointer;
+  border-radius: 4px;
+  font-size: 13px;
+  transition: all 0.15s;
+}
+.navbar .nav-btn:hover {
+  background: rgba(59,130,246,0.15);
+  color: #F8FAFC;
+}
+
+/* ---------- Main Container ---------- */
+.main-container {
+  display: flex;
+  flex: 1;
+  height: calc(100vh - 38px);
+  padding: 6px;
+  gap: 6px;
+}
+
+/* ---------- Editor Panels ---------- */
+.main-editor {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #1E293B;
+  border: 1px solid rgba(51,65,85,0.3);
+  transition: all 0.2s ease;
+}
+
+.main-editor.maximized-card {
+  position: fixed !important;
+  top: 0; left: 0;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  z-index: 1040;
+}
+
+/* ---------- Controller Panel ---------- */
+#controller {
+  display: flex;
+  flex-direction: column;
+  min-width: 110px;
+  max-width: 110px;
+  padding: 8px 6px;
+  gap: 6px;
+  background: #1E293B;
+  border-radius: 8px;
+  border: 1px solid rgba(51,65,85,0.3);
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+#controller .ctrl-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #64748B;
+  margin-top: 4px;
+}
+
+/* Live switch */
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 4px 0;
+}
+
+.switch-row label {
+  font-size: 12px;
+  color: #94A3B8;
+  cursor: pointer;
+}
+
+.toggle-switch {
+  position: relative;
+  width: 32px; height: 18px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: #334155;
+  border-radius: 9px;
+  outline: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.toggle-switch:checked { background: #3B82F6; }
+.toggle-switch::before {
+  content: '';
+  position: absolute;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: white;
+  top: 2px; left: 2px;
+  transition: transform 0.2s;
+}
+.toggle-switch:checked::before { transform: translateX(14px); }
+
+/* Buttons */
+.ctrl-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 6px 4px;
+  border: none;
+  background: rgba(51,65,85,0.3);
+  color: #94A3B8;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 500;
+  transition: all 0.15s;
+}
+.ctrl-btn i { font-size: 14px; }
+.ctrl-btn:hover {
+  background: rgba(59,130,246,0.15);
+  color: #60A5FA;
+}
+.ctrl-btn:active { transform: scale(0.95); }
+
+.ctrl-btn.primary {
+  background: rgba(59,130,246,0.2);
+  color: #60A5FA;
+}
+.ctrl-btn.primary:hover {
+  background: rgba(59,130,246,0.35);
+}
+
+/* Indent select */
+.ctrl-select {
+  width: 100%;
+  padding: 4px 6px;
+  background: rgba(51,65,85,0.3);
+  color: #F8FAFC;
+  border: 1px solid rgba(51,65,85,0.5);
+  border-radius: 4px;
+  font-size: 12px;
+  outline: none;
+  cursor: pointer;
+}
+.ctrl-select:focus { border-color: #3B82F6; }
+
+/* Copy direction buttons */
+.ctrl-row {
+  display: flex;
+  gap: 4px;
+}
+.ctrl-row .ctrl-btn { flex: 1; }
+
+/* ---------- JSONEditor Dark Theme Override ---------- */
+.jsoneditor {
+  border: none !important;
+  background: #0F172A !important;
+}
+
+.jsoneditor-outer,
+.jsoneditor-text-errors,
+.jsoneditor-outer .ace_editor,
+.jsoneditor .jsoneditor-text,
+div.jsoneditor-outer {
+  background: #0F172A !important;
+}
+
+.jsoneditor-text-errors tr {
+  background: rgba(239,68,68,0.08) !important;
+}
+
+.jsoneditor > .jsoneditor-menu {
+  display: inline-flex !important;
+  background: linear-gradient(90deg, #1a1f36 0%, #1E293B 100%) !important;
+  border-bottom: 1px solid rgba(51,65,85,0.3) !important;
+  border-radius: 0 !important;
+}
+
+.jsoneditor-menu > button,
+.jsoneditor-menu > .jsoneditor-modes > button {
+  filter: invert(0.7) !important;
+}
+
+.jsoneditor-menu > .jsoneditor-modes > button:hover,
+.jsoneditor-menu > button:hover {
+  filter: invert(0.9) !important;
+  background: rgba(59,130,246,0.15) !important;
+}
+
+/* Mode switch tabs */
+.jsoneditor-mode-switch { order: -1; }
+
+.mode-parent {
+  display: flex;
+  border: 1px solid rgba(148,163,184,0.3);
+  border-radius: 4px;
+  margin: 2px 4px;
+  overflow: hidden;
+}
+
+.mode-switch {
+  width: 28px; height: 26px;
+  display: flex;
+  align-items: center; justify-content: center;
+  cursor: pointer;
+  color: rgba(148,163,184,0.4);
+  font-size: 12px;
+  transition: all 0.15s;
+}
+
+.mode-switch.active {
+  background: rgba(59,130,246,0.3);
+  color: #F8FAFC;
+}
+
+.mode-switch:not(.active):hover {
+  background: rgba(148,163,184,0.1);
+  color: rgba(148,163,184,0.7);
+}
+
+/* Menu buttons on right side */
+.jsoneditor-menu-right,
+.jsoneditor-preview-menu-right {
+  margin-left: auto;
+  margin-right: 6px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.btn-menuright {
+  padding: 4px 6px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  color: rgba(148,163,184,0.6);
+  font-size: 12px;
+  transition: all 0.15s;
+}
+.btn-menuright:hover {
+  background: rgba(148,163,184,0.1);
+  border-color: rgba(148,163,184,0.2);
+  color: #F8FAFC;
+}
+
+/* Ace Editor (code mode) dark */
+.ace_editor, .ace-jsoneditor {
+  background: #0F172A !important;
+  color: #F8FAFC !important;
+  font-size: 14px !important;
+  font-family: ui-monospace, 'SF Mono', Menlo, Monaco, monospace !important;
+}
+
+.ace_scroller,
+.ace_content,
+.ace_text-layer,
+.ace_layer,
+.ace_scrollbar,
+.ace_scrollbar-inner {
+  background: transparent !important;
+}
+
+.ace_editor .ace_sb-v,
+.ace_editor .ace_sb-h {
+  background: #0F172A !important;
+}
+
+.ace_gutter {
+  background: #1E293B !important;
+  color: #475569 !important;
+  border-right: 1px solid rgba(51,65,85,0.3) !important;
+}
+
+.ace_cursor { color: #3B82F6 !important; }
+.ace_selection { background: rgba(59,130,246,0.2) !important; }
+.ace_active-line { background: rgba(30,41,59,0.5) !important; }
+
+/* Syntax highlighting for Ace */
+.ace_string { color: #FB923C !important; }
+.ace_constant.ace_numeric { color: #4ADE80 !important; }
+.ace_constant.ace_language { color: #C084FC !important; }
+.ace_variable { color: #60A5FA !important; }
+.ace_paren { color: #94A3B8 !important; }
+.ace_support.ace_function { color: #60A5FA !important; }
+
+/* Tree mode dark */
+.jsoneditor-tree,
+div.jsoneditor-tree {
+  background: #0F172A !important;
+  color: #F8FAFC !important;
+}
+
+div.jsoneditor td {
+  border-color: rgba(51,65,85,0.2) !important;
+  color: #F8FAFC !important;
+}
+
+div.jsoneditor td,
+div.jsoneditor textarea,
+div.jsoneditor th,
+div.jsoneditor-field,
+div.jsoneditor-value {
+  font-size: 14px;
+  font-family: ui-monospace, 'SF Mono', Menlo, Monaco, monospace !important;
+}
+
+div.jsoneditor-field {
+  color: #60A5FA !important;
+}
+
+div.jsoneditor-value.jsoneditor-string {
+  color: #FB923C !important;
+}
+
+div.jsoneditor-value.jsoneditor-number {
+  color: #4ADE80 !important;
+}
+
+div.jsoneditor-value.jsoneditor-boolean {
+  color: #C084FC !important;
+}
+
+div.jsoneditor-value.jsoneditor-null {
+  color: #94A3B8 !important;
+}
+
+div.jsoneditor-value.jsoneditor-url {
+  color: #60A5FA !important;
+}
+
+tr.jsoneditor-highlight,
+tr.jsoneditor-selected {
+  background: rgba(59,130,246,0.1) !important;
+}
+
+div.jsoneditor-tree button.jsoneditor-button {
+  filter: invert(0.6) !important;
+  opacity: 0.15 !important;
+}
+
+div.jsoneditor-tree button.jsoneditor-button.jsoneditor-expanded,
+div.jsoneditor-tree button.jsoneditor-button.jsoneditor-collapsed {
+  opacity: 0.5 !important;
+}
+
+div.jsoneditor-tree button.jsoneditor-button.jsoneditor-expanded:hover,
+div.jsoneditor-tree button.jsoneditor-button.jsoneditor-collapsed:hover,
+div.jsoneditor-tree button.jsoneditor-button.jsoneditor-dragarea:hover,
+div.jsoneditor-tree button.jsoneditor-contextmenu-button:hover {
+  filter: invert(0.85) !important;
+  opacity: 0.8 !important;
+  background-color: rgba(59,130,246,0.15) !important;
+}
+
+/* Tree indent guide lines (vertical borders) */
+div.jsoneditor td.jsoneditor-tree {
+  border-color: rgba(51,65,85,0.08) !important;
+}
+
+.jsoneditor-contextmenu .jsoneditor-menu {
+  background: #1E293B !important;
+  border: 1px solid rgba(51,65,85,0.5) !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3) !important;
+}
+
+.jsoneditor-contextmenu .jsoneditor-menu li button {
+  color: #F8FAFC !important;
+  background: transparent !important;
+}
+
+.jsoneditor-contextmenu .jsoneditor-menu li button:hover {
+  background: rgba(59,130,246,0.15) !important;
+}
+
+/* Preview mode dark */
+.jsoneditor pre.jsoneditor-preview {
+  background: #0F172A !important;
+  color: #F8FAFC !important;
+  font-size: 14px !important;
+  font-family: ui-monospace, 'SF Mono', Menlo, Monaco, monospace !important;
+}
+
+/* Search box dark */
+.jsoneditor .jsoneditor-search {
+  background: #1E293B !important;
+  border: 1px solid rgba(51,65,85,0.5) !important;
+}
+
+.jsoneditor .jsoneditor-search input {
+  background: transparent !important;
+  color: #F8FAFC !important;
+}
+
+.jsoneditor .jsoneditor-frame {
+  background: #1E293B !important;
+  border-color: rgba(51,65,85,0.3) !important;
+}
+
+.jsoneditor .jsoneditor-frame input {
+  color: #F8FAFC !important;
+}
+
+/* Navigation path */
+.jsoneditor .jsoneditor-navigation-bar {
+  background: #1E293B !important;
+  border-color: rgba(51,65,85,0.3) !important;
+  color: #94A3B8 !important;
+}
+
+/* Status bar */
+.jsoneditor .jsoneditor-statusbar {
+  background: #1E293B !important;
+  border-color: rgba(51,65,85,0.3) !important;
+  color: #64748B !important;
+}
+
+/* Validation errors */
+.jsoneditor .jsoneditor-text-errors {
+  background: rgba(239,68,68,0.1) !important;
+  border-color: rgba(239,68,68,0.3) !important;
+}
+
+.jsoneditor .jsoneditor-text-errors td {
+  color: #FCA5A5 !important;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #475569; }
+::-webkit-scrollbar-corner { background: transparent; }
+
+/* Hide powered by ace */
+.jsoneditor-poweredBy {
+  display: none !important;
+}
+
+/* Ace search dialog dark theme */
+.ace_search {
+  background: #1E293B !important;
+  border: 1px solid rgba(51,65,85,0.5) !important;
+  border-radius: 6px !important;
+  color: #F8FAFC !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3) !important;
+}
+
+.ace_search_form,
+.ace_replace_form {
+  border-color: rgba(51,65,85,0.5) !important;
+}
+
+.ace_search input {
+  background: #0F172A !important;
+  color: #F8FAFC !important;
+  border: 1px solid rgba(51,65,85,0.5) !important;
+  border-radius: 3px !important;
+}
+
+.ace_search .ace_button {
+  color: #94A3B8 !important;
+}
+
+.ace_search .ace_button:hover,
+.ace_search .ace_button.checked {
+  background: rgba(59,130,246,0.2) !important;
+  color: #F8FAFC !important;
+}
+
+.ace_searchbtn,
+.ace_searchbtn_close {
+  background: rgba(51,65,85,0.3) !important;
+  border-color: rgba(51,65,85,0.5) !important;
+  color: #94A3B8 !important;
+}
+
+.ace_searchbtn:hover,
+.ace_searchbtn_close:hover {
+  background: rgba(59,130,246,0.2) !important;
+  color: #F8FAFC !important;
+}
+
+.ace_search_counter {
+  color: #94A3B8 !important;
+}
+
+/* Toast override */
+.swal2-popup.swal2-toast {
+  background: #1E293B !important;
+  border: 1px solid rgba(51,65,85,0.5) !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3) !important;
+}
+
+.swal2-popup.swal2-toast .swal2-title {
+  color: #F8FAFC !important;
+  font-size: 13px !important;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 700px) {
+  .main-container {
+    flex-direction: column;
+  }
+  #controller {
+    flex-direction: row;
+    max-width: 100%;
+    min-width: auto;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<!-- Main Editor Area (no navbar — embedded in app) -->
+<div class="main-container" id="main-container" style="height: 100vh;">
+
+  <!-- Left Editor (Code) -->
+  <div class="main-editor" id="jsoneditor-1"></div>
+
+  <!-- Controller Panel -->
+  <div id="controller">
+    <!-- Live sync toggle -->
+    <div class="switch-row">
+      <input type="checkbox" class="toggle-switch" id="live-switch" checked>
+      <label for="live-switch">Live</label>
+    </div>
+
+    <!-- Format -->
+    <button class="ctrl-btn primary" id="format" title="Format JSON">
+      <i class="fas fa-align-left"></i>
+      <span>Format</span>
+    </button>
+
+    <!-- Indent -->
+    <span class="ctrl-label">Indent</span>
+    <select class="ctrl-select" id="indent-select">
+      <option value="2" selected>2 spaces</option>
+      <option value="3">3 spaces</option>
+      <option value="4">4 spaces</option>
+      <option value="8">8 spaces</option>
+      <option value="tab">Tab</option>
+    </select>
+
+    <!-- Copy direction -->
+    <span class="ctrl-label">Copy</span>
+    <div class="ctrl-row">
+      <button class="ctrl-btn" id="copy2Left" title="Copy Right → Left">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      <button class="ctrl-btn" id="copy2Right" title="Copy Left → Right">
+        <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
+
+    <!-- Compact -->
+    <button class="ctrl-btn" id="compact-json" title="Compact/Minify">
+      <i class="fas fa-compress-alt"></i>
+      <span>Compact</span>
+    </button>
+
+    <!-- Validate -->
+    <button class="ctrl-btn" id="validate-json" title="Validate JSON">
+      <i class="fas fa-check-circle"></i>
+      <span>Validate</span>
+    </button>
+
+    <!-- Copy -->
+    <button class="ctrl-btn" id="copy-json" title="Copy to Clipboard">
+      <i class="fas fa-copy"></i>
+      <span>Copy</span>
+    </button>
+
+    <!-- Search -->
+    <button class="ctrl-btn" id="search-json" title="Search (Ctrl+F)">
+      <i class="fas fa-search"></i>
+      <span>Search</span>
+    </button>
+
+    <!-- Font size -->
+    <span class="ctrl-label">Font</span>
+    <div class="ctrl-row">
+      <button class="ctrl-btn" id="decrease-font" title="Smaller">
+        <i class="fas fa-minus"></i>
+      </button>
+      <button class="ctrl-btn" id="increase-font" title="Larger">
+        <i class="fas fa-plus"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Right Editor (Tree) -->
+  <div class="main-editor" id="jsoneditor-2"></div>
+
+</div>
+
+<!-- Local vendor JS -->
+<script src="jquery.min.js"></script>
+<script src="jsoneditor.min.js"></script>
+<script src="sweetalert2.min.js"></script>
+
+<script>
+// ============================================
+// Online JSON Editor — TTBDebugPlus Embedded
+// Cloned from classic.online-json.com/json-editor
+// Integrated with TTBridge protocol
+// ============================================
+
+(function() {
+  'use strict';
+
+  // ── Toast ──
+  var Toast = Swal.mixin({
+    toast: true,
+    position: 'bottom',
+    showConfirmButton: false,
+    timer: 2500,
+    background: '#1E293B',
+    color: '#F8FAFC',
+  });
+
+  // ── Helper Functions (from main.js) ──
+  function updatePreview1() {
+    editor1.validate().then(function(value) {
+      if (!value.length && live_editing) {
+        editor2.setText(JSON.stringify(editor1.get(), null, parseInt(!compactFlag ? $('#indent-select').val() : 0)));
+      }
+      notifySwift('contentChanged', { source: 'editor1', valid: !value.length });
+    });
+  }
+
+  function updatePreview2() {
+    editor2.validate().then(function(value) {
+      if (!value.length && live_editing) {
+        editor1.setText(JSON.stringify(editor2.get(), null, parseInt(!compactFlag ? $('#indent-select').val() : 0)));
+      }
+      notifySwift('contentChanged', { source: 'editor2', valid: !value.length });
+    });
+  }
+
+  function showValidationToast(err, showSuccess) {
+    showSuccess = showSuccess || 0;
+    if (!err.length) {
+      if (showSuccess) {
+        Toast.fire({ icon: 'success', title: '&ensp; JSON is valid' });
+      }
+    } else {
+      showValidationError();
+    }
+  }
+
+  function showValidationError() {
+    Toast.fire({ icon: 'error', title: '&ensp; JSON has errors' });
+  }
+
+  function updateValidPreview(value, indentFlag) {
+    if (indentFlag === undefined) indentFlag = true;
+    if (!value.length) {
+      var jsonContent = editor1.get();
+      compactFlag = !indentFlag;
+      editor2.setText(JSON.stringify(jsonContent, null, parseInt(indentFlag ? $('#indent-select').val() : "0")));
+    } else {
+      showValidationToast(value);
+    }
+  }
+
+  function addMenus(mode, editorId) {
+    var codeActive = '', treeActive = '', previewActive = '';
+    if (mode === "code") codeActive = 'active';
+    else if (mode === "tree") treeActive = 'active';
+    else previewActive = 'active';
+
+    $('#' + editorId + ' .jsoneditor-mode-switch').children().remove();
+    $('#' + editorId + ' .jsoneditor-mode-switch').append(
+      '<div class="d-flex mode-parent">' +
+      '<div class="mode-switch mode-code ' + codeActive + '" title="Code"><i class="fas fa-code"></i></div>' +
+      '<div class="mode-switch mode-tree ' + treeActive + '" title="Tree"><i class="fas fa-list"></i></div>' +
+      '<div class="mode-switch mode-preview ' + previewActive + '" title="Preview"><i class="fas fa-file-alt"></i></div>' +
+      '</div>'
+    );
+
+    // Right-side menu buttons
+    var menuRight = $('#' + editorId + ' .jsoneditor-menu-right');
+    menuRight.children().remove();
+    menuRight.append('<i class="btn-menuright btn-menuright-open fas fa-folder-open" title="Open File"></i>');
+    menuRight.append('<i class="btn-menuright btn-menuright-expand fas fa-expand" title="Maximize"></i>');
+    menuRight.append('<i class="btn-menuright btn-menuright-search fas fa-search" title="Search"></i>');
+    menuRight.append('<i class="btn-menuright btn-menuright-download fas fa-download" title="Download"></i>');
+    menuRight.append('<i class="btn-menuright btn-menuright-copy fas fa-copy" title="Copy"></i>');
+
+    var previewMenuRight = $('#' + editorId + ' .jsoneditor-preview-menu-right');
+    previewMenuRight.children().remove();
+    previewMenuRight.append('<i class="btn-menuright btn-menuright-expand fas fa-expand" title="Maximize"></i>');
+    previewMenuRight.append('<i class="btn-menuright btn-menuright-download fas fa-download" title="Download"></i>');
+    previewMenuRight.append('<i class="btn-menuright btn-menuright-copy fas fa-copy" title="Copy"></i>');
+  }
+
+  function copyToClipboard(text) {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text);
+    } else {
+      var ta = document.createElement("textarea");
+      document.body.appendChild(ta);
+      ta.value = text;
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+    }
+  }
+
+  function download(content, filename, contentType) {
+    if (!contentType) contentType = 'application/octet-stream';
+    var a = document.createElement('a');
+    var blob = new Blob([content], { type: contentType });
+    a.href = window.URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+  }
+
+  function dispFile(contents) {
+    activeEditor.setText(contents);
+    activeEditor.validate().then(function(value) {});
+  }
+
+  function openFile(func) {
+    var fileInput = document.createElement("input");
+    fileInput.type = 'file';
+    fileInput.accept = '.json,.txt';
+    fileInput.style.display = 'none';
+    fileInput.onchange = function(e) {
+      var file = e.target.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(ev) {
+        func(ev.target.result);
+        document.body.removeChild(fileInput);
+      };
+      reader.readAsText(file);
+    };
+    document.body.appendChild(fileInput);
+    fileInput.click();
+  }
+
+  // ── Create Editors ──
+  var editor1_mode = 'code';
+  var editor2_mode = 'tree';
+
+  var container1 = document.getElementById("jsoneditor-1");
+  var options1 = {
+    mode: editor1_mode,
+    onChange: updatePreview1,
+    mainMenuBar: true,
+    navigationBar: true,
+    statusBar: true,
+    search: true,
+  };
+  var editor1 = new JSONEditor(container1, options1);
+
+  var container2 = document.getElementById("jsoneditor-2");
+  var options2 = {
+    mode: editor2_mode,
+    onChange: updatePreview2,
+    mainMenuBar: true,
+    navigationBar: true,
+    statusBar: true,
+    search: true,
+  };
+  var editor2 = new JSONEditor(container2, options2);
+
+  // Initial JSON
+  var initialJson = {
+    "Array": [1, 2, 3],
+    "Boolean": true,
+    "Null": null,
+    "Number": 123,
+    "Object": {"a": "b", "c": "d"},
+    "String": "Hello World"
+  };
+
+  editor1.set(initialJson);
+  editor2.set(initialJson);
+
+  // Editor settings
+  var fontSize = 14, indent = 2, compactFlag = false;
+  var live_editing = true, activeEditor;
+
+  $('.ace_editor').css('font-size', fontSize + 'px');
+  $('.jsoneditor-preview').css('font-size', fontSize + 'px');
+
+  addMenus(editor1_mode, 'jsoneditor-1');
+  addMenus(editor2_mode, 'jsoneditor-2');
+
+  // ── Event Handlers ──
+
+  // Mode switching
+  $(document).on('click', '.mode-switch', function(e) {
+    var editor_id = $(this).parents('.main-editor').attr('id');
+    var editor = (editor_id == 'jsoneditor-1') ? editor1 : editor2;
+    var mode;
+    if ($(this).hasClass('mode-code')) mode = 'code';
+    else if ($(this).hasClass('mode-tree')) mode = 'tree';
+    else mode = 'preview';
+    editor.setMode(mode);
+    addMenus(mode, editor_id);
+    $(this).parent('.mode-parent').find('.active').removeClass('active');
+    $(this).addClass('active');
+  });
+
+  // Live sync switch
+  $('#live-switch').change(function() {
+    live_editing = $(this).prop('checked');
+  });
+
+  // Format
+  $('#format').click(function(e) {
+    editor1.validate().then(function(value) {
+      updateValidPreview(value);
+    });
+  });
+
+  // Indent change
+  $('#indent-select').change(function(e) {
+    editor1.validate().then(function(value) {
+      updateValidPreview(value);
+    });
+  });
+
+  // Font size
+  function applyFontSize() {
+    var fs = fontSize + 'px';
+    // Code editor
+    $('.ace_editor').css('font-size', fs);
+    // Preview mode
+    $('.jsoneditor-preview').css('font-size', fs);
+    // Tree mode — all cells, fields, values, separators
+    $('div.jsoneditor td').css('font-size', fs);
+    $('div.jsoneditor-field').css('font-size', fs);
+    $('div.jsoneditor-value').css('font-size', fs);
+    $('div.jsoneditor-readonly').css('font-size', fs);
+    $('div.jsoneditor-separator').css('font-size', fs);
+    $('div.jsoneditor textarea').css('font-size', fs);
+    $('div.jsoneditor th').css('font-size', fs);
+    // Navigation bar, status bar
+    $('.jsoneditor-navigation-bar').css('font-size', fs);
+    $('.jsoneditor-statusbar').css('font-size', Math.max(10, fontSize - 2) + 'px');
+    // Tree values table
+    $('table.jsoneditor-values').css('font-size', fs);
+    // Resize ace editors to recalculate layout
+    if (editor1.aceEditor) editor1.aceEditor.resize();
+    if (editor2.aceEditor) editor2.aceEditor.resize();
+  }
+
+  $('#increase-font').click(function() {
+    if (fontSize < 28) fontSize += 1;
+    applyFontSize();
+  });
+  $('#decrease-font').click(function() {
+    if (fontSize > 8) fontSize -= 1;
+    applyFontSize();
+  });
+
+  // Copy between editors
+  $('#copy2Left').click(function() {
+    editor1.set(editor2.get());
+  });
+  $('#copy2Right').click(function() {
+    editor1.validate().then(function(value) {
+      updateValidPreview(value);
+    });
+  });
+
+  // Compact
+  $('#compact-json').click(function() {
+    editor1.validate().then(function(value) {
+      updateValidPreview(value, false);
+    });
+  });
+
+  // Validate
+  $('#validate-json').click(function() {
+    editor1.validate().then(function(value) {
+      showValidationToast(value, 1);
+    });
+  });
+
+  // Copy
+  $('#copy-json').click(function() {
+    editor2.validate().then(function(value) {
+      if (!value.length) {
+        copyToClipboard(editor2.getText());
+        Toast.fire({ icon: 'success', title: '&ensp; Copied to Clipboard' });
+      } else {
+        showValidationError();
+      }
+    });
+  });
+
+  // Search — trigger Ace's built-in find dialog
+  $('#search-json').click(function() {
+    if (editor1.aceEditor) {
+      editor1.aceEditor.execCommand('find');
+    }
+  });
+
+  // Menu button — Copy
+  $(document).on('click', '.btn-menuright-copy', function(e) {
+    var editor = ($(this).parents('.main-editor').attr('id') == 'jsoneditor-1') ? editor1 : editor2;
+    editor.validate().then(function(value) {
+      if (!value.length) {
+        copyToClipboard(editor.getText());
+        Toast.fire({ icon: 'success', title: '&ensp; Copied to Clipboard' });
+      } else {
+        showValidationError();
+      }
+    });
+  });
+
+  // Menu button — Search
+  $(document).on('click', '.btn-menuright-search', function(e) {
+    var editor = ($(this).parents('.main-editor').attr('id') == 'jsoneditor-1') ? editor1 : editor2;
+    if (editor.aceEditor) editor.aceEditor.execCommand("find");
+  });
+
+  // Menu button — Download
+  $(document).on('click', '.btn-menuright-download', function(e) {
+    var editor = ($(this).parents('.main-editor').attr('id') == 'jsoneditor-1') ? editor1 : editor2;
+    editor.validate().then(function(value) {
+      if (!value.length) {
+        download(editor.getText(), 'data.json', 'application/json');
+        Toast.fire({ icon: 'success', title: '&ensp; Downloaded' });
+      } else {
+        showValidationError();
+      }
+    });
+  });
+
+  // Menu button — Open file
+  $(document).on('click', '.btn-menuright-open', function(e) {
+    activeEditor = ($(this).parents('.main-editor').attr('id') == 'jsoneditor-1') ? editor1 : editor2;
+    openFile(dispFile);
+  });
+
+  // Menu button — Expand/Compress per editor
+  $(document).on('click', '.btn-menuright-expand', function(e) {
+    $(this).parents('.main-editor').addClass("maximized-card");
+    $('html').addClass("maximized-card");
+    $(this).removeClass('btn-menuright-expand').addClass('btn-menuright-compress');
+    $(this).removeClass('fa-expand').addClass('fa-compress');
+  });
+
+  $(document).on('click', '.btn-menuright-compress', function(e) {
+    $(this).parents('.main-editor').removeClass("maximized-card");
+    $('html').removeClass("maximized-card");
+    $(this).addClass('btn-menuright-expand').removeClass('btn-menuright-compress');
+    $(this).addClass('fa-expand').removeClass('fa-compress');
+  });
+
+  // Fullscreen toggle (navbar)
+  $('#main-expand-btn').click(function() {
+    var container = document.getElementById('main-container');
+    var nav = document.querySelector('.navbar');
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(function() {});
+      nav.style.display = 'none';
+      container.style.height = '100vh';
+    } else {
+      document.exitFullscreen();
+      nav.style.display = 'flex';
+      container.style.height = 'calc(100vh - 38px)';
+    }
+  });
+
+  // ── TTBridge Protocol (Swift ↔ JS) ──
+  window.TTBridge = {
+    setContent: function(jsonStr, encodeType) {
+      try {
+        if (encodeType === 'base64') {
+          jsonStr = atob(jsonStr);
+        }
+        var parsed = JSON.parse(jsonStr);
+        editor1.set(parsed);
+        editor2.set(parsed);
+        notifySwift('contentLoaded', { size: jsonStr.length, valid: true });
+      } catch(e) {
+        // If not valid JSON, set as text
+        editor1.setText(jsonStr);
+        notifySwift('contentLoaded', { size: jsonStr.length, valid: false });
+      }
+    },
+
+    getContent: function() {
+      try {
+        return JSON.stringify(editor1.get(), null, parseInt($('#indent-select').val()));
+      } catch(e) {
+        return editor1.getText();
+      }
+    },
+
+    getContentBase64: function() {
+      return btoa(unescape(encodeURIComponent(this.getContent())));
+    },
+
+    setMode: function(mode) {
+      if (['code', 'tree', 'preview'].includes(mode)) {
+        editor1.setMode(mode);
+        addMenus(mode, 'jsoneditor-1');
+        notifySwift('modeChanged', { mode: mode });
+      }
+    },
+
+    setEditable: function(editable) {
+      // JSONEditor doesn't have a direct readonly toggle;
+      // We can switch to 'preview' mode for read-only
+    },
+
+    search: function(term) {
+      // Trigger Ace's search if in code mode
+      if (editor1.aceEditor) {
+        editor1.aceEditor.find(term);
+      }
+    },
+
+    format: function() {
+      editor1.validate().then(function(value) {
+        updateValidPreview(value);
+      });
+      notifySwift('formatted', {});
+    },
+
+    minify: function() {
+      editor1.validate().then(function(value) {
+        updateValidPreview(value, false);
+      });
+      notifySwift('minified', {});
+    },
+
+    expandAll: function() {
+      if (editor2.getMode() === 'tree') {
+        editor2.expandAll();
+      }
+    },
+
+    collapseAll: function() {
+      if (editor2.getMode() === 'tree') {
+        editor2.collapseAll();
+      }
+    },
+
+    collapseLevel: function(level) {
+      // JSONEditor doesn't have native collapse-by-level
+    },
+
+    setTheme: function(theme) {
+      // Already dark
+    },
+
+    ping: function() {
+      notifySwift('pong', {});
+    }
+  };
+
+  // Bridge: JS → Swift
+  function notifySwift(event, data) {
+    try {
+      if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.jsonBridge) {
+        window.webkit.messageHandlers.jsonBridge.postMessage(
+          JSON.stringify({ event: event, data: data })
+        );
+      }
+    } catch(e) {
+      console.log('[TTBridge] Send failed:', e);
+    }
+  }
+
+  // Notify ready
+  notifySwift('ready', { version: '2.0.0-online-json' });
+
+})();
+</script>
+
+</body>
+</html>

@@ -11,6 +11,7 @@ struct ContentView: View {
     @Environment(AppState.self) var appState
     @Environment(ConnectionManager.self) var connectionManager
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
+    @State private var syncTimer: Timer?
     
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
@@ -35,8 +36,25 @@ struct ContentView: View {
         .navigationSplitViewStyle(.balanced)
         .onAppear {
             syncAppStateFromConnectionManager()
+            // Periodic sync for metrics that change without log count changes
+            syncTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { _ in
+                syncAppStateFromConnectionManager()
+            }
         }
-        .onChange(of: connectionManager.totalAPILogs + connectionManager.totalConsoleLogs) {
+        .onDisappear {
+            syncTimer?.invalidate()
+            syncTimer = nil
+        }
+        .onChange(of: connectionManager.totalAPILogs) {
+            syncAppStateFromConnectionManager()
+        }
+        .onChange(of: connectionManager.totalConsoleLogs) {
+            syncAppStateFromConnectionManager()
+        }
+        .onChange(of: connectionManager.connectedDevices.count) {
+            syncAppStateFromConnectionManager()
+        }
+        .onChange(of: connectionManager.isServerRunning) {
             syncAppStateFromConnectionManager()
         }
     }
@@ -56,6 +74,8 @@ struct ContentView: View {
             DevToolsView()
         case .feedback:
             FeedbackView()
+        case .connectionHealth:
+            ConnectionHealthView()
         case .guide:
             GuideContainerView()
         }

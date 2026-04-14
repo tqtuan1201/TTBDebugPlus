@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TTBDebugPlus JSON Editor</title>
+<style>
+/* ============================================
+   TTBDebugPlus Design System — Dark Theme
+   Color tokens from Colors.swift
+   ============================================ */
+:root {
+  --tt-primary: #3B82F6;
+  --tt-primary-light: #60A5FA;
+  --tt-primary-dark: #2563EB;
+  --tt-background: #0F172A;
+  --tt-surface: #1E293B;
+  --tt-surface-light: #334155;
+  --tt-surface-hover: #283548;
+  --tt-border: #334155;
+  --tt-border-light: #475569;
+  --tt-text-primary: #F8FAFC;
+  --tt-text-secondary: #94A3B8;
+  --tt-text-tertiary: #64748B;
+  --tt-text-muted: #475569;
+  --tt-success: #22C55E;
+  --tt-error: #EF4444;
+  --tt-warning: #F59E0B;
+  --tt-json-key: #60A5FA;
+  --tt-json-string: #FB923C;
+  --tt-json-number: #4ADE80;
+  --tt-json-bool: #C084FC;
+  --tt-json-null: #94A3B8;
+  --tt-json-brace: #94A3B8;
+  --tt-font-mono: ui-monospace, 'SF Mono', 'Menlo', 'Monaco', 'Cascadia Mono', monospace;
+  --tt-font-size: 13px;
+  --tt-line-height: 1.5;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%; height: 100%;
+  background: var(--tt-background);
+  color: var(--tt-text-primary);
+  font-family: var(--tt-font-mono);
+  font-size: var(--tt-font-size);
+  overflow: hidden;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* ============================================
+   Layout
+   ============================================ */
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+}
+
+#toolbar {
+  display: none; /* Toolbar is controlled by Swift side */
+  flex-shrink: 0;
+  height: 34px;
+  background: rgba(30, 41, 59, 0.4);
+  border-bottom: 1px solid rgba(51, 65, 85, 0.2);
+  padding: 0 10px;
+  align-items: center;
+  gap: 6px;
+}
+
+#editor-container {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+#status-bar {
+  display: none; /* Controlled by Swift side */
+  flex-shrink: 0;
+  height: 22px;
+  background: rgba(30, 41, 59, 0.3);
+  border-top: 1px solid rgba(51, 65, 85, 0.2);
+  padding: 0 12px;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--tt-text-tertiary);
+}
+
+/* ============================================
+   Code Editor (textarea-based with highlighting overlay)
+   ============================================ */
+.code-editor {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.code-editor-scroll {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  position: relative;
+}
+
+.line-numbers {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 50px;
+  height: 100%;
+  background: rgba(30, 41, 59, 0.3);
+  border-right: 1px solid rgba(51, 65, 85, 0.2);
+  text-align: right;
+  padding: 12px 8px 12px 0;
+  font-family: var(--tt-font-mono);
+  font-size: 11px;
+  line-height: var(--tt-line-height);
+  color: var(--tt-text-muted);
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.code-textarea {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  color: var(--tt-text-primary);
+  border: none;
+  outline: none;
+  resize: none;
+  padding: 12px 12px 12px 58px;
+  font-family: var(--tt-font-mono);
+  font-size: var(--tt-font-size);
+  line-height: var(--tt-line-height);
+  tab-size: 2;
+  white-space: pre;
+  overflow: auto;
+  caret-color: var(--tt-primary);
+  z-index: 1;
+  position: relative;
+}
+
+.code-textarea::selection {
+  background: rgba(59, 130, 246, 0.3);
+}
+
+.code-highlight {
+  position: absolute;
+  left: 58px;
+  top: 12px;
+  right: 0;
+  pointer-events: none;
+  font-family: var(--tt-font-mono);
+  font-size: var(--tt-font-size);
+  line-height: var(--tt-line-height);
+  white-space: pre;
+  z-index: 0;
+  overflow: hidden;
+  color: transparent;
+}
+
+/* ============================================
+   Tree View
+   ============================================ */
+.tree-view {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  padding: 4px 6px;
+}
+
+.tree-node {
+  display: flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  cursor: default;
+  gap: 0;
+}
+
+.tree-node:hover {
+  background: rgba(30, 41, 59, 0.6);
+}
+
+.tree-node.selected {
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.tree-node.search-match {
+  background: rgba(245, 158, 11, 0.06);
+}
+
+.tree-node.even {
+  background: rgba(30, 41, 59, 0.08);
+}
+
+.tree-node:hover .copy-btn {
+  opacity: 1;
+}
+
+.indent-guide {
+  width: 1px;
+  height: 100%;
+  margin: 0 10px;
+  flex-shrink: 0;
+}
+
+.indent-l0 { background: rgba(59,130,246,0.15); }
+.indent-l1 { background: rgba(34,197,94,0.12); }
+.indent-l2 { background: rgba(245,158,11,0.12); }
+.indent-l3 { background: rgba(251,146,60,0.12); }
+.indent-l4 { background: rgba(192,132,252,0.12); }
+.indent-l5 { background: rgba(59,130,246,0.12); }
+
+.toggle-btn {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: rgba(59,130,246,0.05);
+  border-radius: 3px;
+  color: var(--tt-primary-light);
+  cursor: pointer;
+  font-size: 9px;
+  font-weight: 600;
+  flex-shrink: 0;
+  margin-right: 4px;
+  transition: background 0.1s;
+}
+
+.toggle-btn:hover {
+  background: rgba(59,130,246,0.15);
+}
+
+.toggle-spacer {
+  width: 20px;
+  flex-shrink: 0;
+}
+
+.node-key {
+  color: var(--tt-json-key);
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.node-key.match {
+  color: var(--tt-primary);
+  font-weight: 700;
+}
+
+.node-sep {
+  color: var(--tt-text-muted);
+  margin: 0 2px;
+  white-space: nowrap;
+}
+
+.type-badge {
+  font-size: 9px;
+  font-weight: 700;
+  font-family: var(--tt-font-mono);
+  padding: 1px 4px;
+  border-radius: 3px;
+  margin-right: 5px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.type-badge.obj { color: var(--tt-json-brace); background: rgba(148,163,184,0.1); }
+.type-badge.arr { color: var(--tt-json-brace); background: rgba(148,163,184,0.1); }
+.type-badge.str { color: var(--tt-json-string); background: rgba(251,146,60,0.1); }
+.type-badge.num { color: var(--tt-json-number); background: rgba(74,222,128,0.1); }
+.type-badge.bool { color: var(--tt-json-bool); background: rgba(192,132,252,0.1); }
+.type-badge.null { color: var(--tt-json-null); background: rgba(148,163,184,0.1); }
+
+.node-value {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 500px;
+}
+
+.node-value.str { color: var(--tt-json-string); }
+.node-value.num { color: var(--tt-json-number); }
+.node-value.bool { color: var(--tt-json-bool); }
+.node-value.null { color: var(--tt-json-null); font-style: italic; }
+.node-value.match { color: var(--tt-primary); font-weight: 700; }
+
+.node-count {
+  color: var(--tt-text-tertiary);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.copy-btn {
+  opacity: 0;
+  border: none;
+  background: none;
+  color: var(--tt-text-tertiary);
+  cursor: pointer;
+  font-size: 10px;
+  padding: 2px 4px;
+  margin-left: auto;
+  flex-shrink: 0;
+  transition: opacity 0.1s;
+}
+
+.copy-btn:hover {
+  color: var(--tt-text-secondary);
+}
+
+/* ============================================
+   Preview (read-only highlighted)
+   ============================================ */
+.preview-view {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  padding: 12px;
+  font-family: var(--tt-font-mono);
+  font-size: var(--tt-font-size);
+  line-height: var(--tt-line-height);
+  white-space: pre;
+  color: var(--tt-text-primary);
+}
+
+/* Syntax highlighting classes */
+.hl-key { color: var(--tt-json-key); }
+.hl-str { color: var(--tt-json-string); }
+.hl-num { color: var(--tt-json-number); }
+.hl-bool { color: var(--tt-json-bool); }
+.hl-null { color: var(--tt-json-null); font-style: italic; }
+.hl-brace { color: var(--tt-json-brace); }
+.hl-search { background: rgba(59,130,246,0.3); text-decoration: underline; }
+
+/* ============================================
+   Loading / Empty / Error states
+   ============================================ */
+.state-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 12px;
+  color: var(--tt-text-tertiary);
+}
+
+.state-view .icon {
+  font-size: 36px;
+  opacity: 0.5;
+}
+
+.state-view .title {
+  font-size: 15px;
+  color: var(--tt-text-secondary);
+  font-weight: 500;
+}
+
+.state-view .subtitle {
+  font-size: 12px;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--tt-border);
+  border-top: 2px solid var(--tt-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--tt-border); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--tt-border-light); }
+::-webkit-scrollbar-corner { background: transparent; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="editor-container">
+    <div class="state-view" id="loading-state">
+      <div class="spinner"></div>
+      <div class="subtitle">Initializing editor…</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================
+// TTBDebugPlus JSON WebView Editor
+// Bridge Protocol + Editor Engine
+// ============================================
+
+(function() {
+  'use strict';
+
+  // ── State ──
+  let currentMode = 'tree';  // 'code' | 'tree' | 'preview'
+  let currentContent = '';
+  let parsedData = null;
+  let isValid = true;
+  let validationError = null;
+  let collapsedPaths = new Set();
+  let searchTerm = '';
+  let searchMatchCount = 0;
+  let isEditable = true;
+  let isReady = false;
+  let pendingCommands = [];
+
+  const container = document.getElementById('editor-container');
+
+  // ── Bridge: Swift → JS ──
+  window.TTBridge = {
+    setContent: function(jsonStr, encodeType) {
+      try {
+        if (encodeType === 'base64') {
+          jsonStr = atob(jsonStr);
+        }
+        currentContent = jsonStr;
+        validate();
+        render();
+        notifySwift('contentLoaded', { size: jsonStr.length, valid: isValid });
+      } catch(e) {
+        currentContent = jsonStr || '';
+        isValid = false;
+        validationError = e.message;
+        render();
+      }
+    },
+
+    getContent: function() {
+      return currentContent;
+    },
+
+    getContentBase64: function() {
+      return btoa(unescape(encodeURIComponent(currentContent)));
+    },
+
+    setMode: function(mode) {
+      if (['code', 'tree', 'preview'].includes(mode)) {
+        currentMode = mode;
+        render();
+        notifySwift('modeChanged', { mode: mode });
+      }
+    },
+
+    setEditable: function(editable) {
+      isEditable = editable;
+      render();
+    },
+
+    search: function(term) {
+      searchTerm = term || '';
+      searchMatchCount = 0;
+      render();
+      notifySwift('searchResult', { count: searchMatchCount, term: searchTerm });
+    },
+
+    format: function() {
+      try {
+        const obj = JSON.parse(currentContent);
+        currentContent = JSON.stringify(obj, null, 2);
+        isValid = true;
+        validationError = null;
+        render();
+        notifyContentChange();
+      } catch(e) {
+        // Can't format invalid JSON
+      }
+    },
+
+    minify: function() {
+      try {
+        const obj = JSON.parse(currentContent);
+        currentContent = JSON.stringify(obj);
+        isValid = true;
+        validationError = null;
+        render();
+        notifyContentChange();
+      } catch(e) {}
+    },
+
+    expandAll: function() {
+      collapsedPaths.clear();
+      render();
+    },
+
+    collapseAll: function() {
+      if (!parsedData) return;
+      collectAllPaths(parsedData, 'root', collapsedPaths);
+      render();
+    },
+
+    collapseLevel: function(level) {
+      collapsedPaths.clear();
+      if (parsedData && level >= 0) {
+        collectPathsAtDepth(parsedData, 'root', 0, level, collapsedPaths);
+      }
+      render();
+    },
+
+    setTheme: function(theme) {
+      // Future: light mode support
+    },
+
+    ping: function() {
+      notifySwift('pong', {});
+    }
+  };
+
+  // ── Bridge: JS → Swift ──
+  function notifySwift(event, data) {
+    try {
+      if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.jsonBridge) {
+        window.webkit.messageHandlers.jsonBridge.postMessage(
+          JSON.stringify({ event: event, data: data })
+        );
+      }
+    } catch(e) {
+      console.log('[Bridge] Send failed:', e);
+    }
+  }
+
+  function notifyContentChange() {
+    const size = new Blob([currentContent]).size;
+    notifySwift('contentChanged', {
+      size: size,
+      valid: isValid,
+      lines: currentContent.split('\n').length,
+      chars: currentContent.length,
+      error: validationError
+    });
+  }
+
+  // ── Validation ──
+  function validate() {
+    if (!currentContent || !currentContent.trim()) {
+      isValid = true;
+      parsedData = null;
+      validationError = null;
+      return;
+    }
+    try {
+      parsedData = JSON.parse(currentContent);
+      isValid = true;
+      validationError = null;
+    } catch(e) {
+      isValid = false;
+      parsedData = null;
+      validationError = e.message;
+    }
+  }
+
+  // ── Rendering ──
+  function render() {
+    container.innerHTML = '';
+
+    if (!currentContent && !currentContent.trim()) {
+      renderEmpty();
+      return;
+    }
+
+    switch(currentMode) {
+      case 'code':
+        renderCode();
+        break;
+      case 'tree':
+        if (!isValid) {
+          renderError();
+        } else {
+          renderTree();
+        }
+        break;
+      case 'preview':
+        renderPreview();
+        break;
+    }
+  }
+
+  // ── Code Mode ──
+  function renderCode() {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'code-editor';
+
+    const scroll = document.createElement('div');
+    scroll.className = 'code-editor-scroll';
+
+    const lineNums = document.createElement('div');
+    lineNums.className = 'line-numbers';
+
+    const textarea = document.createElement('textarea');
+    textarea.className = 'code-textarea';
+    textarea.value = currentContent;
+    textarea.readOnly = !isEditable;
+    textarea.spellcheck = false;
+    textarea.autocomplete = 'off';
+    textarea.autocapitalize = 'off';
+
+    function updateLineNumbers() {
+      const lines = textarea.value.split('\n');
+      const count = lines.length;
+      let html = '';
+      for (let i = 1; i <= count; i++) {
+        html += i + '\n';
+      }
+      lineNums.textContent = html;
+    }
+
+    function syncScroll() {
+      lineNums.style.transform = `translateY(${-textarea.scrollTop}px)`;
+    }
+
+    let debounceTimer = null;
+    textarea.addEventListener('input', function() {
+      updateLineNumbers();
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(function() {
+        currentContent = textarea.value;
+        validate();
+        notifyContentChange();
+      }, 300);
+    });
+
+    textarea.addEventListener('scroll', syncScroll);
+
+    // Auto-close brackets
+    textarea.addEventListener('keydown', function(e) {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        textarea.value = textarea.value.substring(0, start) + '  ' + textarea.value.substring(end);
+        textarea.selectionStart = textarea.selectionEnd = start + 2;
+        return;
+      }
+
+      const pairs = {'{': '}', '[': ']', '"': '"'};
+      if (pairs[e.key]) {
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        if (start !== end) return; // Don't auto-close when text is selected
+        
+        // For quotes, don't auto-close if already inside string
+        if (e.key === '"') {
+          const before = textarea.value.substring(0, start);
+          const quoteCount = (before.match(/(?<!\\)"/g) || []).length;
+          if (quoteCount % 2 === 1) return; // Inside a string
+        }
+
+        e.preventDefault();
+        const before = textarea.value.substring(0, start);
+        const after = textarea.value.substring(end);
+        textarea.value = before + e.key + pairs[e.key] + after;
+        textarea.selectionStart = textarea.selectionEnd = start + 1;
+        currentContent = textarea.value;
+        updateLineNumbers();
+      }
+
+      // Auto-indent on Enter
+      if (e.key === 'Enter') {
+        const start = textarea.selectionStart;
+        const before = textarea.value.substring(0, start);
+        const currentLine = before.split('\n').pop() || '';
+        const indent = currentLine.match(/^\s*/)[0];
+        const lastChar = currentLine.trim().slice(-1);
+        let newIndent = indent;
+        if (lastChar === '{' || lastChar === '[') {
+          newIndent = indent + '  ';
+        }
+        e.preventDefault();
+        const insertion = '\n' + newIndent;
+        textarea.value = before + insertion + textarea.value.substring(start);
+        textarea.selectionStart = textarea.selectionEnd = start + insertion.length;
+        currentContent = textarea.value;
+        updateLineNumbers();
+      }
+    });
+
+    scroll.appendChild(lineNums);
+    scroll.appendChild(textarea);
+    wrapper.appendChild(scroll);
+    container.appendChild(wrapper);
+
+    updateLineNumbers();
+    textarea.focus();
+  }
+
+  // ── Tree Mode ──
+  function renderTree() {
+    if (!parsedData) {
+      renderEmpty();
+      return;
+    }
+
+    searchMatchCount = 0;
+    const treeDiv = document.createElement('div');
+    treeDiv.className = 'tree-view';
+
+    const nodes = flattenTree(parsedData, null, 0, 'root', true);
+    const fragment = document.createDocumentFragment();
+    let rowIndex = 0;
+
+    for (let i = 0; i < nodes.length; i++) {
+      const node = nodes[i];
+      if (node.isClosing) continue;
+
+      const row = createTreeRow(node, rowIndex);
+      fragment.appendChild(row);
+      rowIndex++;
+    }
+
+    treeDiv.appendChild(fragment);
+    container.appendChild(treeDiv);
+
+    // Report search results
+    if (searchTerm) {
+      notifySwift('searchResult', { count: searchMatchCount, term: searchTerm });
+    }
+  }
+
+  function createTreeRow(node, rowIndex) {
+    const row = document.createElement('div');
+    row.className = 'tree-node';
+    if (rowIndex % 2 === 1) row.classList.add('even');
+    if (node.isSearchMatch) row.classList.add('search-match');
+
+    // Indent guides
+    for (let l = 0; l < node.indent; l++) {
+      const guide = document.createElement('div');
+      guide.className = 'indent-guide indent-l' + (l % 6);
+      guide.style.alignSelf = 'stretch';
+      row.appendChild(guide);
+    }
+
+    // Toggle button
+    if (node.isCollapsible) {
+      const btn = document.createElement('button');
+      btn.className = 'toggle-btn';
+      btn.textContent = node.isCollapsed ? '▶' : '▼';
+      btn.onclick = function() {
+        toggleCollapse(node.path);
+      };
+      row.appendChild(btn);
+    } else {
+      const spacer = document.createElement('div');
+      spacer.className = 'toggle-spacer';
+      row.appendChild(spacer);
+    }
+
+    // Key
+    if (node.key !== null && node.key !== undefined) {
+      const keySpan = document.createElement('span');
+      keySpan.className = 'node-key';
+      keySpan.textContent = node.key;
+      if (searchTerm && node.key.toLowerCase().includes(searchTerm.toLowerCase())) {
+        keySpan.classList.add('match');
+      }
+      row.appendChild(keySpan);
+    }
+
+    // Separator
+    if (node.key !== null && node.key !== undefined && (node.displayValue !== undefined || node.isCollapsible)) {
+      const sep = document.createElement('span');
+      sep.className = 'node-sep';
+      sep.textContent = ' : ';
+      row.appendChild(sep);
+    }
+
+    // Type badge
+    if (node.typeBadge) {
+      const badge = document.createElement('span');
+      badge.className = 'type-badge ' + node.typeClass;
+      badge.textContent = node.typeBadge;
+      row.appendChild(badge);
+    }
+
+    // Value or count
+    if (node.displayValue !== undefined) {
+      const val = document.createElement('span');
+      val.className = 'node-value ' + node.valueClass;
+      val.textContent = node.displayValue;
+      if (searchTerm && String(node.displayValue).toLowerCase().includes(searchTerm.toLowerCase())) {
+        val.classList.add('match');
+      }
+      row.appendChild(val);
+    } else if (node.childCount !== undefined) {
+      const cnt = document.createElement('span');
+      cnt.className = 'node-count';
+      if (node.isArray) {
+        cnt.textContent = node.childCount + ' item' + (node.childCount === 1 ? '' : 's');
+      } else {
+        cnt.textContent = node.childCount + ' key' + (node.childCount === 1 ? '' : 's');
+      }
+      row.appendChild(cnt);
+    }
+
+    // Copy button
+    if (node.rawValue !== undefined) {
+      const copyBtn = document.createElement('button');
+      copyBtn.className = 'copy-btn';
+      copyBtn.textContent = '⎘';
+      copyBtn.onclick = function(e) {
+        e.stopPropagation();
+        copyToClipboard(String(node.rawValue));
+      };
+      row.appendChild(copyBtn);
+    }
+
+    // Click to select/collapse
+    row.onclick = function() {
+      if (node.isCollapsible) {
+        toggleCollapse(node.path);
+      }
+    };
+
+    return row;
+  }
+
+  function flattenTree(value, key, indent, path, isLast) {
+    const nodes = [];
+
+    if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+      // Object
+      const keys = Object.keys(value).sort();
+      const isCollapsed = collapsedPaths.has(path);
+      const isMatch = searchTerm && key && String(key).toLowerCase().includes(searchTerm.toLowerCase());
+      if (isMatch) searchMatchCount++;
+
+      nodes.push({
+        key: key,
+        indent: indent,
+        path: path,
+        isCollapsible: true,
+        isCollapsed: isCollapsed,
+        childCount: keys.length,
+        isArray: false,
+        typeBadge: '{}',
+        typeClass: 'obj',
+        isSearchMatch: isMatch,
+      });
+
+      if (!isCollapsed) {
+        for (let i = 0; i < keys.length; i++) {
+          const k = keys[i];
+          const childNodes = flattenTree(value[k], k, indent + 1, path + '.' + k, i === keys.length - 1);
+          nodes.push(...childNodes);
+        }
+      }
+
+    } else if (Array.isArray(value)) {
+      // Array
+      const isCollapsed = collapsedPaths.has(path);
+      const isMatch = searchTerm && key && String(key).toLowerCase().includes(searchTerm.toLowerCase());
+      if (isMatch) searchMatchCount++;
+
+      nodes.push({
+        key: key,
+        indent: indent,
+        path: path,
+        isCollapsible: true,
+        isCollapsed: isCollapsed,
+        childCount: value.length,
+        isArray: true,
+        typeBadge: '[]',
+        typeClass: 'arr',
+        isSearchMatch: isMatch,
+      });
+
+      if (!isCollapsed) {
+        const max = Math.min(value.length, 500);
+        for (let i = 0; i < max; i++) {
+          const childNodes = flattenTree(value[i], '[' + i + ']', indent + 1, path + '[' + i + ']', i === max - 1);
+          nodes.push(...childNodes);
+        }
+        if (value.length > max) {
+          nodes.push({
+            key: '...',
+            indent: indent + 1,
+            path: '',
+            displayValue: '+' + (value.length - max) + ' more',
+            valueClass: 'null',
+            typeBadge: null,
+          });
+        }
+      }
+
+    } else {
+      // Primitive
+      let displayValue, valueClass, typeBadge, typeClass, rawValue;
+
+      if (typeof value === 'string') {
+        displayValue = value;
+        valueClass = 'str';
+        typeBadge = 'Str';
+        typeClass = 'str';
+        rawValue = value;
+      } else if (typeof value === 'number') {
+        displayValue = String(value);
+        valueClass = 'num';
+        typeBadge = '123';
+        typeClass = 'num';
+        rawValue = value;
+      } else if (typeof value === 'boolean') {
+        displayValue = String(value);
+        valueClass = 'bool';
+        typeBadge = value ? 'T' : 'F';
+        typeClass = 'bool';
+        rawValue = value;
+      } else if (value === null) {
+        displayValue = 'null';
+        valueClass = 'null';
+        typeBadge = '∅';
+        typeClass = 'null';
+        rawValue = null;
+      } else {
+        displayValue = String(value);
+        valueClass = '';
+        typeBadge = null;
+        typeClass = '';
+        rawValue = value;
+      }
+
+      const keyMatch = searchTerm && key && String(key).toLowerCase().includes(searchTerm.toLowerCase());
+      const valMatch = searchTerm && String(displayValue).toLowerCase().includes(searchTerm.toLowerCase());
+      if (keyMatch || valMatch) searchMatchCount++;
+
+      nodes.push({
+        key: key,
+        indent: indent,
+        path: path,
+        displayValue: displayValue,
+        valueClass: valueClass,
+        typeBadge: typeBadge,
+        typeClass: typeClass,
+        rawValue: rawValue,
+        isSearchMatch: keyMatch || valMatch,
+      });
+    }
+
+    return nodes;
+  }
+
+  // ── Preview Mode ──
+  function renderPreview() {
+    const div = document.createElement('div');
+    div.className = 'preview-view';
+
+    let prettyJSON = currentContent;
+    try {
+      const obj = JSON.parse(currentContent);
+      prettyJSON = JSON.stringify(obj, null, 2);
+    } catch(e) {
+      // Show raw if can't parse
+    }
+
+    div.innerHTML = highlightJSON(prettyJSON);
+    container.appendChild(div);
+  }
+
+  function highlightJSON(str) {
+    // Escape HTML first
+    str = str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    // Highlight strings (keys and values)
+    str = str.replace(/"(?:[^"\\]|\\.)*"/g, function(match, offset) {
+      // Check if it's a key (followed by :)
+      const after = str.substring(offset + match.length).trimStart();
+      if (after.startsWith(':')) {
+        return '<span class="hl-key">' + match + '</span>';
+      }
+      let cls = 'hl-str';
+      if (searchTerm && match.toLowerCase().includes(searchTerm.toLowerCase())) {
+        cls += ' hl-search';
+        searchMatchCount++;
+      }
+      return '<span class="' + cls + '">' + match + '</span>';
+    });
+
+    // Numbers (standalone)
+    str = str.replace(/(?<=[:,\[\s])(-?\d+\.?\d*(?:[eE][+-]?\d+)?)(?=[,\s\]\}])/g, '<span class="hl-num">$1</span>');
+
+    // Booleans
+    str = str.replace(/\b(true|false)\b/g, '<span class="hl-bool">$1</span>');
+
+    // Null
+    str = str.replace(/\bnull\b/g, '<span class="hl-null">null</span>');
+
+    // Braces & brackets
+    str = str.replace(/([{}\[\]])/g, '<span class="hl-brace">$1</span>');
+
+    return str;
+  }
+
+  // ── Empty / Error States ──
+  function renderEmpty() {
+    container.innerHTML = `
+      <div class="state-view">
+        <div class="icon">{ }</div>
+        <div class="title">No JSON Data</div>
+        <div class="subtitle">Waiting for content…</div>
+      </div>
+    `;
+  }
+
+  function renderError() {
+    container.innerHTML = `
+      <div class="state-view">
+        <div class="icon" style="color: var(--tt-warning)">⚠</div>
+        <div class="title" style="color: var(--tt-warning)">Invalid JSON</div>
+        <div class="subtitle">${escapeHtml(validationError || 'Unknown error')}</div>
+      </div>
+    `;
+  }
+
+  // ── Helper Functions ──
+  function toggleCollapse(path) {
+    if (collapsedPaths.has(path)) {
+      collapsedPaths.delete(path);
+    } else {
+      collapsedPaths.add(path);
+    }
+    render();
+  }
+
+  function collectAllPaths(value, path, paths) {
+    if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+      paths.add(path);
+      for (const k of Object.keys(value)) {
+        collectAllPaths(value[k], path + '.' + k, paths);
+      }
+    } else if (Array.isArray(value)) {
+      paths.add(path);
+      for (let i = 0; i < value.length; i++) {
+        collectAllPaths(value[i], path + '[' + i + ']', paths);
+      }
+    }
+  }
+
+  function collectPathsAtDepth(value, path, depth, maxDepth, paths) {
+    if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+      if (depth >= maxDepth) paths.add(path);
+      for (const k of Object.keys(value)) {
+        collectPathsAtDepth(value[k], path + '.' + k, depth + 1, maxDepth, paths);
+      }
+    } else if (Array.isArray(value)) {
+      if (depth >= maxDepth) paths.add(path);
+      for (let i = 0; i < value.length; i++) {
+        collectPathsAtDepth(value[i], path + '[' + i + ']', depth + 1, maxDepth, paths);
+      }
+    }
+  }
+
+  function copyToClipboard(text) {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text);
+    } else {
+      // Fallback
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    notifySwift('copied', { text: text.substring(0, 100) });
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  // ── Init ──
+  function init() {
+    isReady = true;
+    container.innerHTML = '';
+    renderEmpty();
+    notifySwift('ready', { version: '1.0.0' });
+
+    // Execute pending commands
+    for (const cmd of pendingCommands) {
+      try { cmd(); } catch(e) {}
+    }
+    pendingCommands = [];
+  }
+
+  // Start
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+})();
+</script>
+</body>
+</html>

@@ -66,7 +66,7 @@ struct EmptyStateView: View {
         icon: "antenna.radiowaves.left.and.right.slash",
         title: "No Device Connected",
         subtitle: "Connect an iOS device running TTBaseUIKit to start debugging. Make sure both devices are on the same network.",
-        actionTitle: "Scan for Devices"
+        actionTitle: "View Setup Guide"
     )
     .preferredColorScheme(.dark)
 }
