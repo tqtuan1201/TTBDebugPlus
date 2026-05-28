@@ -89,6 +89,8 @@ enum JSONTool: String, CaseIterable, Identifiable {
 // MARK: - Dev Tools Category
 enum DevTool: String, CaseIterable, Identifiable {
     case json = "JSON"
+    case qrCode = "QR Code"
+    case caseConverter = "Case Converter"
     case base64 = "Base64"
     case urlEncode = "URL Encode"
     case hashGenerator = "Hash"
@@ -99,6 +101,8 @@ enum DevTool: String, CaseIterable, Identifiable {
     var icon: String {
         switch self {
         case .json: return "curlybraces"
+        case .qrCode: return "qrcode"
+        case .caseConverter: return "textformat.abc"
         case .base64: return "textformat.abc"
         case .urlEncode: return "link"
         case .hashGenerator: return "number"
@@ -108,9 +112,41 @@ enum DevTool: String, CaseIterable, Identifiable {
     
     var isAvailable: Bool {
         switch self {
-        case .json: return true
+        case .json, .qrCode, .caseConverter: return true
         default: return false
         }
+    }
+    
+    var menuTitle: String {
+        switch self {
+        case .json: return "View JSON"
+        case .qrCode: return "QR Code"
+        case .caseConverter: return "Case Converter"
+        default: return rawValue
+        }
+    }
+    
+    var menuDescription: String {
+        switch self {
+        case .json:
+            return "Editor, query, diff, convert, and graph tools for JSON payloads."
+        case .qrCode:
+            return "Generate, preview, export, and decode QR codes."
+        case .caseConverter:
+            return "Convert text input between title, sentence, upper, lower, alternate, and toggle cases."
+        case .base64:
+            return "Encode and decode Base64 text."
+        case .urlEncode:
+            return "Encode and decode URL-safe strings."
+        case .hashGenerator:
+            return "Generate hashes for copied payloads."
+        case .timestamp:
+            return "Convert timestamps and inspect date formats."
+        }
+    }
+    
+    var statusText: String {
+        isAvailable ? "Available" : "Coming Soon"
     }
 }
 

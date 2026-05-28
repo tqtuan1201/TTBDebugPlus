@@ -23,7 +23,7 @@ final class NetworkViewModel {
     var searchScope: SearchScope = .all {
         didSet { invalidateFilterCache() }
     }
-    var selectedDetailTab: NetworkDetailTab = .headers
+    var selectedDetailTab: NetworkDetailTab = .view
     var selectedMethodFilter: String? = nil {
         didSet { invalidateFilterCache() }
     }
@@ -536,6 +536,7 @@ struct ParsedCookie: Identifiable {
 
 enum NetworkDetailTab: String, CaseIterable {
     case headers = "HEADERS"
+    case view = "VIEW"
     case preview = "PREVIEW"
     case response = "RESPONSE"
     case cookies = "COOKIES"

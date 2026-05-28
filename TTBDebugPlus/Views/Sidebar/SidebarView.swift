@@ -234,7 +234,7 @@ struct SidebarView: View {
                         case .logs:             appState.selectedTab = .console
                         case .network:          appState.selectedTab = .network
                         case .performance:      appState.selectedTab = .performance
-                        case .devtools:         appState.selectedTab = .devtools
+                        case .devtools:         appState.openDevToolsMenu()
                         case .connectionHealth: appState.selectedTab = .connectionHealth
                         }
                     }

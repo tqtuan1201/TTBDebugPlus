@@ -28,7 +28,11 @@ struct TabBarView: View {
                         shortcutNumber: index + 1
                     ) {
                         withAnimation(.easeInOut(duration: 0.2)) {
-                            appState.selectedTab = tab
+                            if tab == .devtools {
+                                appState.openDevToolsMenu()
+                            } else {
+                                appState.selectedTab = tab
+                            }
                         }
                     }
                 }

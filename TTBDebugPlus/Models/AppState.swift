@@ -27,6 +27,23 @@ class AppState {
     
     // JSON Editor payload (for "Open in JSON Editor" buttons)
     var jsonEditorPayload: JSONEditorPayload? = nil
+    var requestedDevTool: DevTool? = nil
+    var devToolsMenuRequestID = UUID()
+    var devToolsToolRequestID = UUID()
+    
+    /// Navigate to the Dev Tools menu screen.
+    func openDevToolsMenu() {
+        requestedDevTool = nil
+        devToolsMenuRequestID = UUID()
+        selectedTab = .devtools
+    }
+    
+    /// Navigate directly to a specific Dev Tool.
+    func openDevTool(_ tool: DevTool) {
+        requestedDevTool = tool
+        devToolsToolRequestID = UUID()
+        selectedTab = .devtools
+    }
     
     /// Navigate to JSON Editor with a payload
     func openInJSONEditor(json: String, source: String) {

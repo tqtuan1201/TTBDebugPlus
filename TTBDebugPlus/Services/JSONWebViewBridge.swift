@@ -246,6 +246,9 @@ extension JSONWebViewBridge: WKScriptMessageHandler {
         case "contentLoaded":
             isValid = data["valid"] as? Bool ?? true
             contentSize = data["size"] as? Int ?? 0
+            validationError = data["error"] as? String
+            lineCount = data["lines"] as? Int ?? 0
+            charCount = data["chars"] as? Int ?? 0
             
         case "searchResult":
             searchMatchCount = data["count"] as? Int ?? 0

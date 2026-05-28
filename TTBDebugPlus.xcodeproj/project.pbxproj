@@ -55,6 +55,10 @@
 		8B288FC63D90332BF464AC35 /* AnnotationRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 204A29DBE8868B4E76B79B03 /* AnnotationRenderer.swift */; };
 		8D8221F0AE70ACE516C66B4F /* StorageSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39BA70886080B2737C89D8C8 /* StorageSettingsView.swift */; };
 		93F8D7FDFE2EFF7023C6E3C6 /* ScreenCaptureViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE3B4165B618C9189C26C583 /* ScreenCaptureViewModel.swift */; };
+		9A0F1B2C3D4E5F60718293A7 /* QRCodeEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0F1B2C3D4E5F60718293A5 /* QRCodeEngine.swift */; };
+		9A0F1B2C3D4E5F60718293A8 /* QRCodeToolView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A0F1B2C3D4E5F60718293A6 /* QRCodeToolView.swift */; };
+		9B0F1B2C3D4E5F60718293B1 /* CaseConverterEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0F1B2C3D4E5F60718293B3 /* CaseConverterEngine.swift */; };
+		9B0F1B2C3D4E5F60718293B2 /* CaseConverterToolView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0F1B2C3D4E5F60718293B4 /* CaseConverterToolView.swift */; };
 		9DD2A8D5F47BE8EDB81CA6C2 /* ConsoleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8980189EC5087505B801A87 /* ConsoleView.swift */; };
 		A1FABD1EF972FB7F7FAB6339 /* sweetalert2-dark.min.css in Resources */ = {isa = PBXBuildFile; fileRef = 842B737A4D6D516165A7CAB9 /* sweetalert2-dark.min.css */; };
 		A399E40491B83562985E5A93 /* sweetalert2.min.js in Resources */ = {isa = PBXBuildFile; fileRef = A0C1734392AFB13FA2919B32 /* sweetalert2.min.js */; };
@@ -145,6 +149,10 @@
 		8FCCDD8FB797E81713D4F039 /* BugReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BugReport.swift; sourceTree = "<group>"; };
 		9034D7C9502BED83B2687D44 /* NetworkInterfaceMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkInterfaceMenuView.swift; sourceTree = "<group>"; };
 		9884682B51A64EDEED95DE08 /* JSONGraphModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONGraphModels.swift; sourceTree = "<group>"; };
+		9A0F1B2C3D4E5F60718293A5 /* QRCodeEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRCodeEngine.swift; sourceTree = "<group>"; };
+		9A0F1B2C3D4E5F60718293A6 /* QRCodeToolView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRCodeToolView.swift; sourceTree = "<group>"; };
+		9B0F1B2C3D4E5F60718293B3 /* CaseConverterEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaseConverterEngine.swift; sourceTree = "<group>"; };
+		9B0F1B2C3D4E5F60718293B4 /* CaseConverterToolView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaseConverterToolView.swift; sourceTree = "<group>"; };
 		9966C3F1D10AA6DA0E592555 /* IntegrationGuideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntegrationGuideView.swift; sourceTree = "<group>"; };
 		A0762C5965C85E62C567E17E /* DeviceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceView.swift; sourceTree = "<group>"; };
 		A0C1734392AFB13FA2919B32 /* sweetalert2.min.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = sweetalert2.min.js; sourceTree = "<group>"; };
@@ -317,7 +325,9 @@
 		892D063518CE23AC7B4BEC26 /* DevTools */ = {
 			isa = PBXGroup;
 			children = (
+				9B0F1B2C3D4E5F60718293B0 /* CaseConverter */,
 				E4E62DB310034BF6449C915D /* Json */,
+				9A0F1B2C3D4E5F60718293A4 /* QRCode */,
 				C8BD40D7FE5AAEF945CCA26A /* DevToolsView.swift */,
 			);
 			path = DevTools;
@@ -357,6 +367,24 @@
 				CD0B1F7DEBDFD6E521087D26 /* StorageManager.swift */,
 			);
 			path = Storage;
+			sourceTree = "<group>";
+		};
+		9A0F1B2C3D4E5F60718293A4 /* QRCode */ = {
+			isa = PBXGroup;
+			children = (
+				9A0F1B2C3D4E5F60718293A5 /* QRCodeEngine.swift */,
+				9A0F1B2C3D4E5F60718293A6 /* QRCodeToolView.swift */,
+			);
+			path = QRCode;
+			sourceTree = "<group>";
+		};
+		9B0F1B2C3D4E5F60718293B0 /* CaseConverter */ = {
+			isa = PBXGroup;
+			children = (
+				9B0F1B2C3D4E5F60718293B3 /* CaseConverterEngine.swift */,
+				9B0F1B2C3D4E5F60718293B4 /* CaseConverterToolView.swift */,
+			);
+			path = CaseConverter;
 			sourceTree = "<group>";
 		};
 		97C516F7E1FC28BA3B50D4B0 /* TTBDebugPlus */ = {
@@ -628,6 +656,8 @@
 				B41D866E5D19F68D8EE549D6 /* ContentView.swift in Sources */,
 				81617086399686DCB0936DA2 /* DateFormatters.swift in Sources */,
 				58E1AE1C50A844B2BBDB2ACF /* DebugMessage.swift in Sources */,
+				9B0F1B2C3D4E5F60718293B1 /* CaseConverterEngine.swift in Sources */,
+				9B0F1B2C3D4E5F60718293B2 /* CaseConverterToolView.swift in Sources */,
 				DB86143B9F006A12566FAA0B /* DevToolsView.swift in Sources */,
 				67630A5C27F7482E13F952B9 /* DeviceSession.swift in Sources */,
 				0EBF2BA6460E14959109C703 /* DeviceSessionMenuView.swift in Sources */,
@@ -667,6 +697,8 @@
 				EB743CEB6D71EA14F97217ED /* PerformanceView.swift in Sources */,
 				A69E9252E5CD19A4BF383DF2 /* PerformanceViewModel.swift in Sources */,
 				323D8BCDE0B6071362EB99B5 /* PermissionsView.swift in Sources */,
+				9A0F1B2C3D4E5F60718293A7 /* QRCodeEngine.swift in Sources */,
+				9A0F1B2C3D4E5F60718293A8 /* QRCodeToolView.swift in Sources */,
 				072F6A6620CE880B9A8B9367 /* QuickNoteTextField.swift in Sources */,
 				A9D1018F103D6313E32DE23A /* Radius.swift in Sources */,
 				D6E7A86DDFFB1C3448A103C7 /* RecordingExportView.swift in Sources */,

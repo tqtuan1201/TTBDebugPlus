@@ -26,9 +26,6 @@ struct TTBDebugPlusApp: App {
                 .preferredColorScheme(.dark)
                 .frame(minWidth: 1200, minHeight: 800)
                 .onAppear {
-                    // Start Bonjour server on launch
-                    connectionManager.startServer()
-                    
                     // Show welcome on first launch  
                     if !hasSeenWelcome {
                         showWelcome = true
@@ -36,7 +33,6 @@ struct TTBDebugPlusApp: App {
                 }
                 .onDisappear {
                     sessionManager.endSession()
-                    connectionManager.stopServer()
                 }
                 .sheet(isPresented: $showWelcome) {
                     // Mark as seen when welcome is dismissed
@@ -60,7 +56,7 @@ struct TTBDebugPlusApp: App {
                     .keyboardShortcut("3", modifiers: .command)
                 Button("Performance") { appState.selectedTab = .performance }
                     .keyboardShortcut("4", modifiers: .command)
-                Button("Dev Tools") { appState.selectedTab = .devtools }
+                Button("Dev Tools") { appState.openDevToolsMenu() }
                     .keyboardShortcut("5", modifiers: .command)
                 Button("Feedback") { appState.selectedTab = .feedback }
                     .keyboardShortcut("6", modifiers: .command)
@@ -112,6 +108,7 @@ struct TTBDebugPlusApp: App {
                 Button("Restart Server") {
                     connectionManager.restartServer()
                 }
+                .disabled(!connectionManager.isServerRunning)
             }
             
             // Help menu
@@ -128,13 +125,14 @@ struct TTBDebugPlusApp: App {
         }
         
         // MARK: - Menu Bar Extra
-        // NOTE: Using SF Symbol instead of custom image.
-        // The original `ttbasedebug-logo` asset is a 1024×1024 JPG promotional image
-        // without alpha channel — macOS menu bar requires small template PNGs (18pt/36pt)
-        // with transparency. `ladybug.fill` matches the app's debug branding and
-        // renders correctly in both light/dark menu bar appearances.
-        MenuBarExtra("TTBDebugPlus", systemImage: "ladybug.fill") {
+        MenuBarExtra(
+            connectionManager.isServerRunning ? "TTBDebugPlus Server Running" : "TTBDebugPlus Server Offline",
+            systemImage: connectionManager.isServerRunning
+                ? "antenna.radiowaves.left.and.right"
+                : "antenna.radiowaves.left.and.right.slash"
+        ) {
             MenuBarView()
+                .environment(appState)
                 .environment(connectionManager)
         }
         .menuBarExtraStyle(.window)

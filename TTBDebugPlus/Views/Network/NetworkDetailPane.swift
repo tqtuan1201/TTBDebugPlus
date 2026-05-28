@@ -3,8 +3,8 @@
 //  TTBDebugPlus
 //
 //  Created by TuanTruong on 2026-03-29.
-//  Detail pane for network request inspection — headers, preview, response, cookies
-//  Uses OnlineJsonViewerView (WKWebView) for JSON display
+//  Detail pane for network request inspection — headers, view, preview, response, cookies
+//  Uses WKWebView-backed JSON viewers for JSON display
 //
 
 import SwiftUI
@@ -43,6 +43,8 @@ struct NetworkDetailPaneView: View {
                     headersContent
                         .padding(16)
                 }
+            case .view:
+                viewContent
             case .preview:
                 previewContent
             case .response:
@@ -227,6 +229,31 @@ struct NetworkDetailPaneView: View {
                     )
                     .frame(minHeight: 150, idealHeight: 250)
                 }
+            }
+        }
+    }
+    
+    // MARK: - View Tab (single-pane response body)
+    private var viewContent: some View {
+        Group {
+            if !request.responseBody.isEmpty {
+                JSONWebViewComponent(
+                    jsonString: request.responseBody,
+                    isEditable: false,
+                    showToolbar: true,
+                    initialMode: .preview,
+                    onOpenInEditor: { json in
+                        onOpenInEditor?(json, "Response View — \(request.method) \(request.urlPath)")
+                    }
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                EmptyStateView(
+                    icon: "doc.text.magnifyingglass",
+                    title: "No Response Body",
+                    subtitle: "This request returned no response body"
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
     }

@@ -12,9 +12,9 @@ import WebKit
 
 // MARK: - Display Mode
 enum JSONDisplayMode: String, CaseIterable, Identifiable {
+    case preview = "Preview"
     case code = "Code"
     case tree = "Tree"
-    case preview = "Preview"
     
     var id: String { rawValue }
     
@@ -49,6 +49,7 @@ struct JSONWebViewComponent: View {
     @State private var displayMode: JSONDisplayMode = .tree
     @State private var searchText: String = ""
     @State private var isSearching: Bool = false
+    @FocusState private var isSearchFocused: Bool
     @State private var isCopied: Bool = false
     @State private var contentHash: Int = 0
     
@@ -121,7 +122,8 @@ struct JSONWebViewComponent: View {
                         .textFieldStyle(.plain)
                         .font(TTFont.codeSmall)
                         .foregroundColor(.ttTextPrimary)
-                        .frame(width: 150)
+                        .frame(width: 180)
+                        .focused($isSearchFocused)
                         .onSubmit {
                             bridge.search(searchText)
                         }
@@ -129,14 +131,14 @@ struct JSONWebViewComponent: View {
                             bridge.search(newValue)
                         }
                     
-                    if bridge.searchMatchCount > 0 {
-                        Text("\(bridge.searchMatchCount)")
-                            .font(TTFont.badge)
-                            .foregroundColor(.ttPrimary)
-                    }
+                    Text(searchResultText)
+                        .font(TTFont.badge)
+                        .foregroundColor(searchText.isEmpty ? .ttTextMuted : (bridge.searchMatchCount > 0 ? .ttPrimary : .ttWarning))
+                        .frame(minWidth: 34, alignment: .trailing)
                     
                     Button(action: {
                         isSearching = false
+                        isSearchFocused = false
                         searchText = ""
                         bridge.search("")
                     }) {
@@ -154,7 +156,12 @@ struct JSONWebViewComponent: View {
                         .overlay(RoundedRectangle(cornerRadius: 5).stroke(Color.ttBorder.opacity(0.3)))
                 )
             } else {
-                Button(action: { isSearching = true }) {
+                Button(action: {
+                    isSearching = true
+                    DispatchQueue.main.async {
+                        isSearchFocused = true
+                    }
+                }) {
                     Image(systemName: "magnifyingglass")
                         .font(.ttIcon(TTIcon.sm))
                 }
@@ -303,6 +310,11 @@ struct JSONWebViewComponent: View {
         if bytes < 1024 { return "\(bytes) B" }
         if bytes < 1024 * 1024 { return String(format: "%.1f KB", Double(bytes) / 1024) }
         return String(format: "%.1f MB", Double(bytes) / (1024 * 1024))
+    }
+    
+    private var searchResultText: String {
+        if searchText.isEmpty { return "Find" }
+        return bridge.searchMatchCount > 0 ? "\(bridge.searchMatchCount)" : "0"
     }
     
     private func copyContent() {
