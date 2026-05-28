@@ -1,67 +1,135 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# Move to the directory where this script is located
-cd "$(dirname "$0")"
+set -euo pipefail
+
+# Move to the directory where this script is located.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
 
 # --- CONFIGURATION ---
 APP_NAME="TTBDebugPlus"
-# Check if your app is inside a 'macos' folder or directly in the current folder
-APP_FILE="macos/TTBDebugPlus.app" 
-DMG_NAME="TTBDebugPlus-Installer.dmg"
+APP_FILE="macos/${APP_NAME}.app"
+DMG_NAME="${APP_NAME}-Installer.dmg"
 VOL_NAME="TTBDebugPlus — Smart debugs"
 README_FILE="README.txt"
 HELP_URL="https://tqtuan1201.github.io/public/docs/ttbaseuikit/"
 BACKGROUND_IMG="installer_background.png"
 STAGING_DIR="./dist"
+VERIFY_MOUNT_DIR="/private/tmp/${APP_NAME}-dmg-verify"
+CREATE_DMG_SANDBOX_SAFE="${CREATE_DMG_SANDBOX_SAFE:-0}"
 
-echo "---------------------------------------------------"
-echo "🚀 Starting Professional DMG Build Process..."
-echo "---------------------------------------------------"
+log() {
+    printf '%s\n' "$1"
+}
 
-# 1. Validation: Check for app and background
-if [ ! -d "$APP_FILE" ] || [ ! -f "$BACKGROUND_IMG" ]; then
-    echo "❌ ERROR: Missing '$APP_FILE' or '$BACKGROUND_IMG'!"
-    echo "👉 Ensure your .app is inside the 'macos' folder and the image is next to this script."
+fail() {
+    printf 'ERROR: %s\n' "$1" >&2
     exit 1
-fi
+}
 
-# 2. Install dependencies
-if ! command -v create-dmg &> /dev/null; then
-    echo "📦 Installing 'create-dmg' via Homebrew..."
-    brew install create-dmg
-fi
+cleanup() {
+    if [ -d "$VERIFY_MOUNT_DIR" ]; then
+        hdiutil detach "$VERIFY_MOUNT_DIR" -quiet >/dev/null 2>&1 || true
+    fi
+    rm -rf "$STAGING_DIR" "$VERIFY_MOUNT_DIR"
+}
 
-# 3. Prepare staging area
-echo "🧹 Cleaning and preparing staging area..."
-rm -rf "$STAGING_DIR"
-mkdir -p "$STAGING_DIR"
+validate_inputs() {
+    [ -d "$APP_FILE" ] || fail "Missing app bundle: $APP_FILE"
+    [ -f "$BACKGROUND_IMG" ] || fail "Missing Finder background image: $BACKGROUND_IMG"
+    command -v create-dmg >/dev/null 2>&1 || fail "Missing create-dmg. Install it with: brew install create-dmg"
+    command -v hdiutil >/dev/null 2>&1 || fail "Missing hdiutil."
+}
 
-# Copy the app into the staging folder
-cp -R "$APP_FILE" "$STAGING_DIR/"
+prepare_staging() {
+    log "Preparing staging area..."
+    rm -rf "$STAGING_DIR"
+    mkdir -p "$STAGING_DIR"
 
-# Create the README.txt inside the staging folder (FIXED PATH)
-echo -e "--- TTBaseDebug Plus ---\n\nINSTALLATION:\n1. Drag the '$APP_NAME' icon into the 'Applications' folder shortcut.\n2. Open your Applications folder and launch the app.\n\nDOCUMENTATION & SUPPORT:\n$HELP_URL" > "$STAGING_DIR/$README_FILE"
+    log "Copying ${APP_FILE}..."
+    cp -R "$APP_FILE" "$STAGING_DIR/"
 
-# 4. Create the DMG
-echo "📦 Packaging DMG..."
+    log "Writing ${README_FILE}..."
+    cat > "$STAGING_DIR/$README_FILE" <<EOF
+--- TTBaseDebug Plus ---
 
-create-dmg \
-  --volname "$VOL_NAME" \
-  --background "$BACKGROUND_IMG" \
-  --window-pos 200 120 \
-  --window-size 800 400 \
-  --icon-size 120 \
-  --icon "$APP_NAME.app" 200 220 \
-  --app-drop-link 600 220 \
-  --icon "$README_FILE" 400 310 \
-  --hide-extension "$APP_NAME.app" \
-  --hdiutil-quiet \
-  "$DMG_NAME" \
-  "$STAGING_DIR/"
+INSTALLATION:
+1. Drag the '${APP_NAME}' icon into the 'Applications' folder shortcut.
+2. Open your Applications folder and launch the app.
 
-# 5. Final Cleanup
-rm -rf "$STAGING_DIR"
+DOCUMENTATION & SUPPORT:
+${HELP_URL}
+EOF
+}
 
-echo "---------------------------------------------------"
-echo "✅ SUCCESS! $DMG_NAME is ready."
-open .
+create_installer_dmg() {
+    log "Creating ${DMG_NAME}..."
+    rm -f "$DMG_NAME"
+    rm -f "rw."*".${DMG_NAME}"
+
+    run_create_dmg() {
+        create-dmg \
+        --volname "$VOL_NAME" \
+        --background "$BACKGROUND_IMG" \
+        --window-pos 200 120 \
+        --window-size 800 400 \
+        --icon-size 120 \
+        --text-size 14 \
+        --icon "${APP_NAME}.app" 200 220 \
+        --app-drop-link 600 220 \
+        --icon "$README_FILE" 400 310 \
+        --hide-extension "${APP_NAME}.app" \
+        --no-internet-enable \
+        --hdiutil-retries 10 \
+        --hdiutil-quiet \
+        "$@" \
+        "$DMG_NAME" \
+        "$STAGING_DIR/"
+    }
+
+    if [ "$CREATE_DMG_SANDBOX_SAFE" = "1" ]; then
+        log "Sandbox-safe mode enabled: Finder background layout AppleScript may be skipped by create-dmg."
+        run_create_dmg --sandbox-safe
+    else
+        run_create_dmg
+    fi
+}
+
+verify_dmg() {
+    log "Verifying ${DMG_NAME} contents..."
+    [ -f "$DMG_NAME" ] || fail "DMG was not created: $DMG_NAME"
+
+    rm -rf "$VERIFY_MOUNT_DIR"
+    mkdir -p "$VERIFY_MOUNT_DIR"
+    hdiutil attach "$DMG_NAME" -readonly -nobrowse -mountpoint "$VERIFY_MOUNT_DIR" -quiet
+
+    [ -d "$VERIFY_MOUNT_DIR/${APP_NAME}.app" ] || fail "DMG is missing ${APP_NAME}.app"
+    [ -L "$VERIFY_MOUNT_DIR/Applications" ] || fail "DMG is missing Applications drop link"
+    [ -f "$VERIFY_MOUNT_DIR/$README_FILE" ] || fail "DMG is missing $README_FILE"
+    [ -f "$VERIFY_MOUNT_DIR/.background/$BACKGROUND_IMG" ] || fail "DMG is missing .background/$BACKGROUND_IMG"
+    [ -f "$VERIFY_MOUNT_DIR/.DS_Store" ] || fail "DMG is missing .DS_Store Finder layout metadata"
+
+    hdiutil detach "$VERIFY_MOUNT_DIR" -quiet
+    rm -rf "$VERIFY_MOUNT_DIR"
+
+    log "Verified: app, Applications link, README, Finder background image, and Finder layout metadata are present."
+}
+
+main() {
+    trap cleanup EXIT
+
+    log "---------------------------------------------------"
+    log "Starting DMG build process..."
+    log "---------------------------------------------------"
+
+    validate_inputs
+    prepare_staging
+    create_installer_dmg
+    verify_dmg
+
+    log "---------------------------------------------------"
+    log "SUCCESS: ${DMG_NAME} is ready."
+    log "---------------------------------------------------"
+}
+
+main "$@"

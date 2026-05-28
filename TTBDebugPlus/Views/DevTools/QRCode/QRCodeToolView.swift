@@ -338,7 +338,7 @@ struct QRCodeToolView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 headerBlock(
-                    icon: "qrcode.viewfinder",
+                    icon: AppIcon.qrCode,
                     title: "View QR",
                     subtitle: "Import or paste an image to decode QR content."
                 )
@@ -375,7 +375,7 @@ struct QRCodeToolView: View {
                     if let decodeError {
                         stateMessage(icon: "exclamationmark.triangle.fill", text: decodeError, color: .ttWarning)
                     } else if decodedMessages.isEmpty {
-                        stateMessage(icon: "qrcode.viewfinder", text: "No decoded content yet.", color: .ttTextMuted)
+                        stateMessage(icon: AppIcon.qrCode, text: "No decoded content yet.", color: .ttTextMuted)
                     } else {
                         ForEach(Array(decodedMessages.enumerated()), id: \.offset) { _, value in
                             VStack(alignment: .leading, spacing: 8) {
@@ -598,7 +598,11 @@ struct QRCodeToolView: View {
         panel.allowedContentTypes = [.png]
         panel.begin { response in
             guard response == .OK, let url = panel.url else { return }
-            try? data.write(to: url, options: .atomic)
+            do {
+                try data.write(to: url, options: .atomic)
+            } catch {
+                decodeError = "Could not save PNG: \(error.localizedDescription)"
+            }
         }
     }
     
@@ -608,9 +612,13 @@ struct QRCodeToolView: View {
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
         panel.begin { response in
-            guard response == .OK,
-                  let url = panel.url,
-                  let image = NSImage(contentsOf: url) else { return }
+            guard response == .OK, let url = panel.url else { return }
+            guard let image = NSImage(contentsOf: url) else {
+                decodeError = "Could not open the selected image."
+                decodedMessages = []
+                decodedImage = nil
+                return
+            }
             decode(image)
         }
     }

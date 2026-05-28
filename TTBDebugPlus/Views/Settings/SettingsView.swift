@@ -23,37 +23,37 @@ struct SettingsView: View {
             // General
             generalSettings
                 .tabItem {
-                    Label("General", systemImage: "gearshape")
+                    Label("General", systemImage: AppIcon.settings)
                 }
             
             // Connection
             connectionSettings
                 .tabItem {
-                    Label("Connection", systemImage: "antenna.radiowaves.left.and.right")
+                    Label("Connection", systemImage: AppIcon.connectionHealth)
                 }
             
             // Permissions
             PermissionsView()
                 .tabItem {
-                    Label("Permissions", systemImage: "lock.shield")
+                    Label("Permissions", systemImage: AppIcon.permissions)
                 }
             
             // Storage
             StorageSettingsView()
                 .tabItem {
-                    Label("Storage", systemImage: "externaldrive")
+                    Label("Storage", systemImage: AppIcon.storage)
                 }
             
             // Dev Tools
             devToolsSettings
                 .tabItem {
-                    Label("Dev Tools", systemImage: "wrench.and.screwdriver")
+                    Label("Dev Tools", systemImage: AppIcon.devTools)
                 }
             
             // Privacy
             privacySettings
                 .tabItem {
-                    Label("Privacy", systemImage: "lock.shield")
+                    Label("Privacy", systemImage: AppIcon.privacy)
                 }
         }
         .frame(width: 560, height: 450)
@@ -167,7 +167,7 @@ struct SettingsView: View {
             
             Section("Available Tools") {
                 HStack {
-                    Image(systemName: "curlybraces")
+                    Image(systemName: AppIcon.json)
                         .foregroundColor(.ttPrimary)
                     Text("JSON Editor")
                     Spacer()
@@ -176,7 +176,7 @@ struct SettingsView: View {
                         .foregroundColor(.ttSuccess)
                 }
                 HStack {
-                    Image(systemName: "textformat.abc")
+                    Image(systemName: AppIcon.base64)
                         .foregroundColor(.secondary)
                     Text("Base64 Encoder/Decoder")
                     Spacer()
@@ -185,7 +185,7 @@ struct SettingsView: View {
                         .foregroundColor(.secondary)
                 }
                 HStack {
-                    Image(systemName: "link")
+                    Image(systemName: AppIcon.urlEncode)
                         .foregroundColor(.secondary)
                     Text("URL Encoder/Decoder")
                     Spacer()

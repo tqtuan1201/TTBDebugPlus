@@ -86,19 +86,16 @@ struct ContentView: View {
         appState.isServerRunning = connectionManager.isServerRunning
         appState.totalEvents = connectionManager.totalAPILogs + connectionManager.totalConsoleLogs
         
-        // Update connected devices from real connections (keep mock if none)
-        if !connectionManager.connectedDevices.isEmpty {
-            appState.connectedDevices = connectionManager.connectedDevices.map { session in
-                ConnectedDevice(
-                    id: session.shortId,
-                    name: session.displayName,
-                    osVersion: session.osVersionString,
-                    appName: session.appNameString,
-                    appVersion: session.deviceInfo?.appVersion ?? "Unknown",
-                    isConnected: session.isOnline,
-                    isSimulator: session.isSimulator
-                )
-            }
+        appState.connectedDevices = connectionManager.connectedDevices.map { session in
+            ConnectedDevice(
+                id: session.shortId,
+                name: session.displayName,
+                osVersion: session.osVersionString,
+                appName: session.appNameString,
+                appVersion: session.deviceInfo?.appVersion ?? "Unknown",
+                isConnected: session.isOnline,
+                isSimulator: session.isSimulator
+            )
         }
         
         // Update performance from latest metrics

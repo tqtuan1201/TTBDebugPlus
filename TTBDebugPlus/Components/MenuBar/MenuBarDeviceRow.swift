@@ -16,7 +16,7 @@ struct MenuBarDeviceRow: View {
     var body: some View {
         HStack(spacing: 8) {
             // Device icon
-            Image(systemName: session.isSimulator ? "laptopcomputer" : "iphone")
+            Image(systemName: session.isSimulator ? AppIcon.simulator : AppIcon.device)
                 .font(.system(size: 11))
                 .foregroundColor(session.isOnline ? .ttSuccess : .secondary)
                 .frame(width: 16)

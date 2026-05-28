@@ -59,6 +59,14 @@ struct DevToolsView: View {
         .onChange(of: appState.devToolsToolRequestID) { _, _ in
             openRequestedToolIfNeeded()
         }
+        .alert("File Operation Failed", isPresented: Binding(
+            get: { viewModel.fileErrorMessage != nil },
+            set: { if !$0 { viewModel.fileErrorMessage = nil } }
+        )) {
+            Button("OK", role: .cancel) { viewModel.fileErrorMessage = nil }
+        } message: {
+            Text(viewModel.fileErrorMessage ?? "")
+        }
     }
     
     // MARK: - Dev Tools Menu
@@ -158,7 +166,7 @@ struct DevToolsView: View {
                     HStack(spacing: 5) {
                         Image(systemName: "square.and.arrow.down")
                         Image(systemName: "doc.on.clipboard")
-                        Image(systemName: "qrcode.viewfinder")
+                        Image(systemName: AppIcon.qrCode)
                     }
                     .font(.system(size: 10, weight: .medium))
                     .foregroundColor(.ttTextTertiary)

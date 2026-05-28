@@ -65,8 +65,8 @@ enum GuideTab: String, CaseIterable {
     
     var icon: String {
         switch self {
-        case .integration: return "wrench.and.screwdriver"
-        case .usage: return "book"
+        case .integration: return AppIcon.devTools
+        case .usage: return AppIcon.guide
         }
     }
 }

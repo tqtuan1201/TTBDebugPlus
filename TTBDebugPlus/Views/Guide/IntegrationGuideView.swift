@@ -60,7 +60,7 @@ struct IntegrationGuideView: View {
                     RoundedRectangle(cornerRadius: 10)
                         .fill(Color.ttPrimary.opacity(0.12))
                         .frame(width: 40, height: 40)
-                    Image(systemName: "wrench.and.screwdriver.fill")
+                    Image(systemName: AppIcon.devTools)
                         .font(.ttIcon(TTIcon.xxl))
                         .foregroundColor(.ttPrimary)
                 }
@@ -87,7 +87,7 @@ struct IntegrationGuideView: View {
         
         return HStack(spacing: 16) {
             statusItem(
-                icon: "antenna.radiowaves.left.and.right",
+                icon: AppIcon.connectionHealth,
                 title: "Bonjour Server",
                 isOk: serverRunning,
                 okText: "Running on _ttbdebug._tcp",
@@ -97,7 +97,7 @@ struct IntegrationGuideView: View {
             Divider().frame(height: 40)
             
             statusItem(
-                icon: "iphone.gen3",
+                icon: AppIcon.device,
                 title: "iOS Device",
                 isOk: hasDevices,
                 okText: "\(connectionManager.connectedDevices.count) device(s) connected",
@@ -306,7 +306,7 @@ struct IntegrationGuideView: View {
                 // No device found
                 troubleItem(
                     errorLog: "macOS: \"Waiting for iOS devices...\" — No device found",
-                    icon: "iphone.slash",
+                    icon: AppIcon.deviceUnavailable,
                     iconColor: .ttWarning,
                     title: "iOS app not appearing in macOS sidebar",
                     explanation: "macOS is advertising _ttbdebug._tcp but iOS cannot find it. Common causes: different Wi-Fi networks, iOS hasn't called start(), or Local Network permission was previously denied.",

@@ -50,6 +50,7 @@ final class ScreenCaptureViewModel {
     private var recordingSource: DispatchSourceTimer?
     private var elapsedTimer: Timer?
     private let maxHistoryCount = 50
+    private let maxRecordingFrames = 600
     private let timerQueue = DispatchQueue(label: "com.ttbdebug.recording", qos: .utility)
     
     // MARK: - Computed
@@ -66,10 +67,7 @@ final class ScreenCaptureViewModel {
     
     // MARK: - Capture Screenshot
     func requestCapture(from connectionManager: ConnectionManager) {
-        // During recording, skip the isCapturing guard to allow overlapping requests
-        if !isRecording {
-            guard !isCapturing else { return }
-        }
+        guard !isCapturing else { return }
         isCapturing = true
         
         let quality = isRecording ? 0.4 : 0.7
@@ -109,6 +107,10 @@ final class ScreenCaptureViewModel {
                 
                 // Add to recording session
                 if self.recordingSession.isActive {
+                    guard self.recordingSession.frames.count < self.maxRecordingFrames else {
+                        self.stopRecording()
+                        return
+                    }
                     let frame = RecordingFrame(
                         image: image,
                         timestamp: Date(),

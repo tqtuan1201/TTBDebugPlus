@@ -67,11 +67,11 @@ enum JSONTool: String, CaseIterable, Identifiable {
     
     var icon: String {
         switch self {
-        case .editor: return "curlybraces"
-        case .query: return "magnifyingglass"
-        case .diff: return "rectangle.on.rectangle"
-        case .convert: return "arrow.triangle.swap"
-        case .graph: return "point.3.connected.trianglepath.dotted"
+        case .editor: return AppIcon.json
+        case .query: return AppIcon.jsonQuery
+        case .diff: return AppIcon.jsonDiff
+        case .convert: return AppIcon.jsonConvert
+        case .graph: return AppIcon.jsonGraph
         }
     }
     
@@ -100,13 +100,13 @@ enum DevTool: String, CaseIterable, Identifiable {
     
     var icon: String {
         switch self {
-        case .json: return "curlybraces"
-        case .qrCode: return "qrcode"
-        case .caseConverter: return "textformat.abc"
-        case .base64: return "textformat.abc"
-        case .urlEncode: return "link"
-        case .hashGenerator: return "number"
-        case .timestamp: return "clock"
+        case .json: return AppIcon.json
+        case .qrCode: return AppIcon.qrCode
+        case .caseConverter: return AppIcon.caseConverter
+        case .base64: return AppIcon.base64
+        case .urlEncode: return AppIcon.urlEncode
+        case .hashGenerator: return AppIcon.hash
+        case .timestamp: return AppIcon.timestamp
         }
     }
     
@@ -234,7 +234,7 @@ enum ConvertFormat: String, CaseIterable, Identifiable {
     
     var icon: String {
         switch self {
-        case .json: return "curlybraces"
+        case .json: return AppIcon.json
         case .yaml: return "doc.plaintext"
         case .xml: return "chevron.left.forwardslash.chevron.right"
         case .csv: return "tablecells"

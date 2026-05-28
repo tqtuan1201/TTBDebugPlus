@@ -434,7 +434,14 @@ html, body {
         currentContent = jsonStr;
         validate();
         render();
-        notifySwift('contentLoaded', { size: jsonStr.length, valid: isValid });
+        notifySwift('contentLoaded', {
+          size: jsonStr.length,
+          valid: isValid,
+          lines: currentContent.split('\n').length,
+          chars: currentContent.length,
+          error: validationError
+        });
+        notifySearchResult();
       } catch(e) {
         currentContent = jsonStr || '';
         isValid = false;
@@ -456,6 +463,7 @@ html, body {
         currentMode = mode;
         render();
         notifySwift('modeChanged', { mode: mode });
+        notifySearchResult();
       }
     },
 
@@ -468,7 +476,7 @@ html, body {
       searchTerm = term || '';
       searchMatchCount = 0;
       render();
-      notifySwift('searchResult', { count: searchMatchCount, term: searchTerm });
+      notifySearchResult();
     },
 
     format: function() {
@@ -545,6 +553,10 @@ html, body {
       chars: currentContent.length,
       error: validationError
     });
+  }
+
+  function notifySearchResult() {
+    notifySwift('searchResult', { count: searchMatchCount, term: searchTerm });
   }
 
   // ── Validation ──
@@ -697,7 +709,15 @@ html, body {
     container.appendChild(wrapper);
 
     updateLineNumbers();
-    textarea.focus();
+    if (searchTerm) {
+      searchMatchCount = countSearchMatches(currentContent, searchTerm);
+      const firstMatch = currentContent.toLowerCase().indexOf(searchTerm.toLowerCase());
+      if (firstMatch >= 0) {
+        textarea.setSelectionRange(firstMatch, firstMatch + searchTerm.length);
+        textarea.scrollTop = Math.max(0, textarea.scrollTop - 24);
+      }
+    }
+    if (isEditable) textarea.focus();
   }
 
   // ── Tree Mode ──
@@ -837,7 +857,7 @@ html, body {
     if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
       // Object
       const keys = Object.keys(value).sort();
-      const isCollapsed = collapsedPaths.has(path);
+      const isCollapsed = searchTerm ? false : collapsedPaths.has(path);
       const isMatch = searchTerm && key && String(key).toLowerCase().includes(searchTerm.toLowerCase());
       if (isMatch) searchMatchCount++;
 
@@ -864,7 +884,7 @@ html, body {
 
     } else if (Array.isArray(value)) {
       // Array
-      const isCollapsed = collapsedPaths.has(path);
+      const isCollapsed = searchTerm ? false : collapsedPaths.has(path);
       const isMatch = searchTerm && key && String(key).toLowerCase().includes(searchTerm.toLowerCase());
       if (isMatch) searchMatchCount++;
 
@@ -959,6 +979,7 @@ html, body {
   function renderPreview() {
     const div = document.createElement('div');
     div.className = 'preview-view';
+    searchMatchCount = 0;
 
     let prettyJSON = currentContent;
     try {
@@ -968,42 +989,61 @@ html, body {
       // Show raw if can't parse
     }
 
+    searchMatchCount = countSearchMatches(prettyJSON, searchTerm);
     div.innerHTML = highlightJSON(prettyJSON);
     container.appendChild(div);
+    if (searchTerm) {
+      const firstMatch = div.querySelector('.hl-search');
+      if (firstMatch) firstMatch.scrollIntoView({ block: 'center', inline: 'nearest' });
+    }
   }
 
   function highlightJSON(str) {
-    // Escape HTML first
-    str = str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const tokenRegex = /("(?:[^"\\]|\\.)*")(\s*:)?|-?\d+\.?\d*(?:[eE][+-]?\d+)?|\btrue\b|\bfalse\b|\bnull\b|[{}\[\]]/g;
+    let html = '';
+    let lastIndex = 0;
+    let match;
 
-    // Highlight strings (keys and values)
-    str = str.replace(/"(?:[^"\\]|\\.)*"/g, function(match, offset) {
-      // Check if it's a key (followed by :)
-      const after = str.substring(offset + match.length).trimStart();
-      if (after.startsWith(':')) {
-        return '<span class="hl-key">' + match + '</span>';
-      }
-      let cls = 'hl-str';
-      if (searchTerm && match.toLowerCase().includes(searchTerm.toLowerCase())) {
-        cls += ' hl-search';
-        searchMatchCount++;
-      }
-      return '<span class="' + cls + '">' + match + '</span>';
-    });
+    while ((match = tokenRegex.exec(str)) !== null) {
+      const token = match[0];
+      const stringToken = match[1];
+      const keySuffix = match[2];
+      html += escapeHtml(str.slice(lastIndex, match.index));
 
-    // Numbers (standalone)
-    str = str.replace(/(?<=[:,\[\s])(-?\d+\.?\d*(?:[eE][+-]?\d+)?)(?=[,\s\]\}])/g, '<span class="hl-num">$1</span>');
+      let cls = '';
+      if (stringToken) cls = keySuffix ? 'hl-key' : 'hl-str';
+      else if (/^-?\d/.test(token)) cls = 'hl-num';
+      else if (token === 'true' || token === 'false') cls = 'hl-bool';
+      else if (token === 'null') cls = 'hl-null';
+      else cls = 'hl-brace';
 
-    // Booleans
-    str = str.replace(/\b(true|false)\b/g, '<span class="hl-bool">$1</span>');
+      html += '<span class="' + cls + '">' + highlightSearchInText(token) + '</span>';
+      lastIndex = tokenRegex.lastIndex;
+    }
 
-    // Null
-    str = str.replace(/\bnull\b/g, '<span class="hl-null">null</span>');
+    html += escapeHtml(str.slice(lastIndex));
+    return html;
+  }
 
-    // Braces & brackets
-    str = str.replace(/([{}\[\]])/g, '<span class="hl-brace">$1</span>');
+  function countSearchMatches(text, term) {
+    if (!term) return 0;
+    let count = 0;
+    let index = 0;
+    const haystack = String(text).toLowerCase();
+    const needle = String(term).toLowerCase();
+    while (needle && (index = haystack.indexOf(needle, index)) !== -1) {
+      count++;
+      index += needle.length;
+    }
+    return count;
+  }
 
-    return str;
+  function highlightSearchInText(text) {
+    const escaped = escapeHtml(String(text));
+    if (!searchTerm) return escaped;
+    const escapedTerm = escapeHtml(searchTerm).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    if (!escapedTerm) return escaped;
+    return escaped.replace(new RegExp(escapedTerm, 'gi'), '<span class="hl-search">$&</span>');
   }
 
   // ── Empty / Error States ──

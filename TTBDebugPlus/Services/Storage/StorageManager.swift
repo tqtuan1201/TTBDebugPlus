@@ -147,8 +147,9 @@ final class StorageManager {
     
     /// Calculate storage usage for all categories (async)
     func calculateStorageUsage() async -> StorageUsage {
-        isCalculating = true
-        defer { isCalculating = false }
+        await MainActor.run {
+            isCalculating = true
+        }
         
         var usage = StorageUsage()
         
@@ -157,11 +158,13 @@ final class StorageManager {
         usage.exportsSize = directorySize(exportsDirectory)
         usage.cacheSize = directorySize(cacheDirectory)
         
+        let finalUsage = usage
         await MainActor.run {
-            currentUsage = usage
+            currentUsage = finalUsage
+            isCalculating = false
         }
         
-        return usage
+        return finalUsage
     }
     
     /// Calculate size of a directory recursively

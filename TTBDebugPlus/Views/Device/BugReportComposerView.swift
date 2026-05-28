@@ -69,7 +69,7 @@ struct BugReportComposerView: View {
     // MARK: - Header
     private var header: some View {
         HStack {
-            Image(systemName: "ladybug.fill")
+            Image(systemName: AppIcon.app)
                 .font(.ttIcon(TTIcon.xxl))
                 .foregroundColor(.ttError)
             Text("BUG REPORT")

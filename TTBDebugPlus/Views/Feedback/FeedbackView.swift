@@ -236,7 +236,7 @@ struct FeedbackView: View {
                             Text("•")
                                 .foregroundColor(.ttTextTertiary)
                             HStack(spacing: 4) {
-                                Image(systemName: "iphone")
+                                Image(systemName: AppIcon.device)
                                     .font(.ttIcon(TTIcon.sm))
                                 Text(report.deviceName)
                                     .font(TTFont.labelSmall)
@@ -353,7 +353,7 @@ struct FeedbackReportRow: View {
                 StatusBadge(text: report.tag.rawValue, color: report.tag.color, style: .filled)
                 
                 HStack(spacing: 3) {
-                    Image(systemName: "iphone")
+                    Image(systemName: AppIcon.device)
                         .font(.ttIcon(TTIcon.xs))
                     Text(report.deviceName)
                         .font(TTFont.labelSmall)

@@ -153,6 +153,7 @@ struct OnlineJsonViewerView: View {
                 }
                 .buttonStyle(.ttGhost)
                 .help("Search (⌘F)")
+                .accessibilityLabel("Search JSON")
             }
             
             Spacer()
@@ -190,6 +191,7 @@ struct OnlineJsonViewerView: View {
             }
             .buttonStyle(.ttGhost)
             .help("Copy All")
+            .accessibilityLabel("Copy JSON")
             
             // Open in Editor
             if let onOpenInEditor = onOpenInEditor {
@@ -561,4 +563,10 @@ struct OnlineJsonEditorRepresentable: NSViewRepresentable {
     }
     
     func updateNSView(_ nsView: WKWebView, context: Context) {}
+
+    static func dismantleNSView(_ nsView: WKWebView, coordinator: ()) {
+        nsView.stopLoading()
+        nsView.navigationDelegate = nil
+        nsView.configuration.userContentController.removeScriptMessageHandler(forName: "jsonBridge")
+    }
 }

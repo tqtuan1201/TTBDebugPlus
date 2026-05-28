@@ -153,7 +153,8 @@ struct NetworkInterface: Identifiable, Equatable {
 /// Uses POSIX getifaddrs for an immediate first read, then NWPathMonitor for live change events.
 final class NetworkInterfaceMonitor {
 
-    private let pathMonitor = NWPathMonitor()
+    private var pathMonitor: NWPathMonitor?
+    private var isMonitoring = false
     private let queue = DispatchQueue(label: "com.ttbdebug.ifmonitor", qos: .utility)
 
     private(set) var activeInterfaces: [NetworkInterface] = []
@@ -164,6 +165,12 @@ final class NetworkInterfaceMonitor {
     // MARK: - Start
 
     func start() {
+        guard !isMonitoring else {
+            rescan()
+            return
+        }
+        isMonitoring = true
+
         // ── Step 1: Immediate POSIX scan so UI is never "No interfaces detected" ──
         let initial = NetworkInterface.posixScanAll()
         if !initial.isEmpty {
@@ -175,7 +182,9 @@ final class NetworkInterfaceMonitor {
         }
 
         // ── Step 2: NWPathMonitor for live updates & accurate NWInterface objects ──
-        pathMonitor.pathUpdateHandler = { [weak self] path in
+        let monitor = NWPathMonitor()
+        pathMonitor = monitor
+        monitor.pathUpdateHandler = { [weak self] path in
             guard let self else { return }
 
             var seen = Set<String>()
@@ -209,7 +218,7 @@ final class NetworkInterfaceMonitor {
             }
             print("[TTBDebug] 📡 Interfaces updated: \(resolved.map { $0.name }.joined(separator: ", "))")
         }
-        pathMonitor.start(queue: queue)
+        monitor.start(queue: queue)
         print("[TTBDebug] 📡 NetworkInterfaceMonitor started")
     }
 
@@ -229,7 +238,11 @@ final class NetworkInterfaceMonitor {
     // MARK: - Stop
 
     func stop() {
-        pathMonitor.cancel()
+        guard isMonitoring else { return }
+        isMonitoring = false
+        pathMonitor?.pathUpdateHandler = nil
+        pathMonitor?.cancel()
+        pathMonitor = nil
         print("[TTBDebug] 📡 NetworkInterfaceMonitor stopped")
     }
 

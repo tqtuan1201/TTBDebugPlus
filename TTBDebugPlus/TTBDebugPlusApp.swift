@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import AppKit
 
 @main
 struct TTBDebugPlusApp: App {
@@ -15,6 +16,7 @@ struct TTBDebugPlusApp: App {
     @State private var storageManager = StorageManager()
     @AppStorage("hasSeenWelcome") private var hasSeenWelcome: Bool = false
     @State private var showWelcome: Bool = false
+    @State private var appErrorMessage: String?
     
     var body: some Scene {
         WindowGroup(id: "main-window") {
@@ -39,6 +41,14 @@ struct TTBDebugPlusApp: App {
                     hasSeenWelcome = true
                 } content: {
                     WelcomeSheet(isPresented: $showWelcome)
+                }
+                .alert("Operation Failed", isPresented: Binding(
+                    get: { appErrorMessage != nil },
+                    set: { if !$0 { appErrorMessage = nil } }
+                )) {
+                    Button("OK", role: .cancel) { appErrorMessage = nil }
+                } message: {
+                    Text(appErrorMessage ?? "")
                 }
         }
         .defaultSize(width: 1400, height: 900)
@@ -128,8 +138,8 @@ struct TTBDebugPlusApp: App {
         MenuBarExtra(
             connectionManager.isServerRunning ? "TTBDebugPlus Server Running" : "TTBDebugPlus Server Offline",
             systemImage: connectionManager.isServerRunning
-                ? "antenna.radiowaves.left.and.right"
-                : "antenna.radiowaves.left.and.right.slash"
+                ? AppIcon.connectionHealth
+                : AppIcon.connectionOffline
         ) {
             MenuBarView()
                 .environment(appState)
@@ -158,7 +168,11 @@ struct TTBDebugPlusApp: App {
         panel.nameFieldStringValue = "\(session.deviceName)_\(session.formattedDate).ttbdebug"
         panel.begin { response in
             if response == .OK, let url = panel.url {
-                try? sessionManager.exportSession(session, to: url)
+                do {
+                    try sessionManager.exportSession(session, to: url)
+                } catch {
+                    appErrorMessage = "Could not export session: \(error.localizedDescription)"
+                }
             }
         }
     }
@@ -168,7 +182,11 @@ struct TTBDebugPlusApp: App {
         panel.allowedContentTypes = [.init(filenameExtension: "ttbdebug")!]
         panel.begin { response in
             if response == .OK, let url = panel.url {
-                _ = try? sessionManager.importSession(from: url)
+                do {
+                    _ = try sessionManager.importSession(from: url)
+                } catch {
+                    appErrorMessage = "Could not import session: \(error.localizedDescription)"
+                }
             }
         }
     }

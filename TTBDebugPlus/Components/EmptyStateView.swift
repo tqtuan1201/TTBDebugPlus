@@ -63,7 +63,7 @@ struct EmptyStateView: View {
 
 #Preview {
     EmptyStateView(
-        icon: "antenna.radiowaves.left.and.right.slash",
+        icon: AppIcon.connectionOffline,
         title: "No Device Connected",
         subtitle: "Connect an iOS device running TTBaseUIKit to start debugging. Make sure both devices are on the same network.",
         actionTitle: "View Setup Guide"

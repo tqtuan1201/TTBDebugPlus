@@ -74,7 +74,7 @@ struct JSONDiffView: View {
                 Circle()
                     .fill(Color.ttPrimary.opacity(0.08))
                     .frame(width: 28, height: 28)
-                Image(systemName: "rectangle.on.rectangle")
+                Image(systemName: AppIcon.jsonDiff)
                     .font(.ttIcon(TTIcon.lg))
                     .foregroundColor(.ttPrimary)
             }
@@ -318,7 +318,7 @@ struct JSONDiffView: View {
                     Circle()
                         .fill(Color.ttSurface.opacity(0.5))
                         .frame(width: 56, height: 56)
-                    Image(systemName: "rectangle.on.rectangle")
+                    Image(systemName: AppIcon.jsonDiff)
                         .font(.system(size: 24))
                         .foregroundColor(.ttTextMuted)
                 }

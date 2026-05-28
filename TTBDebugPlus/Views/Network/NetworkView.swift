@@ -16,6 +16,7 @@ struct NetworkView: View {
     @State private var showCURLCopied: Bool = false
     @State private var showPostmanExported: Bool = false
     @State private var showHARExported: Bool = false
+    @State private var exportErrorMessage: String?
     @State private var viewMode: NetworkViewMode = .requests
     @State private var hoveredRowId: String? = nil
     
@@ -61,6 +62,10 @@ struct NetworkView: View {
                 if !viewModel.availableDevices.isEmpty {
                     deviceFilterPicker
                 }
+
+                if !viewModel.availableApps.isEmpty {
+                    appFilterPicker
+                }
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 8)
@@ -86,6 +91,14 @@ struct NetworkView: View {
         }
         .onChange(of: connectionManager.totalAPILogs) {
             viewModel.syncFromConnectionManager(connectionManager)
+        }
+        .alert("Export Failed", isPresented: Binding(
+            get: { exportErrorMessage != nil },
+            set: { if !$0 { exportErrorMessage = nil } }
+        )) {
+            Button("OK", role: .cancel) { exportErrorMessage = nil }
+        } message: {
+            Text(exportErrorMessage ?? "")
         }
     }
     
@@ -147,6 +160,66 @@ struct NetworkView: View {
         }
         .menuStyle(.borderlessButton)
         .fixedSize()
+    }
+
+    private var appFilterPicker: some View {
+        Menu {
+            Button(action: { viewModel.selectedAppFilter = nil }) {
+                HStack {
+                    Text("All Apps")
+                    if viewModel.selectedAppFilter == nil {
+                        Image(systemName: "checkmark")
+                    }
+                }
+            }
+
+            Divider()
+
+            ForEach(viewModel.availableApps, id: \.key) { app in
+                Button(action: { viewModel.selectedAppFilter = app.key }) {
+                    HStack {
+                        Text(app.displayName)
+                        Text("\(app.count)")
+                            .foregroundColor(.secondary)
+                        if viewModel.selectedAppFilter == app.key {
+                            Image(systemName: "checkmark")
+                        }
+                    }
+                }
+            }
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: "app.badge")
+                    .font(.ttIcon(TTIcon.md))
+                    .foregroundColor(viewModel.selectedAppFilter == nil ? .ttTextTertiary : .ttPrimary)
+
+                Text(selectedAppFilterTitle)
+                    .font(TTFont.labelSmall)
+                    .foregroundColor(viewModel.selectedAppFilter == nil ? .ttTextSecondary : .ttTextPrimary)
+                    .lineLimit(1)
+
+                Image(systemName: "chevron.down")
+                    .font(.ttIcon(TTIcon.xxs))
+                    .foregroundColor(.ttTextTertiary)
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(Color.ttSurface)
+                    .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.ttBorder, lineWidth: 1))
+            )
+        }
+        .menuStyle(.borderlessButton)
+        .fixedSize()
+    }
+
+    private var selectedAppFilterTitle: String {
+        guard let appKey = viewModel.selectedAppFilter,
+              let app = viewModel.availableApps.first(where: { $0.key == appKey }) else {
+            return "All Apps"
+        }
+        return app.displayName
     }
     
     // MARK: - Requests Content
@@ -318,6 +391,81 @@ struct NetworkView: View {
             }
             .menuStyle(.borderlessButton)
             .fixedSize()
+
+            // Domain filter dropdown
+            Menu {
+                Button("All Domains") { viewModel.selectedDomainFilter = nil }
+                Divider()
+                ForEach(viewModel.availableDomains.prefix(20), id: \.domain) { item in
+                    Button(action: { viewModel.selectedDomainFilter = item.domain }) {
+                        HStack {
+                            Text(item.domain)
+                            Text("\(item.count)")
+                                .foregroundColor(.secondary)
+                            if viewModel.selectedDomainFilter == item.domain {
+                                Image(systemName: "checkmark")
+                            }
+                        }
+                    }
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "globe")
+                        .font(.ttIcon(TTIcon.xs))
+                        .foregroundColor(viewModel.selectedDomainFilter == nil ? .ttTextTertiary : .ttPrimary)
+                    Text(viewModel.selectedDomainFilter ?? "Domain")
+                        .font(TTFont.labelSmall)
+                        .foregroundColor(viewModel.selectedDomainFilter == nil ? .ttTextTertiary : .ttTextPrimary)
+                        .lineLimit(1)
+                    Image(systemName: "chevron.down")
+                        .font(.ttIcon(TTIcon.xxxs))
+                        .foregroundColor(.ttTextTertiary)
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 5)
+                .background(
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(viewModel.selectedDomainFilter == nil ? Color.clear : Color.ttPrimary.opacity(0.08))
+                        .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.ttBorder.opacity(0.4), lineWidth: 0.5))
+                )
+            }
+            .menuStyle(.borderlessButton)
+            .fixedSize()
+
+            // Duration filter dropdown
+            Menu {
+                ForEach(DurationFilter.allCases, id: \.self) { filter in
+                    Button(action: { viewModel.selectedDurationFilter = filter }) {
+                        HStack {
+                            Text(filter == .all ? "All Durations" : filter.rawValue)
+                            if viewModel.selectedDurationFilter == filter {
+                                Image(systemName: "checkmark")
+                            }
+                        }
+                    }
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "timer")
+                        .font(.ttIcon(TTIcon.xs))
+                        .foregroundColor(viewModel.selectedDurationFilter == .all ? .ttTextTertiary : .ttWarning)
+                    Text(viewModel.selectedDurationFilter == .all ? "Duration" : viewModel.selectedDurationFilter.rawValue)
+                        .font(TTFont.labelSmall)
+                        .foregroundColor(viewModel.selectedDurationFilter == .all ? .ttTextTertiary : .ttTextPrimary)
+                    Image(systemName: "chevron.down")
+                        .font(.ttIcon(TTIcon.xxxs))
+                        .foregroundColor(.ttTextTertiary)
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 5)
+                .background(
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(viewModel.selectedDurationFilter == .all ? Color.clear : Color.ttWarning.opacity(0.1))
+                        .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.ttBorder.opacity(0.4), lineWidth: 0.5))
+                )
+            }
+            .menuStyle(.borderlessButton)
+            .fixedSize()
             
             // Pin filter
             Button(action: { viewModel.showOnlyPinned.toggle() }) {
@@ -332,6 +480,7 @@ struct NetworkView: View {
             }
             .buttonStyle(.plain)
             .help(viewModel.showOnlyPinned ? "Show all requests" : "Show pinned only")
+            .accessibilityLabel(viewModel.showOnlyPinned ? "Show All Requests" : "Show Pinned Requests")
             
             Spacer()
             
@@ -374,6 +523,7 @@ struct NetworkView: View {
             }
             .buttonStyle(.plain)
             .help(viewModel.isLiveStreaming ? "Click to pause" : "Click to resume")
+            .accessibilityLabel(viewModel.isLiveStreaming ? "Pause Live Updates" : "Resume Live Updates")
             
             // Refresh
             Button(action: { viewModel.forceRefresh(connectionManager) }) {
@@ -384,6 +534,7 @@ struct NetworkView: View {
             }
             .buttonStyle(.plain)
             .help("Refresh data")
+            .accessibilityLabel("Refresh Network Data")
             
             // Clear all requests
             Button(action: { viewModel.clearAll(connectionManager) }) {
@@ -394,6 +545,7 @@ struct NetworkView: View {
             }
             .buttonStyle(.plain)
             .help("Clear all requests")
+            .accessibilityLabel("Clear All Requests")
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
@@ -408,6 +560,10 @@ struct NetworkView: View {
     private var hasActiveFilters: Bool {
         viewModel.selectedStatusFilter != .all ||
         viewModel.selectedMethodFilter != nil ||
+        viewModel.selectedDeviceFilter != nil ||
+        viewModel.selectedAppFilter != nil ||
+        viewModel.selectedDomainFilter != nil ||
+        viewModel.selectedDurationFilter != .all ||
         viewModel.showOnlyPinned ||
         !viewModel.searchText.isEmpty
     }
@@ -415,6 +571,10 @@ struct NetworkView: View {
     private func clearAllFilters() {
         viewModel.selectedStatusFilter = .all
         viewModel.selectedMethodFilter = nil
+        viewModel.selectedDeviceFilter = nil
+        viewModel.selectedAppFilter = nil
+        viewModel.selectedDomainFilter = nil
+        viewModel.selectedDurationFilter = .all
         viewModel.showOnlyPinned = false
         viewModel.searchText = ""
     }
@@ -441,6 +601,10 @@ struct NetworkView: View {
             if viewModel.availableDevices.count > 1 {
                 Text("DEVICE")
                     .frame(width: 100, alignment: .leading)
+            }
+            if viewModel.availableApps.count > 1 {
+                Text("APP")
+                    .frame(width: 130, alignment: .leading)
             }
             Text("TIME")
                 .frame(width: 65, alignment: .trailing)
@@ -485,7 +649,8 @@ struct NetworkView: View {
                                     isPinned: viewModel.isPinned(request.id),
                                     isHovered: hoveredRowId == request.id,
                                     isAlternate: index % 2 == 1,
-                                    showDeviceColumn: viewModel.availableDevices.count > 1
+                                    showDeviceColumn: viewModel.availableDevices.count > 1,
+                                    showAppColumn: viewModel.availableApps.count > 1
                                 )
                                 .id(request.id)
                                 .onTapGesture {
@@ -620,9 +785,13 @@ struct NetworkView: View {
         panel.allowedContentTypes = [.json]
         panel.begin { response in
             if response == .OK, let url = panel.url {
-                try? json.write(to: url, atomically: true, encoding: .utf8)
-                showPostmanExported = true
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2) { showPostmanExported = false }
+                do {
+                    try json.write(to: url, atomically: true, encoding: .utf8)
+                    showPostmanExported = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) { showPostmanExported = false }
+                } catch {
+                    exportErrorMessage = "Could not export Postman collection: \(error.localizedDescription)"
+                }
             }
         }
     }
@@ -634,9 +803,13 @@ struct NetworkView: View {
         panel.allowedContentTypes = [.json]
         panel.begin { response in
             if response == .OK, let url = panel.url {
-                try? har.write(to: url, atomically: true, encoding: .utf8)
-                showHARExported = true
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2) { showHARExported = false }
+                do {
+                    try har.write(to: url, atomically: true, encoding: .utf8)
+                    showHARExported = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) { showHARExported = false }
+                } catch {
+                    exportErrorMessage = "Could not export HAR file: \(error.localizedDescription)"
+                }
             }
         }
     }

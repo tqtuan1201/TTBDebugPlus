@@ -20,7 +20,7 @@ struct DeviceSessionMenuButton: View {
     var body: some View {
         Button(action: { showPopover.toggle() }) {
             HStack(spacing: 4) {
-                Image(systemName: "iphone.and.arrow.forward")
+                Image(systemName: AppIcon.deviceSessions)
                     .font(.system(size: 11, weight: .medium))
                     .foregroundColor(onlineCount > 0 ? .ttSuccess : .ttTextTertiary)
 
@@ -64,7 +64,7 @@ struct DeviceSessionMenuView: View {
 
             // ── Header ─────────────────────────────────────────────────────────
             HStack(spacing: 8) {
-                Image(systemName: "iphone.and.arrow.forward")
+                Image(systemName: AppIcon.deviceSessions)
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundColor(.ttSuccess)
                 Text("Device Sessions")
@@ -152,7 +152,7 @@ struct DeviceSessionMenuView: View {
 
     private var emptyState: some View {
         VStack(spacing: 12) {
-            Image(systemName: "iphone.slash")
+            Image(systemName: AppIcon.deviceUnavailable)
                 .font(.system(size: 28, weight: .light))
                 .foregroundColor(.ttTextMuted)
 
@@ -205,7 +205,7 @@ struct SessionRow: View {
 
                 // Device icon + online dot
                 ZStack(alignment: .bottomTrailing) {
-                    Image(systemName: session.isSimulator ? "laptopcomputer" : "iphone")
+                    Image(systemName: session.isSimulator ? AppIcon.simulator : AppIcon.device)
                         .font(.system(size: 20, weight: .light))
                         .foregroundColor(session.isOnline ? .ttTextPrimary : .ttTextTertiary)
                         .frame(width: 28)

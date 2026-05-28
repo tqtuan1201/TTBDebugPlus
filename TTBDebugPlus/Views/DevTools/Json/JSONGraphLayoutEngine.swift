@@ -167,7 +167,7 @@ enum JSONGraphLayoutEngine {
         
         // Calculate subtree widths bottom-up
         var subtreeWidths: [String: CGFloat] = [:]
-        calculateSubtreeWidth(rootId, nodes: nodes, nodeMap: nodeMap, widths: &subtreeWidths)
+        _ = calculateSubtreeWidth(rootId, nodes: nodes, nodeMap: nodeMap, widths: &subtreeWidths)
         
         // Position top-down
         let startX: CGFloat = 40

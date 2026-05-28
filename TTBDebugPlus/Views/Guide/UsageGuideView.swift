@@ -19,7 +19,7 @@ struct UsageGuideView: View {
                             RoundedRectangle(cornerRadius: 10)
                                 .fill(Color.ttSuccess.opacity(0.12))
                                 .frame(width: 40, height: 40)
-                            Image(systemName: "book.fill")
+                            Image(systemName: AppIcon.guide)
                                 .font(.ttIcon(TTIcon.xxl))
                                 .foregroundColor(.ttSuccess)
                         }
@@ -43,7 +43,7 @@ struct UsageGuideView: View {
                 
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
                     featureGuideCard(
-                        icon: "terminal.fill",
+                        icon: AppIcon.console,
                         title: "Console",
                         color: .ttSuccess,
                         features: [
@@ -56,7 +56,7 @@ struct UsageGuideView: View {
                     )
                     
                     featureGuideCard(
-                        icon: "network",
+                        icon: AppIcon.network,
                         title: "Network",
                         color: .ttPrimary,
                         features: [
@@ -69,7 +69,7 @@ struct UsageGuideView: View {
                     )
                     
                     featureGuideCard(
-                        icon: "iphone",
+                        icon: AppIcon.device,
                         title: "Device",
                         color: .ttWarning,
                         features: [
@@ -174,7 +174,7 @@ struct UsageGuideView: View {
                     )
                     
                     tipCard(
-                        icon: "antenna.radiowaves.left.and.right",
+                        icon: AppIcon.connectionHealth,
                         title: "Multiple Devices",
                         description: "TTBDebugPlus supports multiple connected devices simultaneously. Use the sidebar to switch between devices and view their individual logs.",
                         color: .purple

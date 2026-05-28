@@ -75,14 +75,14 @@ enum AppTab: String, CaseIterable, Identifiable {
     
     var icon: String {
         switch self {
-        case .console:           return "terminal"
-        case .network:           return "network"
-        case .device:            return "iphone"
-        case .performance:       return "chart.xyaxis.line"
-        case .devtools:          return "wrench.and.screwdriver"
-        case .feedback:          return "bubble.left.and.text.bubble.right"
-        case .connectionHealth:  return "network.badge.shield.half.filled"
-        case .guide:             return "book.fill"
+        case .console:           return AppIcon.console
+        case .network:           return AppIcon.network
+        case .device:            return AppIcon.device
+        case .performance:       return AppIcon.performance
+        case .devtools:          return AppIcon.devTools
+        case .feedback:          return AppIcon.feedback
+        case .connectionHealth:  return AppIcon.connectionHealth
+        case .guide:             return AppIcon.guide
         }
     }
     
@@ -105,12 +105,12 @@ enum SidebarSection: String, CaseIterable, Identifiable {
     
     var icon: String {
         switch self {
-        case .devices:          return "desktopcomputer"
-        case .logs:             return "doc.text"
-        case .network:          return "antenna.radiowaves.left.and.right"
-        case .performance:      return "chart.xyaxis.line"
-        case .devtools:         return "wrench.and.screwdriver"
-        case .connectionHealth: return "network.badge.shield.half.filled"
+        case .devices:          return AppTab.device.icon
+        case .logs:             return AppTab.console.icon
+        case .network:          return AppTab.network.icon
+        case .performance:      return AppTab.performance.icon
+        case .devtools:         return AppTab.devtools.icon
+        case .connectionHealth: return AppTab.connectionHealth.icon
         }
     }
 }

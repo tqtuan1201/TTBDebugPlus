@@ -25,6 +25,7 @@ class JSONEditorViewModel {
     var isValid: Bool = true
     var validationErrors: [JSONValidationError] = []
     var sourceLabel: String? = nil
+    var fileErrorMessage: String? = nil
     
     // MARK: - Search
     var searchText: String = ""
@@ -179,9 +180,14 @@ class JSONEditorViewModel {
         panel.canChooseDirectories = false
         panel.begin { response in
             if response == .OK, let url = panel.url {
-                if let content = try? String(contentsOf: url, encoding: .utf8) {
+                do {
+                    let content = try String(contentsOf: url, encoding: .utf8)
                     DispatchQueue.main.async {
                         self.loadJSON(content, source: url.lastPathComponent)
+                    }
+                } catch {
+                    DispatchQueue.main.async {
+                        self.fileErrorMessage = "Could not open file: \(error.localizedDescription)"
                     }
                 }
             }
@@ -196,7 +202,17 @@ class JSONEditorViewModel {
         panel.allowedContentTypes = [.json]
         panel.begin { response in
             if response == .OK, let url = panel.url {
-                try? self.rawJSON.write(to: url, atomically: true, encoding: .utf8)
+                do {
+                    try self.rawJSON.write(to: url, atomically: true, encoding: .utf8)
+                    DispatchQueue.main.async {
+                        self.isDirty = false
+                        self.sourceLabel = url.lastPathComponent
+                    }
+                } catch {
+                    DispatchQueue.main.async {
+                        self.fileErrorMessage = "Could not save file: \(error.localizedDescription)"
+                    }
+                }
             }
         }
         #endif

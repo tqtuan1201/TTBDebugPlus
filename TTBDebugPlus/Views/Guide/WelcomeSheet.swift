@@ -147,11 +147,11 @@ struct WelcomeSheet: View {
                 GridItem(.flexible()),
                 GridItem(.flexible())
             ], spacing: 16) {
-                featureCard(icon: "terminal.fill", title: "Console", description: "Real-time logs with\nlevel filtering", color: .ttSuccess)
-                featureCard(icon: "network", title: "Network", description: "API inspector with\nJSON preview", color: .ttPrimary)
-                featureCard(icon: "iphone", title: "Device", description: "Remote screenshots\n& annotations", color: .ttWarning)
-                featureCard(icon: "chart.xyaxis.line", title: "Performance", description: "CPU, Memory &\nFPS charts", color: .ttError)
-                featureCard(icon: "bubble.left.and.text.bubble.right.fill", title: "Feedback", description: "Bug reports with\nscreenshot export", color: .purple)
+                featureCard(icon: AppIcon.console, title: "Console", description: "Real-time logs with\nlevel filtering", color: .ttSuccess)
+                featureCard(icon: AppIcon.network, title: "Network", description: "API inspector with\nJSON preview", color: .ttPrimary)
+                featureCard(icon: AppIcon.device, title: "Device", description: "Remote screenshots\n& annotations", color: .ttWarning)
+                featureCard(icon: AppIcon.performance, title: "Performance", description: "CPU, Memory &\nFPS charts", color: .ttError)
+                featureCard(icon: AppIcon.feedback, title: "Feedback", description: "Bug reports with\nscreenshot export", color: .purple)
                 featureCard(icon: "square.and.arrow.up.fill", title: "Export", description: "HAR, cURL &\nMarkdown export", color: .cyan)
             }
             .padding(.horizontal, 32)

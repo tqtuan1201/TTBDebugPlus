@@ -105,7 +105,7 @@ struct ConnectionHealthView: View {
                             .stroke(Color.ttPrimary.opacity(0.3), lineWidth: 1)
                     )
                 
-                Image(systemName: "antenna.radiowaves.left.and.right")
+                Image(systemName: AppIcon.connectionHealth)
                     .font(.system(size: 36, weight: .light))
                     .foregroundColor(.ttPrimary)
                     .symbolEffect(.variableColor.iterative, options: .repeating, value: refreshTick)
@@ -138,7 +138,7 @@ struct ConnectionHealthView: View {
                 
                 if let port = connectionManager.serverPort {
                     statusRow(
-                        icon: "network",
+                    icon: AppIcon.network,
                         iconColor: .ttPrimary,
                         label: "Port",
                         value: String(port)
@@ -146,14 +146,14 @@ struct ConnectionHealthView: View {
                 }
                 
                 statusRow(
-                    icon: "antenna.radiowaves.left.and.right",
+                    icon: AppIcon.connectionHealth,
                     iconColor: connectionManager.isServerRunning ? .ttSuccess : .ttTextTertiary,
                     label: "Advertising",
                     value: connectionManager.isServerRunning ? "_ttbdebug._tcp" : "Inactive"
                 )
                 
                 statusRow(
-                    icon: "iphone",
+                    icon: AppIcon.device,
                     iconColor: .ttPrimary,
                     label: "Connected",
                     value: "\(connectionManager.onlineDevices.count) device(s)"
@@ -165,7 +165,7 @@ struct ConnectionHealthView: View {
                         // Force Reconnect — restart Bonjour without clearing sessions
                         Button(action: { connectionManager.forceReconnect() }) {
                             HStack(spacing: 5) {
-                                Image(systemName: "arrow.triangle.2.circlepath")
+                                Image(systemName: AppIcon.reconnect)
                                 Text("Force Reconnect")
                             }
                         }
@@ -288,7 +288,7 @@ struct ConnectionHealthView: View {
         CardView(title: "iOS DEVICE DIAGNOSTICS") {
             VStack(alignment: .leading, spacing: 10) {
                 statusRow(
-                    icon: "iphone",
+                    icon: AppIcon.device,
                     iconColor: .ttSuccess,
                     label: "Device",
                     value: device.displayName
@@ -564,7 +564,7 @@ extension ConnectionHealthView {
                 ForEach(connectionManager.connectedDevices) { session in
                     VStack(alignment: .leading, spacing: 8) {
                         HStack(spacing: 10) {
-                            Image(systemName: session.isSimulator ? "laptopcomputer" : "iphone")
+                            Image(systemName: session.isSimulator ? AppIcon.simulator : AppIcon.device)
                                 .font(.system(size: 14))
                                 .foregroundColor(session.isOnline ? .ttSuccess : .ttTextTertiary)
                             Text(session.displayName)

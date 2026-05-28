@@ -30,6 +30,15 @@ final class NetworkViewModel {
     var selectedStatusFilter: StatusFilter = .all {
         didSet { invalidateFilterCache() }
     }
+    var selectedAppFilter: String? = nil {
+        didSet { invalidateFilterCache() }
+    }
+    var selectedDomainFilter: String? = nil {
+        didSet { invalidateFilterCache() }
+    }
+    var selectedDurationFilter: DurationFilter = .all {
+        didSet { invalidateFilterCache() }
+    }
     var isLiveStreaming: Bool = true
     var showOnlyPinned: Bool = false {
         didSet { invalidateFilterCache() }
@@ -63,10 +72,11 @@ final class NetworkViewModel {
     private func invalidateFilterCache() {
         _cachedFilteredEntries = nil
         _cachedFailedCount = nil
+        _cachedStats = nil
     }
     
     private func computeFailedCount() -> Int {
-        let count = entries.count(where: { $0.statusCode >= 400 })
+        let count = filteredEntries.count(where: { $0.statusCode >= 400 })
         _cachedFailedCount = count
         return count
     }
@@ -77,6 +87,16 @@ final class NetworkViewModel {
         // Device filter
         if let deviceId = selectedDeviceFilter {
             result = result.filter { $0.sourceDeviceId == deviceId }
+        }
+
+        // App filter
+        if let appKey = selectedAppFilter {
+            result = result.filter { $0.appFilterKey == appKey }
+        }
+
+        // Domain filter
+        if let domain = selectedDomainFilter {
+            result = result.filter { $0.urlDomain == domain }
         }
         
         // Pin filter
@@ -98,6 +118,15 @@ final class NetworkViewModel {
         case .clientError: result = result.filter { $0.statusCode >= 400 && $0.statusCode < 500 }
         case .serverError: result = result.filter { $0.statusCode >= 500 }
         }
+
+        // Duration filter
+        switch selectedDurationFilter {
+        case .all: break
+        case .fast: result = result.filter { $0.durationMs < 100 }
+        case .normal: result = result.filter { $0.durationMs >= 100 && $0.durationMs < 1000 }
+        case .slow: result = result.filter { $0.durationMs >= 1000 && $0.durationMs < 5000 }
+        case .verySlow: result = result.filter { $0.durationMs >= 5000 }
+        }
         
         // Deep search
         if !searchText.isEmpty {
@@ -109,9 +138,13 @@ final class NetworkViewModel {
                            entry.requestBody.localizedCaseInsensitiveContains(searchText) ||
                            entry.responseBody.localizedCaseInsensitiveContains(searchText) ||
                            entry.requestHeaders.values.contains { $0.localizedCaseInsensitiveContains(searchText) } ||
-                           entry.sourceDeviceName.localizedCaseInsensitiveContains(searchText)
+                           entry.responseHeaders.values.contains { $0.localizedCaseInsensitiveContains(searchText) } ||
+                           entry.sourceDeviceName.localizedCaseInsensitiveContains(searchText) ||
+                           entry.appDisplayName.localizedCaseInsensitiveContains(searchText) ||
+                           entry.urlDomain.localizedCaseInsensitiveContains(searchText)
                 case .url:
-                    return entry.url.localizedCaseInsensitiveContains(searchText)
+                    return entry.url.localizedCaseInsensitiveContains(searchText) ||
+                           entry.urlDomain.localizedCaseInsensitiveContains(searchText)
                 case .body:
                     return entry.requestBody.localizedCaseInsensitiveContains(searchText) ||
                            entry.responseBody.localizedCaseInsensitiveContains(searchText)
@@ -130,12 +163,33 @@ final class NetworkViewModel {
     }
     
     var maxDuration: Double {
-        entries.map(\.durationMs).max() ?? 1.0
+        filteredEntries.map(\.durationMs).max() ?? 1.0
     }
     
     // MARK: - Available HTTP methods (dynamic from data)
     var availableMethods: [String] {
         Array(Set(entries.map { $0.method.uppercased() })).sorted()
+    }
+
+    var availableApps: [(key: String, displayName: String, count: Int)] {
+        Dictionary(grouping: entries, by: \.appFilterKey)
+            .map { key, items in
+                let first = items[0]
+                return (key: key, displayName: first.appDisplayName, count: items.count)
+            }
+            .sorted {
+                if $0.count == $1.count { return $0.displayName < $1.displayName }
+                return $0.count > $1.count
+            }
+    }
+
+    var availableDomains: [(domain: String, count: Int)] {
+        Dictionary(grouping: entries, by: \.urlDomain)
+            .map { (domain: $0.key, count: $0.value.count) }
+            .sorted {
+                if $0.count == $1.count { return $0.domain < $1.domain }
+                return $0.count > $1.count
+            }
     }
     
     // MARK: - Network Statistics
@@ -146,6 +200,7 @@ final class NetworkViewModel {
         var totalDuration: Double = 0
         var totalSize: Int = 0
         var deviceCounts: [String: (name: String, count: Int)] = [:]
+        var appCounts: [String: (name: String, count: Int)] = [:]
         var domainCounts: [String: Int] = [:]
         var timeBuckets: [Int] = [0, 0, 0, 0, 0] // <100, 100-500, 500-1s, 1-5s, >5s
         var errorCount: Int = 0
@@ -156,7 +211,7 @@ final class NetworkViewModel {
     private var stats: AggregatedStats {
         if let cached = _cachedStats { return cached }
         var s = AggregatedStats()
-        for entry in entries {
+        for entry in filteredEntries {
             // Method
             s.methodCounts[entry.method, default: 0] += 1
             // Status
@@ -182,6 +237,12 @@ final class NetworkViewModel {
             } else {
                 s.deviceCounts[entry.sourceDeviceId] = (entry.sourceDeviceName, 1)
             }
+            // App
+            if let existing = s.appCounts[entry.appFilterKey] {
+                s.appCounts[entry.appFilterKey] = (existing.name, existing.count + 1)
+            } else {
+                s.appCounts[entry.appFilterKey] = (entry.appDisplayName, 1)
+            }
             // Domain (use pre-parsed urlDomain)
             s.domainCounts[entry.urlDomain, default: 0] += 1
         }
@@ -204,24 +265,33 @@ final class NetworkViewModel {
     }
     
     var averageResponseTime: Double {
-        guard !entries.isEmpty else { return 0 }
-        return stats.totalDuration / Double(entries.count)
+        guard !filteredEntries.isEmpty else { return 0 }
+        return stats.totalDuration / Double(filteredEntries.count)
     }
     
     var totalDataTransferred: Int { stats.totalSize }
     
     var topSlowestRequests: [NetworkRequestEntry] {
-        Array(entries.sorted { $0.durationMs > $1.durationMs }.prefix(5))
+        Array(filteredEntries.sorted { $0.durationMs > $1.durationMs }.prefix(5))
     }
     
     var errorRate: Double {
-        guard !entries.isEmpty else { return 0 }
-        return Double(stats.errorCount) / Double(entries.count) * 100
+        guard !filteredEntries.isEmpty else { return 0 }
+        return Double(stats.errorCount) / Double(filteredEntries.count) * 100
+    }
+
+    var filteredRequestCount: Int {
+        filteredEntries.count
     }
     
     // MARK: - Per-Device Statistics
     var deviceDistribution: [(deviceName: String, deviceId: String, count: Int)] {
         stats.deviceCounts.map { ($0.value.name, $0.key, $0.value.count) }
+            .sorted { $0.count > $1.count }
+    }
+
+    var appDistribution: [(appName: String, appKey: String, count: Int)] {
+        stats.appCounts.map { ($0.value.name, $0.key, $0.value.count) }
             .sorted { $0.count > $1.count }
     }
     
@@ -256,7 +326,9 @@ final class NetworkViewModel {
                 newEntries.append(NetworkRequestEntry(
                     from: payload,
                     sourceDeviceId: device.id,
-                    sourceDeviceName: device.displayName
+                    sourceDeviceName: device.displayName,
+                    appName: device.appNameString,
+                    appVersion: device.deviceInfo?.appVersion ?? ""
                 ))
             }
         }
@@ -392,6 +464,8 @@ struct NetworkRequestEntry: Identifiable {
     let remoteAddress: String
     let sourceDeviceId: String
     let sourceDeviceName: String
+    let appName: String
+    let appVersion: String
     
     // Pre-parsed URL components (computed once at init, not per render)
     let urlPath: String
@@ -402,7 +476,7 @@ struct NetworkRequestEntry: Identifiable {
     
     
     /// Convenience init from API payload
-    init(from payload: APILogPayload, sourceDeviceId: String, sourceDeviceName: String) {
+    init(from payload: APILogPayload, sourceDeviceId: String, sourceDeviceName: String, appName: String, appVersion: String) {
         self.id = payload.id
         self.timestamp = payload.timestamp
         self.statusCode = payload.statusCode
@@ -416,6 +490,8 @@ struct NetworkRequestEntry: Identifiable {
         self.responseBody = payload.responseBody
         self.sourceDeviceId = sourceDeviceId
         self.sourceDeviceName = sourceDeviceName
+        self.appName = appName.isEmpty ? "Unknown App" : appName
+        self.appVersion = appVersion
         
         // Pre-parse URL components once
         let comps = URLComponents(string: payload.url)
@@ -434,7 +510,8 @@ struct NetworkRequestEntry: Identifiable {
     init(id: String, timestamp: TimeInterval, statusCode: Int, method: String, url: String,
          durationMs: Double, sizeBytes: Int, requestHeaders: [String: String],
          requestBody: String, responseHeaders: [String: String], responseBody: String,
-         remoteAddress: String, sourceDeviceId: String, sourceDeviceName: String) {
+         remoteAddress: String, sourceDeviceId: String, sourceDeviceName: String,
+         appName: String = "Unknown App", appVersion: String = "") {
         self.id = id
         self.timestamp = timestamp
         self.statusCode = statusCode
@@ -449,6 +526,8 @@ struct NetworkRequestEntry: Identifiable {
         self.remoteAddress = remoteAddress
         self.sourceDeviceId = sourceDeviceId
         self.sourceDeviceName = sourceDeviceName
+        self.appName = appName.isEmpty ? "Unknown App" : appName
+        self.appVersion = appVersion
         
         let comps = URLComponents(string: url)
         var path = comps?.path ?? url
@@ -472,6 +551,14 @@ struct NetworkRequestEntry: Identifiable {
         if sizeBytes < 1024 { return "\(sizeBytes) B" }
         if sizeBytes < 1_048_576 { return String(format: "%.1f KB", Double(sizeBytes) / 1024) }
         return String(format: "%.1f MB", Double(sizeBytes) / 1_048_576)
+    }
+
+    var appDisplayName: String {
+        appVersion.isEmpty ? appName : "\(appName) v\(appVersion)"
+    }
+
+    var appFilterKey: String {
+        "\(appName)|\(appVersion)"
     }
     
     // MARK: - Cookie Parsing
@@ -548,6 +635,14 @@ enum StatusFilter: String, CaseIterable {
     case redirect = "3xx"
     case clientError = "4xx"
     case serverError = "5xx"
+}
+
+enum DurationFilter: String, CaseIterable {
+    case all = "All"
+    case fast = "<100ms"
+    case normal = "100ms-1s"
+    case slow = "1s-5s"
+    case verySlow = ">5s"
 }
 
 enum SearchScope: String, CaseIterable {

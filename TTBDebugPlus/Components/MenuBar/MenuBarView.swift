@@ -116,7 +116,7 @@ struct MenuBarView: View {
                     )
                     .frame(width: 32, height: 32)
                 
-                Image(systemName: "ladybug.fill")
+                Image(systemName: AppIcon.app)
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(.white)
             }
@@ -195,7 +195,7 @@ struct MenuBarView: View {
             
             if connectionManager.connectedDevices.isEmpty {
                 HStack(spacing: 6) {
-                    Image(systemName: "antenna.radiowaves.left.and.right.slash")
+                    Image(systemName: AppIcon.connectionOffline)
                         .font(.system(size: 11))
                         .foregroundColor(.secondary)
                     Text("No devices connected")
@@ -318,7 +318,7 @@ struct MenuBarView: View {
             .padding(.horizontal, 12)
             
             MenuBarActionButton(
-                icon: "square.grid.2x2",
+                icon: AppIcon.devTools,
                 title: "All Dev Tools",
                 shortcut: "⌘5"
             ) {
@@ -332,7 +332,7 @@ struct MenuBarView: View {
     private var quickActionsSection: some View {
         VStack(spacing: 2) {
             MenuBarActionButton(
-                icon: "trash",
+                icon: AppIcon.clearLogs,
                 title: "Clear All Logs",
                 shortcut: "⌘K"
             ) {
@@ -340,7 +340,7 @@ struct MenuBarView: View {
             }
             
             MenuBarActionButton(
-                icon: "camera",
+                icon: AppIcon.screenshot,
                 title: "Capture Screenshot",
                 shortcut: "⇧⌘C"
             ) {
@@ -354,7 +354,7 @@ struct MenuBarView: View {
     private var appActionsSection: some View {
         VStack(spacing: 2) {
             MenuBarActionButton(
-                icon: "macwindow",
+                icon: AppIcon.mainWindow,
                 title: "Open Main Window",
                 shortcut: ""
             ) {
@@ -365,7 +365,7 @@ struct MenuBarView: View {
                 .padding(.vertical, 4)
             
             MenuBarActionButton(
-                icon: "gearshape",
+                icon: AppIcon.settings,
                 title: "Preferences...",
                 shortcut: "⌘,"
             ) {
@@ -377,7 +377,7 @@ struct MenuBarView: View {
                 .padding(.vertical, 4)
             
             MenuBarActionButton(
-                icon: "power",
+                icon: AppIcon.quit,
                 title: "Quit TTBDebugPlus",
                 shortcut: "⌘Q",
                 isDestructive: true

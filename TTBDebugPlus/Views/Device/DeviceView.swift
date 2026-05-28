@@ -237,6 +237,7 @@ struct DeviceView: View {
                 .buttonStyle(.ttGhost)
                 .disabled(captureVM.isCapturing)
                 .help("Capture screenshot (Space)")
+                .accessibilityLabel("Capture Screenshot")
                 
                 // Record toggle
                 Button(action: toggleRecording) {
@@ -246,6 +247,7 @@ struct DeviceView: View {
                 }
                 .buttonStyle(.ttGhost)
                 .help(captureVM.isRecording ? "Stop recording" : "Start recording")
+                .accessibilityLabel(captureVM.isRecording ? "Stop Recording" : "Start Recording")
                 
                 // Record interval
                 Button(action: { showIntervalPicker.toggle() }) {
@@ -310,16 +312,18 @@ struct DeviceView: View {
             .buttonStyle(.plain)
             .disabled(captureVM.currentScreenshot == nil)
             .help("Open annotation editor (Draw on screenshot)")
+            .accessibilityLabel("Open Annotation Editor")
             
             // ── Bug report ──
             Button(action: { captureVM.openBugReport() }) {
-                Image(systemName: "ladybug.fill")
+                Image(systemName: AppIcon.app)
                     .font(.ttIcon(TTIcon.lg))
                     .foregroundColor(captureVM.currentScreenshot != nil ? .ttWarning : .ttTextTertiary)
             }
             .buttonStyle(.ttGhost)
             .disabled(captureVM.currentScreenshot == nil)
             .help("Create bug report")
+            .accessibilityLabel("Create Bug Report")
             
             Divider().frame(height: 18)
             
@@ -344,6 +348,7 @@ struct DeviceView: View {
                 .disabled(captureVM.currentScreenshot == nil)
                 .help("Copy to clipboard (⌘C)")
                 .keyboardShortcut("c", modifiers: .command)
+                .accessibilityLabel("Copy Screenshot")
                 
                 // Save
                 Button(action: exportScreenshotWithQuickAnnotations) {
@@ -353,6 +358,7 @@ struct DeviceView: View {
                 .buttonStyle(.ttGhost)
                 .disabled(captureVM.currentScreenshot == nil)
                 .help("Save to disk")
+                .accessibilityLabel("Save Screenshot")
                 
                 // Share
                 Button(action: {
@@ -369,6 +375,7 @@ struct DeviceView: View {
                 .buttonStyle(.ttGhost)
                 .disabled(captureVM.currentScreenshot == nil)
                 .help("Share")
+                .accessibilityLabel("Share Screenshot")
             }
             .padding(.horizontal, 6)
             .padding(.vertical, 3)
@@ -470,7 +477,7 @@ struct DeviceView: View {
                     deviceInfoContent(device: device)
                 } label: {
                     HStack(spacing: 6) {
-                        Image(systemName: "iphone")
+                        Image(systemName: AppIcon.device)
                             .font(.ttIcon(TTIcon.md))
                             .foregroundColor(.ttTextTertiary)
                         Text("DEVICE INFO")
@@ -557,7 +564,7 @@ struct DeviceView: View {
                         .padding(10)
                 } else {
                     VStack(spacing: 10) {
-                        Image(systemName: "iphone")
+                        Image(systemName: AppIcon.device)
                             .font(TTFont.displayMedium)
                             .foregroundColor(.ttTextTertiary.opacity(0.4))
                         Text("Capture a screenshot to start")
@@ -1006,13 +1013,13 @@ struct DeviceView: View {
         VStack(spacing: 6) {
             infoRow(icon: "gear", label: "OS", value: device.osVersionString)
             infoRow(icon: "app.badge", label: "App", value: "\(device.appNameString) v\(device.deviceInfo?.appVersion ?? "—")")
-            infoRow(icon: "rectangle.on.rectangle", label: "Screen", value: {
+            infoRow(icon: AppIcon.screen, label: "Screen", value: {
                 if let info = device.deviceInfo {
                     return "\(Int(info.screenWidth))×\(Int(info.screenHeight))pt"
                 }
                 return "—"
             }())
-            infoRow(icon: "wrench.and.screwdriver", label: "SDK", value: device.deviceInfo?.sdkVersion ?? "—")
+            infoRow(icon: AppIcon.devTools, label: "SDK", value: device.deviceInfo?.sdkVersion ?? "—")
             
             if device.isSimulator {
                 HStack(spacing: 6) {

@@ -167,6 +167,7 @@ struct JSONWebViewComponent: View {
                 }
                 .buttonStyle(.ttGhost)
                 .help("Search (⌘F)")
+                .accessibilityLabel("Search JSON")
             }
             
             Spacer()
@@ -198,6 +199,7 @@ struct JSONWebViewComponent: View {
                 }
                 .buttonStyle(.ttGhost)
                 .help("Format (⌥⇧F)")
+                .accessibilityLabel("Format JSON")
                 
                 Button(action: { bridge.minify() }) {
                     Image(systemName: "text.justify.leading")
@@ -205,6 +207,7 @@ struct JSONWebViewComponent: View {
                 }
                 .buttonStyle(.ttGhost)
                 .help("Minify")
+                .accessibilityLabel("Minify JSON")
             }
             
             // Copy
@@ -221,6 +224,7 @@ struct JSONWebViewComponent: View {
             }
             .buttonStyle(.ttGhost)
             .help("Copy All")
+            .accessibilityLabel("Copy JSON")
             
             // Open in Editor (for read-only mode)
             if !isEditable, let onOpenInEditor = onOpenInEditor {
@@ -355,5 +359,11 @@ struct JSONWebViewRepresentable: NSViewRepresentable {
     
     func updateNSView(_ nsView: WKWebView, context: Context) {
         // Updates are handled through the bridge, not through SwiftUI updates
+    }
+
+    static func dismantleNSView(_ nsView: WKWebView, coordinator: ()) {
+        nsView.stopLoading()
+        nsView.navigationDelegate = nil
+        nsView.configuration.userContentController.removeScriptMessageHandler(forName: "jsonBridge")
     }
 }

@@ -60,7 +60,7 @@ struct SidebarView: View {
                     )
                     .frame(width: 40, height: 40)
                 
-                Image(systemName: "ladybug.fill")
+                Image(systemName: AppIcon.app)
                     .font(.ttIcon(TTIcon.xxl))
                     .foregroundColor(.ttTextPrimary)
             }
@@ -121,12 +121,14 @@ struct SidebarView: View {
 
             // Force reconnect (restart Bonjour only, keep logs)
             Button(action: { connectionManager.forceReconnect() }) {
-                Image(systemName: "arrow.triangle.2.circlepath")
+                Image(systemName: AppIcon.reconnect)
                     .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(.ttWarning)
+                    .foregroundColor(connectionManager.isServerRunning ? .ttWarning : .ttTextMuted)
             }
             .buttonStyle(.plain)
+            .disabled(!connectionManager.isServerRunning)
             .help("Force Reconnect (restart Bonjour, keep logs)")
+            .accessibilityLabel("Force Reconnect")
             
             // Toggle server
             Button(action: {
@@ -136,11 +138,12 @@ struct SidebarView: View {
                     connectionManager.startServer()
                 }
             }) {
-                Image(systemName: connectionManager.isServerRunning ? "stop.circle.fill" : "play.circle.fill")
+                Image(systemName: connectionManager.isServerRunning ? AppIcon.stopServer : AppIcon.startServer)
                     .font(.ttIcon(TTIcon.xl))
                     .foregroundColor(connectionManager.isServerRunning ? .ttError : .ttSuccess)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(connectionManager.isServerRunning ? "Stop Server" : "Start Server")
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
@@ -173,7 +176,7 @@ struct SidebarView: View {
                 // No devices — show network hint
                 VStack(alignment: .leading, spacing: 6) {
                     HStack(spacing: 8) {
-                        Image(systemName: "antenna.radiowaves.left.and.right.slash")
+                        Image(systemName: AppIcon.connectionOffline)
                             .font(.ttIcon(TTIcon.lg))
                             .foregroundColor(.ttTextTertiary)
                         Text("No devices found")
@@ -183,7 +186,7 @@ struct SidebarView: View {
                     
                     if let ip = connectionManager.macLocalIP {
                         HStack(spacing: 4) {
-                            Image(systemName: "network")
+                            Image(systemName: AppIcon.network)
                                 .font(.system(size: 9))
                                 .foregroundColor(.ttTextMuted)
                             Text("Mac IP: \(ip)")
@@ -266,7 +269,7 @@ struct SidebarView: View {
                     NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
                     #endif
                 }) {
-                    Label("SETTINGS", systemImage: "gearshape")
+                    Label("SETTINGS", systemImage: AppIcon.settings)
                         .font(TTFont.sidebarItem)
                         .foregroundColor(.ttTextSecondary)
                 }
@@ -280,7 +283,7 @@ struct SidebarView: View {
                 Button(action: {
                     appState.selectedTab = .guide
                 }) {
-                    Label("INTEGRATION GUIDE", systemImage: "book.fill")
+                    Label("INTEGRATION GUIDE", systemImage: AppTab.guide.icon)
                         .font(TTFont.sidebarItem)
                         .foregroundColor(appState.selectedTab == .guide ? .ttPrimary : .ttTextSecondary)
                 }
@@ -307,7 +310,7 @@ struct DeviceRowView: View {
                     .fill(session.isOnline ? Color.ttSuccess.opacity(0.12) : Color.ttSurface)
                     .frame(width: 32, height: 32)
                 
-                Image(systemName: session.isSimulator ? "laptopcomputer" : "iphone")
+                Image(systemName: session.isSimulator ? AppIcon.simulator : AppIcon.device)
                     .font(.ttIcon(TTIcon.xl))
                     .foregroundColor(session.isOnline ? .ttSuccess : .ttTextTertiary)
             }

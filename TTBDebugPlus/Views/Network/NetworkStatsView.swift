@@ -24,7 +24,7 @@ struct NetworkStatsView: View {
                     
                     Spacer()
                     
-                    Text("\(viewModel.totalRequests) requests")
+                    Text("\(viewModel.filteredRequestCount) of \(viewModel.totalRequests) requests")
                         .font(TTFont.labelMedium)
                         .foregroundColor(.ttTextTertiary)
                 }
@@ -33,7 +33,7 @@ struct NetworkStatsView: View {
                 
                 // Summary Cards
                 HStack(spacing: 16) {
-                    statCard(title: "TOTAL", value: "\(viewModel.totalRequests)", icon: "arrow.up.arrow.down", color: .ttPrimary)
+                    statCard(title: "TOTAL", value: "\(viewModel.filteredRequestCount)", icon: "arrow.up.arrow.down", color: .ttPrimary)
                     statCard(title: "FAILED", value: "\(viewModel.failedRequests)", icon: "xmark.circle", color: .ttError)
                     statCard(title: "AVG TIME", value: String(format: "%.0fms", viewModel.averageResponseTime), icon: "clock", color: .ttWarning)
                     statCard(title: "DATA", value: formatBytes(viewModel.totalDataTransferred), icon: "arrow.down.circle", color: .ttSuccess)
@@ -68,6 +68,36 @@ struct NetworkStatsView: View {
                             }
                         }
                         .frame(height: CGFloat(max(viewModel.deviceDistribution.count * 40, 80)))
+                    }
+                    .padding(.horizontal, 24)
+                }
+
+                if viewModel.appDistribution.count > 1 {
+                    chartCard(title: "Requests by App") {
+                        Chart {
+                            ForEach(viewModel.appDistribution, id: \.appKey) { item in
+                                BarMark(
+                                    x: .value("Count", item.count),
+                                    y: .value("App", item.appName)
+                                )
+                                .foregroundStyle(Color.forDevice(item.appKey))
+                                .cornerRadius(4)
+                                .annotation(position: .trailing) {
+                                    Text("\(item.count)")
+                                        .font(TTFont.codeSmall)
+                                        .foregroundColor(.ttTextTertiary)
+                                }
+                            }
+                        }
+                        .chartXAxis(.hidden)
+                        .chartYAxis {
+                            AxisMarks { _ in
+                                AxisValueLabel()
+                                    .font(TTFont.codeMedium)
+                                    .foregroundStyle(Color.ttTextSecondary)
+                            }
+                        }
+                        .frame(height: CGFloat(max(viewModel.appDistribution.count * 40, 80)))
                     }
                     .padding(.horizontal, 24)
                 }
@@ -108,7 +138,7 @@ struct NetworkStatsView: View {
                     
                     // Status Code Distribution
                     chartCard(title: "Status Code Distribution") {
-                        if viewModel.totalRequests > 0 {
+                        if viewModel.filteredRequestCount > 0 {
                             Chart {
                                 ForEach(viewModel.statusDistribution, id: \.range) { item in
                                     if item.count > 0 {
@@ -146,7 +176,7 @@ struct NetworkStatsView: View {
                 HStack(alignment: .top, spacing: 16) {
                     // Response Time Histogram
                     chartCard(title: "Response Time Distribution") {
-                        if viewModel.totalRequests > 0 {
+                        if viewModel.filteredRequestCount > 0 {
                             Chart {
                                 ForEach(viewModel.responseTimeDistribution, id: \.range) { item in
                                     BarMark(

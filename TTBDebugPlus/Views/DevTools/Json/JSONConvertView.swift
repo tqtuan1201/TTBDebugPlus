@@ -14,6 +14,7 @@ struct JSONConvertView: View {
     @State private var convertResult: ConvertResult?
     @State private var isCopied: Bool = false
     @State private var hoveredFormat: ConvertFormat? = nil
+    @State private var fileErrorMessage: String?
     
     var body: some View {
         VStack(spacing: 0) {
@@ -44,6 +45,14 @@ struct JSONConvertView: View {
         }
         .onAppear {
             convert()
+        }
+        .alert("Save Failed", isPresented: Binding(
+            get: { fileErrorMessage != nil },
+            set: { if !$0 { fileErrorMessage = nil } }
+        )) {
+            Button("OK", role: .cancel) { fileErrorMessage = nil }
+        } message: {
+            Text(fileErrorMessage ?? "")
         }
     }
     
@@ -289,7 +298,11 @@ struct JSONConvertView: View {
         panel.nameFieldStringValue = "data.\(selectedFormat.fileExtension)"
         panel.begin { response in
             if response == .OK, let url = panel.url {
-                try? output.write(to: url, atomically: true, encoding: .utf8)
+                do {
+                    try output.write(to: url, atomically: true, encoding: .utf8)
+                } catch {
+                    fileErrorMessage = "Could not save converted output: \(error.localizedDescription)"
+                }
             }
         }
     }

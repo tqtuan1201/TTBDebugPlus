@@ -17,6 +17,7 @@ struct NetworkRequestRowView: View {
     var isHovered: Bool = false
     var isAlternate: Bool = false
     var showDeviceColumn: Bool = false
+    var showAppColumn: Bool = false
     
     var body: some View {
         HStack(spacing: 0) {
@@ -54,6 +55,15 @@ struct NetworkRequestRowView: View {
                     compact: false
                 )
                 .frame(width: 100, alignment: .leading)
+            }
+
+            if showAppColumn {
+                Text(request.appDisplayName)
+                    .font(TTFont.codeSmall)
+                    .foregroundColor(.ttTextSecondary)
+                    .lineLimit(1)
+                    .frame(width: 130, alignment: .leading)
+                    .help(request.appDisplayName)
             }
             
             // Time

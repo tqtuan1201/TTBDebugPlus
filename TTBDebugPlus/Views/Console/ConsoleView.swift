@@ -269,7 +269,7 @@ struct ConsoleView: View {
                                             NSPasteboard.general.clearContents()
                                             NSPasteboard.general.setString(payload, forType: .string)
                                         }) {
-                                            Label("Copy JSON Payload", systemImage: "curlybraces")
+                                            Label("Copy JSON Payload", systemImage: AppIcon.json)
                                         }
                                     }
                                 }

@@ -26,6 +26,7 @@
 		2B2ECCD0E0DDA0624FDBB1D1 /* Spacing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C9B7389A8590CA61BA3C11B /* Spacing.swift */; };
 		2C976C72CC15F1388F55FEE9 /* ConsoleViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 435409EEC0AA8FA281F5318C /* ConsoleViewModel.swift */; };
 		2EF114BDC1D3BD74C167332D /* GuideContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CCFCEFAB7408477FA6A3AB9 /* GuideContainerView.swift */; };
+		2F6A19D827B744E4A984D8C1 /* AppIcons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F6A19D727B744E4A984D8C1 /* AppIcons.swift */; };
 		323D8BCDE0B6071362EB99B5 /* PermissionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7D6C9B622AE920484E773C9 /* PermissionsView.swift */; };
 		331203D381ADAFA1448EF22E /* JSONQueryEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AC6C8EAA43AA52B935AAF50 /* JSONQueryEngine.swift */; };
 		3A51A5BEBF43D8F6BBA54794 /* SharedViewModifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BA4ADB046407F802245149E /* SharedViewModifiers.swift */; };
@@ -112,6 +113,7 @@
 		245BC71B239A05E1DA3CA452 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		2C1A5EF6916A8D02ACDCE352 /* NetworkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkView.swift; sourceTree = "<group>"; };
 		2D405E40127ED5F63F1B3E16 /* TTBDebugPlus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TTBDebugPlus.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2F6A19D727B744E4A984D8C1 /* AppIcons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIcons.swift; sourceTree = "<group>"; };
 		335C9C8A1BAC55E290A2ED49 /* BonjourAdvertiser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BonjourAdvertiser.swift; sourceTree = "<group>"; };
 		38569B8F191EE4B97F2B881F /* JSONConvertEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONConvertEngine.swift; sourceTree = "<group>"; };
 		39BA70886080B2737C89D8C8 /* StorageSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageSettingsView.swift; sourceTree = "<group>"; };
@@ -149,11 +151,11 @@
 		8FCCDD8FB797E81713D4F039 /* BugReport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BugReport.swift; sourceTree = "<group>"; };
 		9034D7C9502BED83B2687D44 /* NetworkInterfaceMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkInterfaceMenuView.swift; sourceTree = "<group>"; };
 		9884682B51A64EDEED95DE08 /* JSONGraphModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONGraphModels.swift; sourceTree = "<group>"; };
+		9966C3F1D10AA6DA0E592555 /* IntegrationGuideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntegrationGuideView.swift; sourceTree = "<group>"; };
 		9A0F1B2C3D4E5F60718293A5 /* QRCodeEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRCodeEngine.swift; sourceTree = "<group>"; };
 		9A0F1B2C3D4E5F60718293A6 /* QRCodeToolView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRCodeToolView.swift; sourceTree = "<group>"; };
 		9B0F1B2C3D4E5F60718293B3 /* CaseConverterEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaseConverterEngine.swift; sourceTree = "<group>"; };
 		9B0F1B2C3D4E5F60718293B4 /* CaseConverterToolView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaseConverterToolView.swift; sourceTree = "<group>"; };
-		9966C3F1D10AA6DA0E592555 /* IntegrationGuideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntegrationGuideView.swift; sourceTree = "<group>"; };
 		A0762C5965C85E62C567E17E /* DeviceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceView.swift; sourceTree = "<group>"; };
 		A0C1734392AFB13FA2919B32 /* sweetalert2.min.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = sweetalert2.min.js; sourceTree = "<group>"; };
 		A11942D63EAF350D85FF89F8 /* DeviceSessionMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceSessionMenuView.swift; sourceTree = "<group>"; };
@@ -369,24 +371,6 @@
 			path = Storage;
 			sourceTree = "<group>";
 		};
-		9A0F1B2C3D4E5F60718293A4 /* QRCode */ = {
-			isa = PBXGroup;
-			children = (
-				9A0F1B2C3D4E5F60718293A5 /* QRCodeEngine.swift */,
-				9A0F1B2C3D4E5F60718293A6 /* QRCodeToolView.swift */,
-			);
-			path = QRCode;
-			sourceTree = "<group>";
-		};
-		9B0F1B2C3D4E5F60718293B0 /* CaseConverter */ = {
-			isa = PBXGroup;
-			children = (
-				9B0F1B2C3D4E5F60718293B3 /* CaseConverterEngine.swift */,
-				9B0F1B2C3D4E5F60718293B4 /* CaseConverterToolView.swift */,
-			);
-			path = CaseConverter;
-			sourceTree = "<group>";
-		};
 		97C516F7E1FC28BA3B50D4B0 /* TTBDebugPlus */ = {
 			isa = PBXGroup;
 			children = (
@@ -404,6 +388,24 @@
 				02E9B2DFF6EF57E4605DBB48 /* TTBDebugPlusApp.swift */,
 			);
 			path = TTBDebugPlus;
+			sourceTree = "<group>";
+		};
+		9A0F1B2C3D4E5F60718293A4 /* QRCode */ = {
+			isa = PBXGroup;
+			children = (
+				9A0F1B2C3D4E5F60718293A5 /* QRCodeEngine.swift */,
+				9A0F1B2C3D4E5F60718293A6 /* QRCodeToolView.swift */,
+			);
+			path = QRCode;
+			sourceTree = "<group>";
+		};
+		9B0F1B2C3D4E5F60718293B0 /* CaseConverter */ = {
+			isa = PBXGroup;
+			children = (
+				9B0F1B2C3D4E5F60718293B3 /* CaseConverterEngine.swift */,
+				9B0F1B2C3D4E5F60718293B4 /* CaseConverterToolView.swift */,
+			);
+			path = CaseConverter;
 			sourceTree = "<group>";
 		};
 		9B259F3EEEE46E60A9FF25A1 /* Products */ = {
@@ -488,6 +490,7 @@
 			isa = PBXGroup;
 			children = (
 				B7E9F150472775CE459B30DC /* Animations.swift */,
+				2F6A19D727B744E4A984D8C1 /* AppIcons.swift */,
 				A42460D58D8CEBA64D99D6B8 /* ButtonStyles.swift */,
 				EE14765C953B017C5C763950 /* CardView.swift */,
 				3DA50E018F6F0556C69671F1 /* Colors.swift */,
@@ -666,6 +669,7 @@
 				EA8B14D93250FB5F19458853 /* FeedbackView.swift in Sources */,
 				5F8EA98D88399D58AA07E626 /* FeedbackViewModel.swift in Sources */,
 				2EF114BDC1D3BD74C167332D /* GuideContainerView.swift in Sources */,
+				2F6A19D827B744E4A984D8C1 /* AppIcons.swift in Sources */,
 				7D2625748C647A807A5AD977 /* HARExporter.swift in Sources */,
 				BD80EF7C762E4DF56E8F4BFC /* IconSizes.swift in Sources */,
 				0021929AEF5D65624D6898F7 /* IntegrationGuideView.swift in Sources */,
@@ -853,7 +857,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = TTBDebugPlus/TTBDebugPlus.entitlements;
+				CODE_SIGN_ENTITLEMENTS = TTBDebugPlus/TTBDebugPlusRelease.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 12;
@@ -865,7 +869,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.tuantruong.TTBDebugPlus;
 				PRODUCT_NAME = TTBDebugPlus;
 				SDKROOT = macosx;
@@ -889,7 +893,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.tuantruong.TTBDebugPlus;
 				PRODUCT_NAME = TTBDebugPlus;
 				SDKROOT = macosx;
