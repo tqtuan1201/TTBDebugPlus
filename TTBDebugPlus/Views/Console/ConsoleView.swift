@@ -45,7 +45,6 @@ struct ConsoleView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .clearConsole)) { _ in
             viewModel.clearAll()
-            connectionManager.clearAllLogs()
         }
         // Keyboard navigation
         .onKeyPress(.upArrow) { selectPrevious(); return .handled }
@@ -164,7 +163,7 @@ struct ConsoleView: View {
                 .foregroundColor(.ttTextTertiary)
             
             // Live streaming indicator
-            Button(action: { viewModel.isLiveStreaming.toggle() }) {
+            Button(action: { viewModel.toggleLiveStreaming(connectionManager) }) {
                 StatusBadge(
                     text: viewModel.isLiveStreaming ? "LIVE" : "PAUSED",
                     color: viewModel.isLiveStreaming ? .ttSuccess : .ttWarning,
@@ -176,6 +175,7 @@ struct ConsoleView: View {
             // Clear
             Button(action: {
                 viewModel.clearAll()
+                connectionManager.clearAllLogs()
             }) {
                 HStack(spacing: 4) {
                     Image(systemName: "trash")

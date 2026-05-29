@@ -12,6 +12,7 @@ struct ContentView: View {
     @Environment(ConnectionManager.self) var connectionManager
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
     @State private var syncTimer: Timer?
+    @State private var isSyncTimerActive = false
     
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
@@ -36,14 +37,10 @@ struct ContentView: View {
         .navigationSplitViewStyle(.balanced)
         .onAppear {
             syncAppStateFromConnectionManager()
-            // Periodic sync for metrics that change without log count changes
-            syncTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { _ in
-                syncAppStateFromConnectionManager()
-            }
+            updateSyncTimer()
         }
         .onDisappear {
-            syncTimer?.invalidate()
-            syncTimer = nil
+            stopSyncTimer()
         }
         .onChange(of: connectionManager.totalAPILogs) {
             syncAppStateFromConnectionManager()
@@ -56,6 +53,7 @@ struct ContentView: View {
         }
         .onChange(of: connectionManager.isServerRunning) {
             syncAppStateFromConnectionManager()
+            updateSyncTimer()
         }
     }
     
@@ -102,7 +100,34 @@ struct ContentView: View {
         if let perf = connectionManager.selectedDevice?.latestPerformance {
             appState.memoryUsage = perf.memoryUsedMB
             appState.cpuUsage = perf.cpuUsage
+        } else {
+            appState.memoryUsage = 0
+            appState.cpuUsage = 0
         }
+    }
+
+    private func updateSyncTimer() {
+        if connectionManager.isServerRunning || !connectionManager.connectedDevices.isEmpty {
+            startSyncTimerIfNeeded()
+        } else {
+            stopSyncTimer()
+        }
+    }
+
+    private func startSyncTimerIfNeeded() {
+        guard !isSyncTimerActive else { return }
+        isSyncTimerActive = true
+        let timer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { _ in
+            syncAppStateFromConnectionManager()
+        }
+        timer.tolerance = 1.0
+        syncTimer = timer
+    }
+
+    private func stopSyncTimer() {
+        syncTimer?.invalidate()
+        syncTimer = nil
+        isSyncTimerActive = false
     }
 }
 

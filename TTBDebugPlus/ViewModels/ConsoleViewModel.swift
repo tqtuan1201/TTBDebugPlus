@@ -99,6 +99,8 @@ final class ConsoleViewModel {
     
     // MARK: - Sync from ConnectionManager (incremental)
     func syncFromConnectionManager(_ connectionManager: ConnectionManager) {
+        guard isLiveStreaming else { return }
+
         // Collect all console logs from selected device or all devices
         var allLogs: [ConsoleLogPayload] = []
         if let device = connectionManager.selectedDevice {
@@ -140,6 +142,13 @@ final class ConsoleViewModel {
         entries.removeAll()
         selectedEntry = nil
         lastSyncedLogCount = 0
+    }
+
+    func toggleLiveStreaming(_ connectionManager: ConnectionManager) {
+        isLiveStreaming.toggle()
+        if isLiveStreaming {
+            syncFromConnectionManager(connectionManager)
+        }
     }
 }
 

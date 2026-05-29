@@ -62,13 +62,13 @@ struct ConnectionHealthView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.ttBackground)
         .onAppear {
-            timer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: true) { _ in
-                refreshTick += 1
-            }
+            updateRefreshTimer()
         }
         .onDisappear {
-            timer?.invalidate()
-            timer = nil
+            stopRefreshTimer()
+        }
+        .onChange(of: connectionManager.isServerRunning) {
+            updateRefreshTimer()
         }
     }
     
@@ -122,6 +122,28 @@ struct ConnectionHealthView: View {
                     .multilineTextAlignment(.center)
             }
         }
+    }
+
+    private func updateRefreshTimer() {
+        if connectionManager.isServerRunning {
+            startRefreshTimerIfNeeded()
+        } else {
+            stopRefreshTimer()
+        }
+    }
+
+    private func startRefreshTimerIfNeeded() {
+        guard timer == nil else { return }
+        let timer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { _ in
+            refreshTick += 1
+        }
+        timer.tolerance = 1.0
+        self.timer = timer
+    }
+
+    private func stopRefreshTimer() {
+        timer?.invalidate()
+        timer = nil
     }
     
     // MARK: - Server Status Card

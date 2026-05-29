@@ -24,6 +24,7 @@ final class ConnectionManager {
 
     /// Guards against double-start while listeners are still initializing
     private var isStarted: Bool = false
+    private var lifecycleGeneration: Int = 0
 
     /// Per-interface port map (interfaceName → port)
     var serverPorts: [String: UInt16] = [:]
@@ -118,6 +119,7 @@ final class ConnectionManager {
             return
         }
         isStarted = true
+        lifecycleGeneration += 1
 
         // Start monitoring interfaces — first update will kick off listeners
         ifMonitor.start()
@@ -130,12 +132,18 @@ final class ConnectionManager {
     // MARK: - Stop Server
 
     func stopServer() {
+        lifecycleGeneration += 1
         isStarted = false
         ifMonitor.stop()
         advertiser.stopAll()
         wsServer.disconnectAll()
         stopHeartbeatMonitor()
         sessions.removeAll()
+        selectedDeviceId = nil
+        totalAPILogs = 0
+        totalConsoleLogs = 0
+        _cachedAPILogs = nil
+        _cachedConsoleLogs = nil
         isServerRunning = false
         serverPorts.removeAll()
         activeInterfaces = []
@@ -147,9 +155,11 @@ final class ConnectionManager {
     func restartServer() {
         print("[TTBDebug] 🔄 Restarting server...")
         stopServer()
+        let generation = lifecycleGeneration
         // Small delay to let NWListeners fully tear down
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-            self?.startServer()
+            guard let self, self.lifecycleGeneration == generation, !self.isStarted else { return }
+            self.startServer()
         }
     }
 
@@ -159,10 +169,12 @@ final class ConnectionManager {
     /// Use when QC needs to "kick" the Bonjour stack without losing logs.
     func forceReconnect() {
         print("[TTBDebug] 🔄 Force-reconnecting Bonjour listeners...")
+        let generation = lifecycleGeneration
         advertiser.stopAll()
         // Small delay to let NWListeners fully tear down
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
             guard let self else { return }
+            guard self.isStarted, self.lifecycleGeneration == generation else { return }
             self.advertiser.updateInterfaces(self.activeInterfaces, preferences: self.ifPrefs)
             print("[TTBDebug] ✅ Bonjour listeners restarted")
         }
@@ -204,6 +216,11 @@ final class ConnectionManager {
         advertiser.onStateChange = { [weak self] interfaceName, state in
             DispatchQueue.main.async {
                 guard let self else { return }
+                guard self.isStarted else {
+                    self.isServerRunning = false
+                    self.serverPorts.removeAll()
+                    return
+                }
                 // Sync port snapshot AFTER the serial queue has updated ports
                 let snapshot = self.advertiser.portSnapshot
                 switch state {
@@ -344,9 +361,11 @@ final class ConnectionManager {
     // MARK: - Heartbeat Monitor
 
     private func startHeartbeatMonitor() {
+        guard heartbeatTimer == nil else { return }
         heartbeatTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { [weak self] _ in
             self?.checkHeartbeats()
         }
+        heartbeatTimer?.tolerance = 1.0
     }
 
     private func stopHeartbeatMonitor() {

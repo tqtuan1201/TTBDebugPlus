@@ -46,6 +46,11 @@ class JSONEditorViewModel {
     // MARK: - Debounce
     private var validateTask: Task<Void, Never>?
     private var statsTask: Task<Void, Never>?
+
+    deinit {
+        validateTask?.cancel()
+        statsTask?.cancel()
+    }
     
     // MARK: - Indentation
     var indentation: Int {

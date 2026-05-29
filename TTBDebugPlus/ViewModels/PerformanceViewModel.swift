@@ -36,10 +36,14 @@ final class PerformanceViewModel {
     var slowAPIThreshold: Double = 1000 // ms
     
     private let maxDataPoints = 60 // 5 minutes at 5s intervals
+    private var lastMetricsTimestamp: TimeInterval?
+    private var lastAnalysisSignature: String?
     
     // MARK: - Sync from ConnectionManager
     func syncMetrics(from connectionManager: ConnectionManager) {
         guard let perf = connectionManager.selectedDevice?.latestPerformance else { return }
+        guard lastMetricsTimestamp != perf.timestamp else { return }
+        lastMetricsTimestamp = perf.timestamp
         
         let time = Date(timeIntervalSince1970: perf.timestamp / 1000)
         
@@ -64,27 +68,31 @@ final class PerformanceViewModel {
     // MARK: - Analyze API logs
     func analyzeAPIs(from entries: [APILogPayload]) {
         guard !entries.isEmpty else { return }
+        let signature = "\(entries.count):\(entries.first?.id ?? ""):\(entries.last?.id ?? "")"
+        guard signature != lastAnalysisSignature else { return }
+        lastAnalysisSignature = signature
         
-        // Average response time
-        averageResponseTime = entries.map(\.durationMs).reduce(0, +) / Double(entries.count)
-        
-        // Slow requests
-        slowRequestCount = entries.filter { $0.durationMs > slowAPIThreshold }.count
-        
-        // Error rate
-        let errors = entries.filter { $0.statusCode >= 400 }.count
-        errorRate = Double(errors) / Double(entries.count) * 100
-        
-        // Duplicate detection (same URL+method within 1s)
+        var totalDuration: Double = 0
+        var slowRequests = 0
+        var errors = 0
         var seen: [String: TimeInterval] = [:]
         var dupes = 0
-        for entry in entries.sorted(by: { $0.timestamp < $1.timestamp }) {
+
+        for entry in entries {
+            totalDuration += entry.durationMs
+            if entry.durationMs > slowAPIThreshold { slowRequests += 1 }
+            if entry.statusCode >= 400 { errors += 1 }
+
             let key = "\(entry.method):\(entry.url)"
-            if let last = seen[key], entry.timestamp - last < 1000 {
+            if let last = seen[key], abs(entry.timestamp - last) < 1000 {
                 dupes += 1
             }
             seen[key] = entry.timestamp
         }
+
+        averageResponseTime = totalDuration / Double(entries.count)
+        slowRequestCount = slowRequests
+        errorRate = Double(errors) / Double(entries.count) * 100
         duplicateRequestCount = dupes
     }
     

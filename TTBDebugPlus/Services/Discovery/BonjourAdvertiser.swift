@@ -27,7 +27,7 @@ final class BonjourAdvertiser {
     private(set) var ports: [String: UInt16] = [:]
 
     /// Serial queue serializes ALL mutations to listeners/ports.
-    private let queue = DispatchQueue(label: "com.ttbdebug.advertiser", qos: .userInitiated)
+    private let queue = DispatchQueue(label: "com.ttbdebug.advertiser", qos: .utility)
 
     // MARK: - Callbacks (called on main thread)
 

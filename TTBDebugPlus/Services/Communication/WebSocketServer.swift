@@ -16,7 +16,7 @@ import Network
 /// Uses 4-byte big-endian length-prefixed framing for message exchange.
 final class WebSocketServer {
 
-    private let queue = DispatchQueue(label: "com.ttbdebug.websocket", qos: .userInitiated)
+    private let queue = DispatchQueue(label: "com.ttbdebug.websocket", qos: .utility)
 
     // MARK: - Callbacks (always called on main thread)
 
@@ -151,8 +151,10 @@ final class WebSocketServer {
                 return
             }
 
+            var buffer = Data()
+            buffer.reserveCapacity(Int(length))
             self.receiveBody(from: connection, endpointId: endpointId, connNum: connNum,
-                             needed: Int(length), accumulated: Data())
+                             needed: Int(length), accumulated: buffer)
         }
     }
 
@@ -191,8 +193,10 @@ final class WebSocketServer {
                 return
             }
 
+            var next = accumulated
+            next.append(chunk)
             self.receiveBody(from: connection, endpointId: endpointId, connNum: connNum,
-                             needed: needed, accumulated: accumulated + chunk)
+                             needed: needed, accumulated: next)
         }
     }
 

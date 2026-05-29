@@ -6,6 +6,7 @@
 //  Menu bar extra content — quick access to server status, devices, and actions
 //
 
+import ServiceManagement
 import SwiftUI
 
 struct MenuBarView: View {
@@ -15,6 +16,8 @@ struct MenuBarView: View {
     @State private var toolSearchText = ""
     @State private var selectedPopoverTool: DevTool?
     @State private var isToolPopoverPresented = false
+    @State private var launchAtLoginStatus = SMAppService.mainApp.status
+    @State private var launchAtLoginErrorMessage: String?
     
     private var availableDevToolCount: Int {
         DevTool.allCases.filter(\.isAvailable).count
@@ -98,6 +101,9 @@ struct MenuBarView: View {
                     }
                 )
             }
+        }
+        .onAppear {
+            refreshLaunchAtLoginStatus()
         }
     }
     
@@ -364,6 +370,11 @@ struct MenuBarView: View {
             Divider()
                 .padding(.vertical, 4)
             
+            launchAtLoginSetting
+            
+            Divider()
+                .padding(.vertical, 4)
+            
             MenuBarActionButton(
                 icon: AppIcon.settings,
                 title: "Preferences...",
@@ -385,6 +396,43 @@ struct MenuBarView: View {
                 NSApplication.shared.terminate(nil)
             }
         }
+    }
+    
+    private var launchAtLoginSetting: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Toggle(isOn: launchAtLoginBinding) {
+                HStack(spacing: 8) {
+                    Image(systemName: "power")
+                        .font(.system(size: 12))
+                        .foregroundColor(.primary)
+                        .frame(width: 16)
+                    
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text("Open at Login")
+                            .font(.system(size: 12))
+                            .foregroundColor(.primary)
+                        
+                        if let launchAtLoginDetail {
+                            Text(launchAtLoginDetail)
+                                .font(.system(size: 10))
+                                .foregroundColor(.secondary)
+                                .lineLimit(2)
+                        }
+                    }
+                }
+            }
+            .toggleStyle(.switch)
+            
+            if let launchAtLoginErrorMessage {
+                Text(launchAtLoginErrorMessage)
+                    .font(.system(size: 10))
+                    .foregroundColor(.ttError)
+                    .lineLimit(2)
+                    .padding(.leading, 24)
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 5)
     }
     
     // MARK: - Navigation
@@ -422,6 +470,62 @@ struct MenuBarView: View {
     private func activateMainWindow() {
         NSApplication.shared.activate(ignoringOtherApps: true)
         openWindow(id: "main-window")
+    }
+    
+    private var launchAtLoginBinding: Binding<Bool> {
+        Binding(
+            get: {
+                isLaunchAtLoginEnabled
+            },
+            set: { isEnabled in
+                setLaunchAtLoginEnabled(isEnabled)
+            }
+        )
+    }
+    
+    private var isLaunchAtLoginEnabled: Bool {
+        switch launchAtLoginStatus {
+        case .enabled, .requiresApproval:
+            return true
+        case .notRegistered, .notFound:
+            return false
+        @unknown default:
+            return false
+        }
+    }
+    
+    private var launchAtLoginDetail: String? {
+        switch launchAtLoginStatus {
+        case .enabled:
+            return "TTBDebugPlus will start when macOS opens."
+        case .requiresApproval:
+            return "Allow this app in System Settings > Login Items."
+        case .notFound:
+            return "Login item is unavailable for this build."
+        case .notRegistered:
+            return nil
+        @unknown default:
+            return nil
+        }
+    }
+    
+    private func setLaunchAtLoginEnabled(_ isEnabled: Bool) {
+        do {
+            if isEnabled {
+                try SMAppService.mainApp.register()
+            } else {
+                try SMAppService.mainApp.unregister()
+            }
+            launchAtLoginErrorMessage = nil
+        } catch {
+            launchAtLoginErrorMessage = error.localizedDescription
+        }
+        
+        refreshLaunchAtLoginStatus()
+    }
+    
+    private func refreshLaunchAtLoginStatus() {
+        launchAtLoginStatus = SMAppService.mainApp.status
     }
 }
 

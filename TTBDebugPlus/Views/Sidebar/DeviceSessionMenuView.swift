@@ -58,6 +58,8 @@ struct DeviceSessionMenuButton: View {
 
 struct DeviceSessionMenuView: View {
     @Environment(ConnectionManager.self) var connectionManager
+    @State private var heartbeatNow = Date()
+    @State private var heartbeatTimer: Timer?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -93,7 +95,7 @@ struct DeviceSessionMenuView: View {
                 ScrollView {
                     VStack(spacing: 0) {
                         ForEach(connectionManager.connectedDevices) { session in
-                            SessionRow(session: session)
+                            SessionRow(session: session, now: heartbeatNow)
                             if session.id != connectionManager.connectedDevices.last?.id {
                                 Divider()
                                     .background(Color.ttBorder.opacity(0.4))
@@ -146,6 +148,11 @@ struct DeviceSessionMenuView: View {
         }
         .frame(width: 360)
         .background(Color.ttSurface)
+        .onAppear { updateHeartbeatTimer() }
+        .onDisappear { stopHeartbeatTimer() }
+        .onChange(of: connectionManager.connectedDevices.count) {
+            updateHeartbeatTimer()
+        }
     }
 
     // MARK: - Empty State
@@ -169,6 +176,28 @@ struct DeviceSessionMenuView: View {
         .frame(maxWidth: .infinity)
         .padding(24)
     }
+
+    private func updateHeartbeatTimer() {
+        if connectionManager.connectedDevices.isEmpty {
+            stopHeartbeatTimer()
+        } else {
+            startHeartbeatTimerIfNeeded()
+        }
+    }
+
+    private func startHeartbeatTimerIfNeeded() {
+        guard heartbeatTimer == nil else { return }
+        let timer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { _ in
+            heartbeatNow = Date()
+        }
+        timer.tolerance = 1.0
+        heartbeatTimer = timer
+    }
+
+    private func stopHeartbeatTimer() {
+        heartbeatTimer?.invalidate()
+        heartbeatTimer = nil
+    }
 }
 
 // MARK: - Session Row
@@ -176,22 +205,19 @@ struct DeviceSessionMenuView: View {
 struct SessionRow: View {
     @Environment(ConnectionManager.self) var connectionManager
     let session: DeviceSession
+    let now: Date
 
     @State private var isHovered  = false
-    @State private var tickCount  = 0   // refreshes heartbeat display every second
-    @State private var ticker: Timer?
 
     private var heartbeatText: String {
-        _ = tickCount  // Consume tick to force re-evaluation
-        let s = Int(Date().timeIntervalSince(session.lastHeartbeat))
+        let s = Int(now.timeIntervalSince(session.lastHeartbeat))
         if s < 5  { return "just now" }
         if s < 60 { return "\(s)s ago" }
         return "\(s / 60)m ago"
     }
 
     private var heartbeatColor: Color {
-        _ = tickCount  // Consume tick to force re-evaluation
-        let s = Int(Date().timeIntervalSince(session.lastHeartbeat))
+        let s = Int(now.timeIntervalSince(session.lastHeartbeat))
         if s < 8  { return .ttSuccess }
         if s < 15 { return .ttWarning }
         return .ttError
@@ -332,15 +358,6 @@ struct SessionRow: View {
         }
         .animation(.easeInOut(duration: 0.15), value: isHovered)
         .onHover { isHovered = $0 }
-        .onAppear {
-            ticker = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { _ in
-                tickCount += 1   // force heartbeat re-render via computed property
-            }
-        }
-        .onDisappear {
-            ticker?.invalidate()
-            ticker = nil
-        }
     }
 }
 

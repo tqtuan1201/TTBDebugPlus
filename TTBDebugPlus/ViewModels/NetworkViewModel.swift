@@ -55,6 +55,9 @@ final class NetworkViewModel {
     
     // Cache for filtered entries — invalidated on any filter/data change
     private var _cachedFilteredEntries: [NetworkRequestEntry]?
+    private var _cachedAvailableMethods: [String]?
+    private var _cachedAvailableApps: [(key: String, displayName: String, count: Int)]?
+    private var _cachedAvailableDomains: [(domain: String, count: Int)]?
     
     // Stats — cached to avoid redundant O(n) scans
     var totalRequests: Int { entries.count }
@@ -73,6 +76,9 @@ final class NetworkViewModel {
         _cachedFilteredEntries = nil
         _cachedFailedCount = nil
         _cachedStats = nil
+        _cachedAvailableMethods = nil
+        _cachedAvailableApps = nil
+        _cachedAvailableDomains = nil
     }
     
     private func computeFailedCount() -> Int {
@@ -168,11 +174,15 @@ final class NetworkViewModel {
     
     // MARK: - Available HTTP methods (dynamic from data)
     var availableMethods: [String] {
-        Array(Set(entries.map { $0.method.uppercased() })).sorted()
+        if let cached = _cachedAvailableMethods { return cached }
+        let result = Array(Set(entries.map { $0.method.uppercased() })).sorted()
+        _cachedAvailableMethods = result
+        return result
     }
 
     var availableApps: [(key: String, displayName: String, count: Int)] {
-        Dictionary(grouping: entries, by: \.appFilterKey)
+        if let cached = _cachedAvailableApps { return cached }
+        let result = Dictionary(grouping: entries, by: \.appFilterKey)
             .map { key, items in
                 let first = items[0]
                 return (key: key, displayName: first.appDisplayName, count: items.count)
@@ -181,15 +191,20 @@ final class NetworkViewModel {
                 if $0.count == $1.count { return $0.displayName < $1.displayName }
                 return $0.count > $1.count
             }
+        _cachedAvailableApps = result
+        return result
     }
 
     var availableDomains: [(domain: String, count: Int)] {
-        Dictionary(grouping: entries, by: \.urlDomain)
+        if let cached = _cachedAvailableDomains { return cached }
+        let result = Dictionary(grouping: entries, by: \.urlDomain)
             .map { (domain: $0.key, count: $0.value.count) }
             .sorted {
                 if $0.count == $1.count { return $0.domain < $1.domain }
                 return $0.count > $1.count
             }
+        _cachedAvailableDomains = result
+        return result
     }
     
     // MARK: - Network Statistics

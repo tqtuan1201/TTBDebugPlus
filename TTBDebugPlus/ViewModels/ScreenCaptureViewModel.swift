@@ -52,6 +52,11 @@ final class ScreenCaptureViewModel {
     private let maxHistoryCount = 50
     private let maxRecordingFrames = 600
     private let timerQueue = DispatchQueue(label: "com.ttbdebug.recording", qos: .utility)
+
+    deinit {
+        recordingSource?.cancel()
+        elapsedTimer?.invalidate()
+    }
     
     // MARK: - Computed
     var sortedHistory: [ScreenshotItem] {
@@ -67,6 +72,13 @@ final class ScreenCaptureViewModel {
     
     // MARK: - Capture Screenshot
     func requestCapture(from connectionManager: ConnectionManager) {
+        guard connectionManager.isServerRunning, connectionManager.selectedDevice?.isOnline == true else {
+            isCapturing = false
+            if recordingSession.isActive {
+                stopRecording()
+            }
+            return
+        }
         guard !isCapturing else { return }
         isCapturing = true
         
@@ -85,7 +97,7 @@ final class ScreenCaptureViewModel {
         isCapturing = false
         
         // Decode image on background queue to avoid blocking main thread
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+        DispatchQueue.global(qos: .utility).async { [weak self] in
             guard let self else { return }
             guard let imageData = Data(base64Encoded: response.imageData),
                   let image = NSImage(data: imageData) else {
@@ -138,7 +150,7 @@ final class ScreenCaptureViewModel {
         
         // Use DispatchSourceTimer on background queue to avoid main thread blocking
         let source = DispatchSource.makeTimerSource(queue: timerQueue)
-        source.schedule(deadline: .now() + interval, repeating: interval)
+        source.schedule(deadline: .now() + interval, repeating: interval, leeway: .milliseconds(100))
         source.setEventHandler { [weak self] in
             DispatchQueue.main.async { self?.requestCapture(from: connectionManager) }
         }
@@ -149,6 +161,7 @@ final class ScreenCaptureViewModel {
             guard let self, self.recordingSession.isActive else { return }
             self.recordingElapsed = Date().timeIntervalSince(self.recordingSession.startTime)
         }
+        elapsedTimer?.tolerance = 0.2
         
         // Capture first frame immediately
         requestCapture(from: connectionManager)
