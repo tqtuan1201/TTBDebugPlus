@@ -400,39 +400,25 @@ struct MenuBarView: View {
     
     private var launchAtLoginSetting: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Toggle(isOn: launchAtLoginBinding) {
-                HStack(spacing: 8) {
-                    Image(systemName: "power")
-                        .font(.system(size: 12))
-                        .foregroundColor(.primary)
-                        .frame(width: 16)
-                    
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text("Open at Login")
-                            .font(.system(size: 12))
-                            .foregroundColor(.primary)
-                        
-                        if let launchAtLoginDetail {
-                            Text(launchAtLoginDetail)
-                                .font(.system(size: 10))
-                                .foregroundColor(.secondary)
-                                .lineLimit(2)
-                        }
-                    }
-                }
+            MenuBarToggleRow(
+                icon: "power",
+                title: "Open at Login",
+                detail: launchAtLoginDetail,
+                isOn: isLaunchAtLoginEnabled,
+                isEnabled: isLaunchAtLoginToggleAvailable
+            ) {
+                setLaunchAtLoginEnabled(!isLaunchAtLoginEnabled)
             }
-            .toggleStyle(.switch)
             
             if let launchAtLoginErrorMessage {
                 Text(launchAtLoginErrorMessage)
                     .font(.system(size: 10))
                     .foregroundColor(.ttError)
                     .lineLimit(2)
-                    .padding(.leading, 24)
+                    .padding(.leading, 36)
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 5)
+        .padding(.horizontal, 8)
     }
     
     // MARK: - Navigation
@@ -491,6 +477,17 @@ struct MenuBarView: View {
             return false
         @unknown default:
             return false
+        }
+    }
+
+    private var isLaunchAtLoginToggleAvailable: Bool {
+        switch launchAtLoginStatus {
+        case .notFound:
+            return false
+        case .enabled, .requiresApproval, .notRegistered:
+            return true
+        @unknown default:
+            return true
         }
     }
     
@@ -801,6 +798,86 @@ private extension DevTool {
 }
 
 // MARK: - Action Button
+
+struct MenuBarToggleRow: View {
+    let icon: String
+    let title: String
+    let detail: String?
+    let isOn: Bool
+    var isEnabled: Bool = true
+    let action: () -> Void
+
+    @State private var isHovered = false
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                Image(systemName: icon)
+                    .font(.system(size: 12))
+                    .foregroundColor(isEnabled ? .primary : .secondary)
+                    .frame(width: 16)
+
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(title)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(isEnabled ? .primary : .secondary)
+                        .lineLimit(1)
+
+                    if let detail {
+                        Text(detail)
+                            .font(.system(size: 10))
+                            .foregroundColor(.secondary)
+                            .lineLimit(1)
+                    }
+                }
+
+                Spacer(minLength: 8)
+
+                CompactSwitch(isOn: isOn, isEnabled: isEnabled)
+            }
+            .frame(minHeight: detail == nil ? 30 : 38)
+            .padding(.horizontal, 4)
+            .padding(.vertical, 3)
+            .background(
+                RoundedRectangle(cornerRadius: 5)
+                    .fill(isHovered && isEnabled ? Color.primary.opacity(0.08) : Color.clear)
+            )
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(!isEnabled)
+        .onHover { hovering in
+            isHovered = hovering
+        }
+        .accessibilityLabel(title)
+        .accessibilityValue(isOn ? "On" : "Off")
+    }
+}
+
+struct CompactSwitch: View {
+    let isOn: Bool
+    var isEnabled: Bool = true
+
+    var body: some View {
+        ZStack(alignment: isOn ? .trailing : .leading) {
+            Capsule()
+                .fill(trackColor)
+                .frame(width: 34, height: 20)
+
+            Circle()
+                .fill(isEnabled ? Color.white : Color.white.opacity(0.65))
+                .frame(width: 16, height: 16)
+                .shadow(color: .black.opacity(0.25), radius: 1, x: 0, y: 1)
+                .padding(.horizontal, 2)
+        }
+        .animation(.easeInOut(duration: 0.12), value: isOn)
+    }
+
+    private var trackColor: Color {
+        guard isEnabled else { return Color.primary.opacity(0.12) }
+        return isOn ? Color.ttPrimary : Color.primary.opacity(0.16)
+    }
+}
 
 struct MenuBarActionButton: View {
     let icon: String
