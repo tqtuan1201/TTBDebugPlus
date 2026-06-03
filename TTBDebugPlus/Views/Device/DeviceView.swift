@@ -462,7 +462,7 @@ struct DeviceView: View {
         ScrollView {
             VStack(spacing: 14) {
                 // Screenshot preview (compact, no bezel)
-                screenshotPreview
+                screenshotPreview(device: device)
                 
                 // Image metadata
                 if let item = captureVM.selectedHistoryItem {
@@ -507,8 +507,11 @@ struct DeviceView: View {
     }
     
     // MARK: - Screenshot Preview with Inline Drawing
-    private var screenshotPreview: some View {
+    private func screenshotPreview(device: DeviceSession) -> some View {
         VStack(spacing: 0) {
+            previewDeviceHeader(device: device)
+                .padding(.bottom, 8)
+            
             // Image area
             ZStack {
                 RoundedRectangle(cornerRadius: 12)
@@ -594,6 +597,76 @@ struct DeviceView: View {
                     .padding(.bottom, 2)
             }
         }
+    }
+    
+    private func previewDeviceHeader(device: DeviceSession) -> some View {
+        HStack(spacing: 10) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 7)
+                    .fill(Color.ttPrimary.opacity(0.14))
+                Image(systemName: device.isSimulator ? "desktopcomputer" : AppIcon.device)
+                    .font(.ttIcon(TTIcon.lg))
+                    .foregroundColor(.ttPrimary)
+            }
+            .frame(width: 34, height: 34)
+            
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 6) {
+                    Text(device.displayName)
+                        .font(TTFont.labelMedium)
+                        .foregroundColor(.ttTextPrimary)
+                        .lineLimit(1)
+                    StatusBadge(
+                        text: device.isSimulator ? "SIM" : "DEVICE",
+                        color: device.isSimulator ? .ttWarning : .ttSuccess,
+                        style: .outlined
+                    )
+                }
+                
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 5) {
+                        previewInfoChip(icon: "iphone", text: device.deviceModelString)
+                        previewInfoChip(icon: "gear", text: device.osVersionString)
+                        previewInfoChip(icon: "app.badge", text: "v\(device.deviceInfo?.appVersion ?? "—")")
+                        previewInfoChip(icon: AppIcon.screen, text: screenResolutionText(for: device))
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(spacing: 5) {
+                            previewInfoChip(icon: "iphone", text: device.deviceModelString)
+                            previewInfoChip(icon: "gear", text: device.osVersionString)
+                        }
+                        HStack(spacing: 5) {
+                            previewInfoChip(icon: "app.badge", text: "v\(device.deviceInfo?.appVersion ?? "—")")
+                            previewInfoChip(icon: AppIcon.screen, text: screenResolutionText(for: device))
+                        }
+                    }
+                }
+            }
+            
+            Spacer(minLength: 0)
+        }
+        .padding(10)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color.ttSurface.opacity(0.55))
+                .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.ttBorder.opacity(0.28), lineWidth: 1))
+        )
+    }
+    
+    private func previewInfoChip(icon: String, text: String) -> some View {
+        HStack(spacing: 3) {
+            Image(systemName: icon)
+                .font(.ttIcon(TTIcon.xxs))
+                .foregroundColor(.ttTextTertiary)
+            Text(text)
+                .font(TTFont.codeSmall)
+                .foregroundColor(.ttTextSecondary)
+                .lineLimit(1)
+        }
+        .padding(.horizontal, 6)
+        .padding(.vertical, 2)
+        .background(Capsule().fill(Color.ttBackground.opacity(0.6)))
     }
     
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1011,14 +1084,10 @@ struct DeviceView: View {
     // MARK: - Device Info Content
     private func deviceInfoContent(device: DeviceSession) -> some View {
         VStack(spacing: 6) {
+            infoRow(icon: "iphone", label: "Model", value: device.deviceModelString)
             infoRow(icon: "gear", label: "OS", value: device.osVersionString)
             infoRow(icon: "app.badge", label: "App", value: "\(device.appNameString) v\(device.deviceInfo?.appVersion ?? "—")")
-            infoRow(icon: AppIcon.screen, label: "Screen", value: {
-                if let info = device.deviceInfo {
-                    return "\(Int(info.screenWidth))×\(Int(info.screenHeight))pt"
-                }
-                return "—"
-            }())
+            infoRow(icon: AppIcon.screen, label: "Screen", value: screenResolutionText(for: device))
             infoRow(icon: AppIcon.devTools, label: "SDK", value: device.deviceInfo?.sdkVersion ?? "—")
             
             if device.isSimulator {
@@ -1038,6 +1107,11 @@ struct DeviceView: View {
             }
         }
         .padding(.top, 6)
+    }
+    
+    private func screenResolutionText(for device: DeviceSession) -> String {
+        guard let info = device.deviceInfo else { return "—" }
+        return "\(Int(info.screenWidth))×\(Int(info.screenHeight))pt"
     }
     
     private func infoRow(icon: String, label: String, value: String) -> some View {

@@ -17,6 +17,7 @@ enum AppIcon {
     static let screen = "rectangle.on.rectangle"
     static let performance = "speedometer"
     static let devTools = "wrench.and.screwdriver"
+    static let devToolsMode = "wrench.and.screwdriver.fill"
     static let feedback = "exclamationmark.bubble"
     static let connectionHealth = "antenna.radiowaves.left.and.right"
     static let connectionOffline = "antenna.radiowaves.left.and.right.slash"

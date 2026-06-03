@@ -62,6 +62,7 @@ enum MessageType: String, Codable, CaseIterable {
 struct DeviceInfoPayload: Codable {
     let deviceId: String
     let deviceName: String
+    let deviceModel: String?
     let osVersion: String
     let appName: String
     let appVersion: String
@@ -73,6 +74,7 @@ struct DeviceInfoPayload: Codable {
     enum CodingKeys: String, CodingKey {
         case deviceId = "device_id"
         case deviceName = "device_name"
+        case deviceModel = "device_model"
         case osVersion = "os_version"
         case appName = "app_name"
         case appVersion = "app_version"

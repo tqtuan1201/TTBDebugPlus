@@ -41,7 +41,7 @@ struct MenuBarView: View {
     
     private var serverStatusDetail: String {
         guard connectionManager.isServerRunning else {
-            return "Tap Start to accept device connections"
+            return "Server offline - local dev tools are available"
         }
         
         let ports = connectionManager.serverPorts.values.sorted()
@@ -50,6 +50,18 @@ struct MenuBarView: View {
         }
         
         return ports.map { ":\($0)" }.joined(separator: "  ")
+    }
+    
+    private var serverModeIcon: String {
+        connectionManager.isServerRunning ? AppIcon.connectionHealth : AppIcon.devToolsMode
+    }
+    
+    private var serverModeTitle: String {
+        connectionManager.isServerRunning ? "Server Running" : "Dev Tools Mode"
+    }
+    
+    private var serverModeColor: Color {
+        connectionManager.isServerRunning ? .ttSuccess : .ttPrimary
     }
     
     var body: some View {
@@ -155,12 +167,18 @@ struct MenuBarView: View {
     
     private var serverStatusSection: some View {
         HStack(spacing: 12) {
-            Circle()
-                .fill(connectionManager.isServerRunning ? Color.ttSuccess : Color.ttError)
-                .frame(width: 10, height: 10)
+            ZStack {
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(serverModeColor.opacity(0.14))
+                    .frame(width: 28, height: 28)
+                
+                Image(systemName: serverModeIcon)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(serverModeColor)
+            }
             
             VStack(alignment: .leading, spacing: 2) {
-                Text(connectionManager.isServerRunning ? "Server Running" : "Server Offline")
+                Text(serverModeTitle)
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(.primary)
                 
@@ -613,19 +631,41 @@ struct MenuBarToolPopoverContent: View {
     let tool: DevTool
     let onOpenInMainWindow: () -> Void
     let onClose: () -> Void
+
+    @State private var popoverSize: CGSize
+    @State private var dragStartSize: CGSize?
+
+    init(
+        tool: DevTool,
+        onOpenInMainWindow: @escaping () -> Void,
+        onClose: @escaping () -> Void
+    ) {
+        self.tool = tool
+        self.onOpenInMainWindow = onOpenInMainWindow
+        self.onClose = onClose
+        _popoverSize = State(initialValue: tool.savedMenuBarPopoverSize)
+    }
     
     var body: some View {
-        VStack(spacing: 0) {
-            header
-            
-            Divider()
-                .background(Color.ttBorder.opacity(0.3))
-            
-            toolContent
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        ZStack(alignment: .bottomTrailing) {
+            VStack(spacing: 0) {
+                header
+                
+                Divider()
+                    .background(Color.ttBorder.opacity(0.3))
+                
+                toolContent
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+            .frame(width: popoverSize.width, height: popoverSize.height)
+            .background(Color.ttBackground)
+
+            resizeHandle
         }
-        .frame(width: tool.menuBarPopoverSize.width, height: tool.menuBarPopoverSize.height)
-        .background(Color.ttBackground)
+        .onChange(of: tool) { _, newTool in
+            popoverSize = newTool.savedMenuBarPopoverSize
+            dragStartSize = nil
+        }
     }
     
     private var header: some View {
@@ -671,6 +711,40 @@ struct MenuBarToolPopoverContent: View {
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
         .background(Color.ttSurface.opacity(0.22))
+    }
+
+    private var resizeHandle: some View {
+        ZStack(alignment: .bottomTrailing) {
+            Rectangle()
+                .fill(Color.clear)
+                .frame(width: 34, height: 34)
+
+            Image(systemName: "line.3.horizontal")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundColor(.ttTextTertiary)
+                .rotationEffect(.degrees(-45))
+                .padding(.trailing, 5)
+                .padding(.bottom, 4)
+        }
+        .contentShape(Rectangle())
+        .help("Drag to resize")
+        .gesture(
+            DragGesture(minimumDistance: 1)
+                .onChanged { value in
+                    let startSize = dragStartSize ?? popoverSize
+                    dragStartSize = startSize
+                    popoverSize = tool.clampedMenuBarPopoverSize(
+                        CGSize(
+                            width: startSize.width + value.translation.width,
+                            height: startSize.height + value.translation.height
+                        )
+                    )
+                }
+                .onEnded { _ in
+                    tool.saveMenuBarPopoverSize(popoverSize)
+                    dragStartSize = nil
+                }
+        )
     }
     
     @ViewBuilder
@@ -794,6 +868,55 @@ private extension DevTool {
         default:
             return CGSize(width: 520, height: 360)
         }
+    }
+
+    var minimumMenuBarPopoverSize: CGSize {
+        switch self {
+        case .json:
+            return CGSize(width: 720, height: 480)
+        case .qrCode:
+            return CGSize(width: 900, height: 560)
+        case .caseConverter:
+            return CGSize(width: 860, height: 540)
+        default:
+            return CGSize(width: 420, height: 300)
+        }
+    }
+
+    var maximumMenuBarPopoverSize: CGSize {
+        CGSize(width: 1_600, height: 1_100)
+    }
+
+    var savedMenuBarPopoverSize: CGSize {
+        let width = UserDefaults.standard.double(forKey: menuBarPopoverWidthKey)
+        let height = UserDefaults.standard.double(forKey: menuBarPopoverHeightKey)
+
+        guard width > 0, height > 0 else {
+            return menuBarPopoverSize
+        }
+
+        return clampedMenuBarPopoverSize(CGSize(width: width, height: height))
+    }
+
+    func clampedMenuBarPopoverSize(_ size: CGSize) -> CGSize {
+        CGSize(
+            width: min(max(size.width, minimumMenuBarPopoverSize.width), maximumMenuBarPopoverSize.width),
+            height: min(max(size.height, minimumMenuBarPopoverSize.height), maximumMenuBarPopoverSize.height)
+        )
+    }
+
+    func saveMenuBarPopoverSize(_ size: CGSize) {
+        let size = clampedMenuBarPopoverSize(size)
+        UserDefaults.standard.set(size.width, forKey: menuBarPopoverWidthKey)
+        UserDefaults.standard.set(size.height, forKey: menuBarPopoverHeightKey)
+    }
+
+    private var menuBarPopoverWidthKey: String {
+        "menuBarPopoverSize.\(rawValue).width"
+    }
+
+    private var menuBarPopoverHeightKey: String {
+        "menuBarPopoverSize.\(rawValue).height"
     }
 }
 

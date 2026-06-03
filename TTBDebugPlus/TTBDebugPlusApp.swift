@@ -136,10 +136,10 @@ struct TTBDebugPlusApp: App {
         
         // MARK: - Menu Bar Extra
         MenuBarExtra(
-            connectionManager.isServerRunning ? "TTBDebugPlus Server Running" : "TTBDebugPlus Server Offline",
+            connectionManager.isServerRunning ? "TTBDebugPlus Server Running" : "TTBDebugPlus Dev Tools Mode",
             systemImage: connectionManager.isServerRunning
                 ? AppIcon.connectionHealth
-                : AppIcon.connectionOffline
+                : AppIcon.devToolsMode
         ) {
             MenuBarView()
                 .environment(appState)

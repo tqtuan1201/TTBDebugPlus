@@ -33,6 +33,14 @@ final class DeviceSession: Identifiable, Hashable {
         deviceInfo?.deviceName ?? "Unknown Device"
     }
     
+    var deviceModelString: String {
+        guard let model = deviceInfo?.deviceModel?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !model.isEmpty else {
+            return isSimulator ? "iOS Simulator" : "iPhone"
+        }
+        return model
+    }
+    
     var osVersionString: String {
         deviceInfo?.osVersion ?? "Unknown"
     }
