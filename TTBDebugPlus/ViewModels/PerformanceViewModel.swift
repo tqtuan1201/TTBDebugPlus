@@ -67,7 +67,10 @@ final class PerformanceViewModel {
     
     // MARK: - Analyze API logs
     func analyzeAPIs(from entries: [APILogPayload]) {
-        guard !entries.isEmpty else { return }
+        guard !entries.isEmpty else {
+            resetAPIAnalytics()
+            return
+        }
         let signature = "\(entries.count):\(entries.first?.id ?? ""):\(entries.last?.id ?? "")"
         guard signature != lastAnalysisSignature else { return }
         lastAnalysisSignature = signature
@@ -94,6 +97,27 @@ final class PerformanceViewModel {
         slowRequestCount = slowRequests
         errorRate = Double(errors) / Double(entries.count) * 100
         duplicateRequestCount = dupes
+    }
+
+    func resetMetrics() {
+        cpuHistory.removeAll()
+        memoryHistory.removeAll()
+        networkSentHistory.removeAll()
+        networkRecvHistory.removeAll()
+        currentCPU = 0
+        currentMemory = 0
+        totalMemory = 0
+        currentFPS = nil
+        diskUsed = nil
+        lastMetricsTimestamp = nil
+    }
+
+    private func resetAPIAnalytics() {
+        averageResponseTime = 0
+        slowRequestCount = 0
+        duplicateRequestCount = 0
+        errorRate = 0
+        lastAnalysisSignature = nil
     }
     
     

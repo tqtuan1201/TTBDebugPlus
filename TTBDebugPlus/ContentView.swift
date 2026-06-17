@@ -35,6 +35,12 @@ struct ContentView: View {
             .background(Color.ttBackground)
         }
         .navigationSplitViewStyle(.balanced)
+        .sheet(item: Binding(
+            get: { appState.pendingTemplateDraft },
+            set: { appState.pendingTemplateDraft = $0 }
+        )) { draft in
+            SaveTemplateSheet(draft: draft)
+        }
         .onAppear {
             syncAppStateFromConnectionManager()
             updateSyncTimer()
@@ -48,7 +54,13 @@ struct ContentView: View {
         .onChange(of: connectionManager.totalConsoleLogs) {
             syncAppStateFromConnectionManager()
         }
+        .onChange(of: connectionManager.totalPerformanceMetrics) {
+            syncAppStateFromConnectionManager()
+        }
         .onChange(of: connectionManager.connectedDevices.count) {
+            syncAppStateFromConnectionManager()
+        }
+        .onChange(of: connectionManager.selectedDeviceId) {
             syncAppStateFromConnectionManager()
         }
         .onChange(of: connectionManager.isServerRunning) {

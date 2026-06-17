@@ -58,6 +58,8 @@ struct OnlineJsonViewerView: View {
     let jsonString: String
     var showToolbar: Bool = true
     var initialMode: String = "tree" // "tree", "code", or "preview"
+    /// When false, hides the live "Preview" mode button (e.g. template detail).
+    var showPreviewMode: Bool = true
     var onOpenInEditor: ((String) -> Void)? = nil
     
     @State private var bridge = OnlineJsonEditorBridge()
@@ -100,7 +102,9 @@ struct OnlineJsonViewerView: View {
             HStack(spacing: 1) {
                 viewerModeButton(mode: "code", icon: "chevron.left.forwardslash.chevron.right", label: "Code")
                 viewerModeButton(mode: "tree", icon: "list.bullet.indent", label: "Tree")
-                viewerModeButton(mode: "preview", icon: "eye", label: "Preview")
+                if showPreviewMode {
+                    viewerModeButton(mode: "preview", icon: "eye", label: "Preview")
+                }
             }
             
             Divider().frame(height: 14)
@@ -117,7 +121,7 @@ struct OnlineJsonViewerView: View {
                         .font(TTFont.codeSmall)
                         .foregroundColor(.ttTextPrimary)
                         .frame(width: 120)
-                        .onSubmit { bridge.search(searchText) }
+                        .onSubmit { bridge.searchNext() }
                         .onChange(of: searchText) { _, newValue in
                             bridge.search(newValue)
                         }
@@ -126,8 +130,24 @@ struct OnlineJsonViewerView: View {
                         Text("\(bridge.searchMatchCount)")
                             .font(TTFont.badge)
                             .foregroundColor(.ttPrimary)
+
+                        Button(action: { bridge.searchPrevious() }) {
+                            Image(systemName: "chevron.up")
+                                .font(.ttIcon(TTIcon.xs))
+                                .foregroundColor(.ttTextSecondary)
+                        }
+                        .buttonStyle(.plain)
+                        .help("Previous match")
+
+                        Button(action: { bridge.searchNext() }) {
+                            Image(systemName: "chevron.down")
+                                .font(.ttIcon(TTIcon.xs))
+                                .foregroundColor(.ttTextSecondary)
+                        }
+                        .buttonStyle(.plain)
+                        .help("Next match")
                     }
-                    
+
                     Button(action: {
                         isSearching = false
                         searchText = ""
@@ -244,6 +264,15 @@ struct OnlineJsonViewerView: View {
     // MARK: - Status Bar
     private var viewerStatusBar: some View {
         HStack(spacing: 12) {
+            HStack(spacing: 4) {
+                Circle()
+                    .fill(bridge.isValid ? Color.ttSuccess : Color.ttError)
+                    .frame(width: 6, height: 6)
+                Text(bridge.isValid ? "Valid" : "Invalid")
+                    .font(TTFont.codeSmall)
+                    .foregroundColor(bridge.isValid ? .ttSuccess : .ttError)
+            }
+
             Text(formattedSize)
                 .font(TTFont.codeSmall)
                 .foregroundColor(.ttTextTertiary)
@@ -343,21 +372,25 @@ class OnlineJsonEditorBridge: NSObject {
         
         // 1. Folder reference: WebEditor/dist/online-json-editor.html
         let subdirs = ["WebEditor/dist", "WebEditor"]
-        for subdir in subdirs {
-            if let htmlURL = Bundle.main.url(
-                forResource: "online-json-editor",
-                withExtension: "html",
-                subdirectory: subdir
-            ) {
-                wv.loadFileURL(htmlURL, allowingReadAccessTo: htmlURL.deletingLastPathComponent())
-                return
+        for bundle in editorResourceBundles {
+            for subdir in subdirs {
+                if let htmlURL = bundle.url(
+                    forResource: "online-json-editor",
+                    withExtension: "html",
+                    subdirectory: subdir
+                ) {
+                    wv.loadFileURL(htmlURL, allowingReadAccessTo: htmlURL.deletingLastPathComponent())
+                    return
+                }
             }
         }
         
         // 2. Root level (flat bundle — XcodeGen default without folder reference)
-        if let htmlURL = Bundle.main.url(forResource: "online-json-editor", withExtension: "html") {
-            wv.loadFileURL(htmlURL, allowingReadAccessTo: htmlURL.deletingLastPathComponent())
-            return
+        for bundle in editorResourceBundles {
+            if let htmlURL = bundle.url(forResource: "online-json-editor", withExtension: "html") {
+                wv.loadFileURL(htmlURL, allowingReadAccessTo: htmlURL.deletingLastPathComponent())
+                return
+            }
         }
         
         // 3. Direct filesystem search
@@ -376,6 +409,14 @@ class OnlineJsonEditorBridge: NSObject {
             }
         }
         print("[OnlineJsonEditorBridge] ERROR: Could not find online-json-editor.html")
+    }
+
+    private var editorResourceBundles: [Bundle] {
+        #if SWIFT_PACKAGE
+        return [Bundle.module, Bundle.main]
+        #else
+        return [Bundle.main]
+        #endif
     }
     
     // MARK: - Commands (Swift → JS)
@@ -407,6 +448,14 @@ class OnlineJsonEditorBridge: NSObject {
         executeWhenReady {
             self.evaluateJS("window.TTBridge.search(\(self.jsonStringLiteral(term)))")
         }
+    }
+
+    func searchNext() {
+        executeWhenReady { self.evaluateJS("window.TTBridge.searchNext()") }
+    }
+
+    func searchPrevious() {
+        executeWhenReady { self.evaluateJS("window.TTBridge.searchPrevious()") }
     }
     
     func format() {

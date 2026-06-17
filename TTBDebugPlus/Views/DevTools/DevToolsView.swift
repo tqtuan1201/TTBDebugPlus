@@ -14,6 +14,11 @@ struct DevToolsView: View {
     @State private var viewModel = JSONEditorViewModel()
     @State private var selectedJsonTool: JSONTool = .editor
     @State private var hoveredJsonTool: JSONTool? = nil
+
+    private enum DefaultsKey {
+        static let selectedTool = "devTools.selectedTool"
+        static let selectedJsonTool = "devTools.selectedJsonTool"
+    }
     
     var body: some View {
         VStack(spacing: 0) {
@@ -30,11 +35,17 @@ struct DevToolsView: View {
                 case .json:
                     jsonContent
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
+                case .templateLibrary:
+                    TemplateLibraryView()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                 case .qrCode:
                     QRCodeToolView()
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 case .caseConverter:
                     CaseConverterToolView()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                case .jwt:
+                    JWTToolView()
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 default:
                     comingSoonView(selectedTool)
@@ -46,8 +57,15 @@ struct DevToolsView: View {
         .background(Color.ttBackground)
         .frame(minWidth: 600, minHeight: 400)
         .onAppear {
+            restoreDevToolsState()
             loadPayloadIfNeeded()
             openRequestedToolIfNeeded()
+        }
+        .onChange(of: selectedTool) { _, newValue in
+            saveSelectedTool(newValue)
+        }
+        .onChange(of: selectedJsonTool) { _, newValue in
+            UserDefaults.standard.set(newValue.rawValue, forKey: DefaultsKey.selectedJsonTool)
         }
         .onChange(of: appState.jsonEditorPayload) { _, _ in
             loadPayloadIfNeeded()
@@ -258,8 +276,30 @@ struct DevToolsView: View {
                     .help(tool.isAvailable ? tool.rawValue : "\(tool.rawValue) — Coming Soon")
                 }
             }
-            
+
             Spacer()
+
+            // Save current JSON payload as a reusable template.
+            if currentTool == .json, !viewModel.rawJSON.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                Button(action: {
+                    appState.requestSaveAsTemplate(
+                        json: viewModel.rawJSON,
+                        source: viewModel.sourceLabel ?? "JSON Editor"
+                    )
+                }) {
+                    HStack(spacing: 5) {
+                        Image(systemName: AppIcon.saveTemplate)
+                            .font(.ttIcon(TTIcon.md))
+                        Text("Save as Template")
+                            .font(TTFont.tabLabel)
+                    }
+                    .foregroundColor(.ttPrimary)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                }
+                .buttonStyle(.plain)
+                .help("Save this JSON to the Template Library")
+            }
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
@@ -389,6 +429,27 @@ struct DevToolsView: View {
             selectedJsonTool = .editor
         }
         appState.requestedDevTool = nil
+    }
+
+    private func restoreDevToolsState() {
+        if let rawTool = UserDefaults.standard.string(forKey: DefaultsKey.selectedTool),
+           let tool = DevTool(rawValue: rawTool),
+           tool.isAvailable {
+            selectedTool = tool
+        }
+
+        if let rawJsonTool = UserDefaults.standard.string(forKey: DefaultsKey.selectedJsonTool),
+           let jsonTool = JSONTool(rawValue: rawJsonTool) {
+            selectedJsonTool = jsonTool
+        }
+    }
+
+    private func saveSelectedTool(_ tool: DevTool?) {
+        guard let tool else {
+            UserDefaults.standard.removeObject(forKey: DefaultsKey.selectedTool)
+            return
+        }
+        UserDefaults.standard.set(tool.rawValue, forKey: DefaultsKey.selectedTool)
     }
 }
 

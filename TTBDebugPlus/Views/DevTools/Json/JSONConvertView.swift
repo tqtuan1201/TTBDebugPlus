@@ -15,6 +15,10 @@ struct JSONConvertView: View {
     @State private var isCopied: Bool = false
     @State private var hoveredFormat: ConvertFormat? = nil
     @State private var fileErrorMessage: String?
+
+    private enum DefaultsKey {
+        static let selectedFormat = "devTools.jsonConvert.selectedFormat"
+    }
     
     var body: some View {
         VStack(spacing: 0) {
@@ -37,13 +41,15 @@ struct JSONConvertView: View {
         }
         .background(Color.ttBackground)
         .frame(minWidth: 400, minHeight: 300)
-        .onChange(of: selectedFormat) { _, _ in
+        .onChange(of: selectedFormat) { _, newValue in
+            UserDefaults.standard.set(newValue.rawValue, forKey: DefaultsKey.selectedFormat)
             convert()
         }
         .onChange(of: jsonString) { _, _ in
             convert()
         }
         .onAppear {
+            restoreState()
             convert()
         }
         .alert("Save Failed", isPresented: Binding(
@@ -311,5 +317,12 @@ struct JSONConvertView: View {
         if bytes < 1024 { return "\(bytes) B" }
         if bytes < 1024 * 1024 { return String(format: "%.1f KB", Double(bytes) / 1024) }
         return String(format: "%.1f MB", Double(bytes) / (1024 * 1024))
+    }
+
+    private func restoreState() {
+        guard let rawFormat = UserDefaults.standard.string(forKey: DefaultsKey.selectedFormat),
+              let format = ConvertFormat(rawValue: rawFormat),
+              format != .json else { return }
+        selectedFormat = format
     }
 }

@@ -243,6 +243,12 @@ struct NetworkView: View {
                     onClose: { showDetail = false },
                     onOpenInEditor: { json, source in
                         appState.openInJSONEditor(json: json, source: source)
+                    },
+                    onSaveAsTemplate: { json, source in
+                        appState.requestSaveAsTemplate(json: json, source: source)
+                    },
+                    onDecodeJWT: { token, source in
+                        appState.openJWTTool(token: token, source: source)
                     }
                 )
                 .frame(minWidth: 350, idealWidth: 500)

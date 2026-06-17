@@ -55,17 +55,21 @@ class JSONWebViewBridge: NSObject {
         
         // 1. Folder reference: WebEditor/dist/index.html
         let subdirs = ["WebEditor/dist", "WebEditor"]
-        for subdir in subdirs {
-            if let htmlURL = Bundle.main.url(forResource: "index", withExtension: "html", subdirectory: subdir) {
-                wv.loadFileURL(htmlURL, allowingReadAccessTo: htmlURL.deletingLastPathComponent())
-                return
+        for bundle in editorResourceBundles {
+            for subdir in subdirs {
+                if let htmlURL = bundle.url(forResource: "index", withExtension: "html", subdirectory: subdir) {
+                    wv.loadFileURL(htmlURL, allowingReadAccessTo: htmlURL.deletingLastPathComponent())
+                    return
+                }
             }
         }
         
         // 2. Root level (flat bundle — XcodeGen default without folder reference)
-        if let htmlURL = Bundle.main.url(forResource: "index", withExtension: "html") {
-            wv.loadFileURL(htmlURL, allowingReadAccessTo: htmlURL.deletingLastPathComponent())
-            return
+        for bundle in editorResourceBundles {
+            if let htmlURL = bundle.url(forResource: "index", withExtension: "html") {
+                wv.loadFileURL(htmlURL, allowingReadAccessTo: htmlURL.deletingLastPathComponent())
+                return
+            }
         }
         
         // 3. Direct filesystem search
@@ -84,6 +88,14 @@ class JSONWebViewBridge: NSObject {
             }
         }
         print("[JSONWebViewBridge] ERROR: Could not find WebEditor HTML")
+    }
+
+    private var editorResourceBundles: [Bundle] {
+        #if SWIFT_PACKAGE
+        return [Bundle.module, Bundle.main]
+        #else
+        return [Bundle.main]
+        #endif
     }
 
     

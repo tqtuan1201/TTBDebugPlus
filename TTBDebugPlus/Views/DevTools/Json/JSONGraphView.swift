@@ -20,6 +20,14 @@ struct JSONGraphView: View {
     @State private var selectedNodeId: String? = nil
     @State private var hoveredNodeId: String? = nil
     @State private var canvasSize: CGSize = .zero
+
+    private enum DefaultsKey {
+        static let scale = "devTools.jsonGraph.scale"
+        static let offsetWidth = "devTools.jsonGraph.offsetWidth"
+        static let offsetHeight = "devTools.jsonGraph.offsetHeight"
+        static let collapsedNodeIds = "devTools.jsonGraph.collapsedNodeIds"
+        static let selectedNodeId = "devTools.jsonGraph.selectedNodeId"
+    }
     
     // Zoom limits
     private let minScale: CGFloat = 0.15
@@ -95,6 +103,7 @@ struct JSONGraphView: View {
                         offset.width += value.translation.width
                         offset.height += value.translation.height
                         dragOffset = .zero
+                        saveViewportState()
                     }
             )
             .gesture(
@@ -103,10 +112,13 @@ struct JSONGraphView: View {
                         let newScale = scale * value
                         scale = max(minScale, min(maxScale, newScale))
                     }
+                    .onEnded { _ in
+                        saveViewportState()
+                    }
             )
             .onAppear {
                 canvasSize = geometry.size
-                fitToWindow(size: geometry.size)
+                applyStoredViewportOrFit(size: geometry.size)
             }
             .onChange(of: geometry.size) { _, newSize in
                 canvasSize = newSize
@@ -254,6 +266,7 @@ struct JSONGraphView: View {
                         collapsedNodeIds.insert(node.id)
                     }
                 }
+                saveGraphState()
             }
         }
     }
@@ -328,7 +341,12 @@ struct JSONGraphView: View {
     private var graphToolbar: some View {
         HStack(spacing: 5) {
             // Zoom controls
-            Button(action: { withAnimation(.easeInOut(duration: 0.2)) { scale = max(minScale, scale * 0.8) } }) {
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    scale = max(minScale, scale * 0.8)
+                }
+                saveViewportState()
+            }) {
                 Image(systemName: "minus.magnifyingglass")
                     .font(.system(size: 12))
             }
@@ -341,7 +359,12 @@ struct JSONGraphView: View {
                 .frame(width: 44)
                 .monospacedDigit()
             
-            Button(action: { withAnimation(.easeInOut(duration: 0.2)) { scale = min(maxScale, scale * 1.25) } }) {
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    scale = min(maxScale, scale * 1.25)
+                }
+                saveViewportState()
+            }) {
                 Image(systemName: "plus.magnifyingglass")
                     .font(.system(size: 12))
             }
@@ -355,6 +378,7 @@ struct JSONGraphView: View {
                 withAnimation(.easeInOut(duration: 0.3)) {
                     fitToWindow(size: canvasSize)
                 }
+                saveViewportState()
             }) {
                 Image(systemName: "arrow.up.left.and.arrow.down.right")
                     .font(.system(size: 12))
@@ -368,6 +392,7 @@ struct JSONGraphView: View {
                     scale = 1.0
                     offset = .zero
                 }
+                saveViewportState()
             }) {
                 Image(systemName: "arrow.counterclockwise")
                     .font(.system(size: 12))
@@ -388,6 +413,7 @@ struct JSONGraphView: View {
                     } else {
                         collapsedNodeIds.removeAll()
                     }
+                    saveGraphState()
                 }
             }) {
                 Image(systemName: collapsedNodeIds.isEmpty ? "rectangle.compress.vertical" : "rectangle.expand.vertical")
@@ -469,8 +495,10 @@ struct JSONGraphView: View {
         
         layout = result
         isLoading = false
-        collapsedNodeIds.removeAll()
-        selectedNodeId = nil
+        restoreGraphState()
+        if canvasSize != .zero {
+            applyStoredViewportOrFit(size: canvasSize)
+        }
     }
     
     private func fitToWindow(size: CGSize) {
@@ -487,5 +515,57 @@ struct JSONGraphView: View {
             width: (size.width - layout.totalSize.width * scale) / 2,
             height: (size.height - layout.totalSize.height * scale) / 2
         )
+    }
+
+    private func applyStoredViewportOrFit(size: CGSize) {
+        let storedScale = UserDefaults.standard.double(forKey: DefaultsKey.scale)
+        if storedScale > 0 {
+            scale = max(minScale, min(maxScale, storedScale))
+            offset = CGSize(
+                width: UserDefaults.standard.double(forKey: DefaultsKey.offsetWidth),
+                height: UserDefaults.standard.double(forKey: DefaultsKey.offsetHeight)
+            )
+        } else {
+            fitToWindow(size: size)
+        }
+    }
+
+    private func restoreGraphState() {
+        let validNodeIds = Set(layout.nodes.map(\.id))
+
+        if let rawValue = UserDefaults.standard.string(forKey: DefaultsKey.collapsedNodeIds),
+           let data = rawValue.data(using: .utf8),
+           let storedIds = try? JSONDecoder().decode([String].self, from: data) {
+            collapsedNodeIds = Set(storedIds).intersection(validNodeIds)
+        } else {
+            collapsedNodeIds.removeAll()
+        }
+
+        if let storedSelectedNodeId = UserDefaults.standard.string(forKey: DefaultsKey.selectedNodeId),
+           validNodeIds.contains(storedSelectedNodeId) {
+            selectedNodeId = storedSelectedNodeId
+        } else {
+            selectedNodeId = nil
+        }
+    }
+
+    private func saveViewportState() {
+        UserDefaults.standard.set(Double(scale), forKey: DefaultsKey.scale)
+        UserDefaults.standard.set(Double(offset.width), forKey: DefaultsKey.offsetWidth)
+        UserDefaults.standard.set(Double(offset.height), forKey: DefaultsKey.offsetHeight)
+    }
+
+    private func saveGraphState() {
+        let sortedIds = Array(collapsedNodeIds).sorted()
+        if let data = try? JSONEncoder().encode(sortedIds),
+           let json = String(data: data, encoding: .utf8) {
+            UserDefaults.standard.set(json, forKey: DefaultsKey.collapsedNodeIds)
+        }
+
+        if let selectedNodeId {
+            UserDefaults.standard.set(selectedNodeId, forKey: DefaultsKey.selectedNodeId)
+        } else {
+            UserDefaults.standard.removeObject(forKey: DefaultsKey.selectedNodeId)
+        }
     }
 }

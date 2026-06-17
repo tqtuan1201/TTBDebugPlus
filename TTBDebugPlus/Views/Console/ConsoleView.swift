@@ -43,6 +43,9 @@ struct ConsoleView: View {
         .onChange(of: connectionManager.totalConsoleLogs) {
             viewModel.syncFromConnectionManager(connectionManager)
         }
+        .onChange(of: connectionManager.selectedDeviceId) {
+            viewModel.syncFromConnectionManager(connectionManager)
+        }
         .onReceive(NotificationCenter.default.publisher(for: .clearConsole)) { _ in
             viewModel.clearAll()
         }

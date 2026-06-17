@@ -756,6 +756,8 @@ struct MenuBarToolPopoverContent: View {
             QRCodeToolView()
         case .caseConverter:
             CaseConverterToolView()
+        case .jwt:
+            JWTToolView()
         default:
             MenuBarUnavailableToolView(tool: tool)
         }
@@ -865,6 +867,8 @@ private extension DevTool {
             return CGSize(width: 1_040, height: 640)
         case .caseConverter:
             return CGSize(width: 920, height: 600)
+        case .jwt:
+            return CGSize(width: 1_020, height: 680)
         default:
             return CGSize(width: 520, height: 360)
         }
@@ -878,6 +882,8 @@ private extension DevTool {
             return CGSize(width: 900, height: 560)
         case .caseConverter:
             return CGSize(width: 860, height: 540)
+        case .jwt:
+            return CGSize(width: 760, height: 520)
         default:
             return CGSize(width: 420, height: 300)
         }

@@ -34,6 +34,7 @@ final class ConnectionManager {
 
     var totalAPILogs: Int = 0
     var totalConsoleLogs: Int = 0
+    var totalPerformanceMetrics: Int = 0
 
     /// Currently active network interfaces (excluding loopback)
     var activeInterfaces: [NetworkInterface] = []
@@ -142,6 +143,7 @@ final class ConnectionManager {
         selectedDeviceId = nil
         totalAPILogs = 0
         totalConsoleLogs = 0
+        totalPerformanceMetrics = 0
         _cachedAPILogs = nil
         _cachedConsoleLogs = nil
         isServerRunning = false
@@ -310,6 +312,7 @@ final class ConnectionManager {
 
     private func handlePerformanceMetrics(deviceId: String, metrics: PerformanceMetricsPayload) {
         sessions[deviceId]?.latestPerformance = metrics
+        totalPerformanceMetrics += 1
     }
 
     private func handleConnectionDiagnostics(deviceId: String, diagnostics: ConnectionDiagnosticsPayload) {

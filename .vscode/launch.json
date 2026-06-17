@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:source}",
+            "name": "Debug TTBDebugPlus",
+            "target": "TTBDebugPlus",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug TTBDebugPlus"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:source}",
+            "name": "Release TTBDebugPlus",
+            "target": "TTBDebugPlus",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release TTBDebugPlus"
+        }
+    ]
+}

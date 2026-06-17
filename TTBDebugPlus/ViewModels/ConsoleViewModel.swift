@@ -37,9 +37,10 @@ final class ConsoleViewModel {
     private var _cachedFilteredEntries: [ConsoleLogEntry]?
     private var _cachedErrorCount: Int?
     private var _cachedWarningCount: Int?
-    
-    // Incremental sync tracking
-    private var lastSyncedLogCount: Int = 0
+
+    private let maxEntries = 10_000
+    private var syncedLogIds: Set<String> = []
+    private var syncScopeKey: String?
     
     // MARK: - Filtered entries (cached)
     var filteredEntries: [ConsoleLogEntry] {
@@ -101,25 +102,26 @@ final class ConsoleViewModel {
     func syncFromConnectionManager(_ connectionManager: ConnectionManager) {
         guard isLiveStreaming else { return }
 
-        // Collect all console logs from selected device or all devices
-        var allLogs: [ConsoleLogPayload] = []
+        let scopeKey = connectionManager.selectedDeviceId ?? "__all__"
+        if syncScopeKey != scopeKey {
+            syncScopeKey = scopeKey
+            entries.removeAll()
+            selectedEntry = nil
+            syncedLogIds.removeAll()
+        }
+
         if let device = connectionManager.selectedDevice {
-            allLogs = device.consoleLogs
+            appendNewLogs(device.consoleLogs)
         } else {
-            allLogs = connectionManager.connectedDevices.flatMap { $0.consoleLogs }
+            appendNewLogs(connectionManager.connectedDevices.flatMap { $0.consoleLogs })
         }
-        
-        // Guard against source being cleared (count < lastSyncedLogCount)
-        if allLogs.count < lastSyncedLogCount {
-            lastSyncedLogCount = 0
-        }
-        
-        // Incremental: only convert new entries
-        guard allLogs.count > lastSyncedLogCount else { return }
-        let newLogs = allLogs[lastSyncedLogCount...]
-        
-        let newEntries = newLogs.map { payload in
-            ConsoleLogEntry(
+    }
+
+    private func appendNewLogs(_ logs: [ConsoleLogPayload]) {
+        let newEntries = logs.compactMap { payload -> ConsoleLogEntry? in
+            guard !syncedLogIds.contains(payload.id) else { return nil }
+            syncedLogIds.insert(payload.id)
+            return ConsoleLogEntry(
                 id: payload.id,
                 timestamp: payload.timestamp,
                 level: payload.level,
@@ -131,9 +133,21 @@ final class ConsoleViewModel {
                 sourceLine: payload.sourceLine
             )
         }
-        
+
+        guard !newEntries.isEmpty else { return }
         entries.append(contentsOf: newEntries)
-        lastSyncedLogCount = allLogs.count
+        trimEntriesIfNeeded()
+    }
+
+    private func trimEntriesIfNeeded() {
+        let overflow = entries.count - maxEntries
+        guard overflow > 0 else { return }
+        let removedIds = entries.prefix(overflow).map(\.id)
+        entries.removeFirst(overflow)
+        syncedLogIds.subtract(removedIds)
+        if let selectedEntry, removedIds.contains(selectedEntry.id) {
+            self.selectedEntry = entries.last
+        }
     }
     
     
@@ -141,7 +155,8 @@ final class ConsoleViewModel {
     func clearAll() {
         entries.removeAll()
         selectedEntry = nil
-        lastSyncedLogCount = 0
+        syncedLogIds.removeAll()
+        syncScopeKey = nil
     }
 
     func toggleLiveStreaming(_ connectionManager: ConnectionManager) {

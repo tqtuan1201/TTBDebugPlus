@@ -11,25 +11,25 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 struct QRCodeToolView: View {
-    @State private var inputType: QRCodeInputType = .text
-    @State private var errorCorrection: QRCodeErrorCorrection = .medium
-    @State private var foregroundColor: QRCodeColorPreset = .black
-    @State private var backgroundColor: QRCodeColorPreset = .white
+    @AppStorage("devTools.qrCode.inputType") private var inputType: QRCodeInputType = .text
+    @AppStorage("devTools.qrCode.errorCorrection") private var errorCorrection: QRCodeErrorCorrection = .medium
+    @AppStorage("devTools.qrCode.foregroundColor") private var foregroundColor: QRCodeColorPreset = .black
+    @AppStorage("devTools.qrCode.backgroundColor") private var backgroundColor: QRCodeColorPreset = .white
     
-    @State private var textValue = "TTBDebugPlus"
-    @State private var urlValue = "https://"
-    @State private var wifiSSID = ""
-    @State private var wifiPassword = ""
-    @State private var wifiEncryption: QRCodeWiFiEncryption = .wpa
-    @State private var emailAddress = ""
-    @State private var emailSubject = ""
-    @State private var emailBody = ""
-    @State private var phoneNumber = ""
-    @State private var smsMessage = ""
+    @AppStorage("devTools.qrCode.textValue") private var textValue = "TTBDebugPlus"
+    @AppStorage("devTools.qrCode.urlValue") private var urlValue = "https://"
+    @AppStorage("devTools.qrCode.wifiSSID") private var wifiSSID = ""
+    @AppStorage("devTools.qrCode.wifiPassword") private var wifiPassword = ""
+    @AppStorage("devTools.qrCode.wifiEncryption") private var wifiEncryption: QRCodeWiFiEncryption = .wpa
+    @AppStorage("devTools.qrCode.emailAddress") private var emailAddress = ""
+    @AppStorage("devTools.qrCode.emailSubject") private var emailSubject = ""
+    @AppStorage("devTools.qrCode.emailBody") private var emailBody = ""
+    @AppStorage("devTools.qrCode.phoneNumber") private var phoneNumber = ""
+    @AppStorage("devTools.qrCode.smsMessage") private var smsMessage = ""
     
     @State private var decodedImage: NSImage?
-    @State private var decodedMessages: [String] = []
-    @State private var decodeError: String?
+    @State private var decodedMessages: [String] = QRCodeToolView.restoreDecodedMessages()
+    @State private var decodeError: String? = UserDefaults.standard.string(forKey: "devTools.qrCode.decodeError")
     @State private var copyState: CopyState?
     
     private var payload: String {
@@ -617,6 +617,7 @@ struct QRCodeToolView: View {
                 decodeError = "Could not open the selected image."
                 decodedMessages = []
                 decodedImage = nil
+                saveDecodedState()
                 return
             }
             decode(image)
@@ -629,6 +630,7 @@ struct QRCodeToolView: View {
             decodeError = "Clipboard does not contain an image."
             decodedMessages = []
             decodedImage = nil
+            saveDecodedState()
             return
         }
         decode(image)
@@ -644,6 +646,7 @@ struct QRCodeToolView: View {
             decodedMessages = []
             decodeError = error.localizedDescription
         }
+        saveDecodedState()
     }
     
     private func showCopyState(_ state: CopyState) {
@@ -653,6 +656,28 @@ struct QRCodeToolView: View {
                 copyState = nil
             }
         }
+    }
+
+    private func saveDecodedState() {
+        if let data = try? JSONEncoder().encode(decodedMessages),
+           let json = String(data: data, encoding: .utf8) {
+            UserDefaults.standard.set(json, forKey: "devTools.qrCode.decodedMessages")
+        }
+
+        if let decodeError {
+            UserDefaults.standard.set(decodeError, forKey: "devTools.qrCode.decodeError")
+        } else {
+            UserDefaults.standard.removeObject(forKey: "devTools.qrCode.decodeError")
+        }
+    }
+
+    private static func restoreDecodedMessages() -> [String] {
+        guard let rawValue = UserDefaults.standard.string(forKey: "devTools.qrCode.decodedMessages"),
+              let data = rawValue.data(using: .utf8),
+              let messages = try? JSONDecoder().decode([String].self, from: data) else {
+            return []
+        }
+        return messages
     }
 }
 

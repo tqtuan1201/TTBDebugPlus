@@ -10,11 +10,18 @@ import SwiftUI
 
 @Observable
 class JSONEditorViewModel {
+    private enum DefaultsKey {
+        static let rawJSON = "devTools.jsonEditor.rawJSON"
+        static let sourceLabel = "devTools.jsonEditor.sourceLabel"
+        static let indentation = "jsonIndentation"
+    }
+
     // MARK: - Editor State
     var rawJSON: String = "" {
         didSet {
             if rawJSON != oldValue {
                 isDirty = true
+                UserDefaults.standard.set(rawJSON, forKey: DefaultsKey.rawJSON)
                 validateDebounced()
                 updateStatsDebounced()
             }
@@ -24,7 +31,15 @@ class JSONEditorViewModel {
 
     var isValid: Bool = true
     var validationErrors: [JSONValidationError] = []
-    var sourceLabel: String? = nil
+    var sourceLabel: String? = nil {
+        didSet {
+            if let sourceLabel {
+                UserDefaults.standard.set(sourceLabel, forKey: DefaultsKey.sourceLabel)
+            } else {
+                UserDefaults.standard.removeObject(forKey: DefaultsKey.sourceLabel)
+            }
+        }
+    }
     var fileErrorMessage: String? = nil
     
     // MARK: - Search
@@ -47,6 +62,14 @@ class JSONEditorViewModel {
     private var validateTask: Task<Void, Never>?
     private var statsTask: Task<Void, Never>?
 
+    init() {
+        rawJSON = UserDefaults.standard.string(forKey: DefaultsKey.rawJSON) ?? ""
+        sourceLabel = UserDefaults.standard.string(forKey: DefaultsKey.sourceLabel)
+        validate()
+        updateStatsDebounced()
+        isDirty = false
+    }
+
     deinit {
         validateTask?.cancel()
         statsTask?.cancel()
@@ -55,10 +78,10 @@ class JSONEditorViewModel {
     // MARK: - Indentation
     var indentation: Int {
         get {
-            let stored = UserDefaults.standard.integer(forKey: "jsonIndentation")
+            let stored = UserDefaults.standard.integer(forKey: DefaultsKey.indentation)
             return stored == 0 ? 2 : max(1, min(stored, 8))
         }
-        set { UserDefaults.standard.set(newValue, forKey: "jsonIndentation") }
+        set { UserDefaults.standard.set(newValue, forKey: DefaultsKey.indentation) }
     }
     
     // MARK: - Actions

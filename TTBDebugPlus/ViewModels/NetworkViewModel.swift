@@ -63,6 +63,7 @@ final class NetworkViewModel {
     var totalRequests: Int { entries.count }
     var failedRequests: Int { _cachedFailedCount ?? computeFailedCount() }
     private var _cachedFailedCount: Int?
+    private let maxEntries = 10_000
     
     // MARK: - Filtered entries (cached)
     var filteredEntries: [NetworkRequestEntry] {
@@ -331,6 +332,8 @@ final class NetworkViewModel {
     private var _syncedIds: Set<String> = []
     
     func syncFromConnectionManager(_ connectionManager: ConnectionManager) {
+        availableDevices = connectionManager.connectedDevices.map { ($0.id, $0.displayName) }
+
         // Pause gate — when paused, don't update entries
         guard isLiveStreaming else { return }
         
@@ -351,11 +354,20 @@ final class NetworkViewModel {
         if !newEntries.isEmpty {
             for entry in newEntries { _syncedIds.insert(entry.id) }
             entries.append(contentsOf: newEntries)
-            _cachedStats = nil // Invalidate stats on new data
+            trimEntriesIfNeeded()
         }
-        
-        // Update available devices list
-        availableDevices = connectionManager.connectedDevices.map { ($0.id, $0.displayName) }
+    }
+
+    private func trimEntriesIfNeeded() {
+        let overflow = entries.count - maxEntries
+        guard overflow > 0 else { return }
+        let removedIds = Set(entries.prefix(overflow).map(\.id))
+        entries.removeFirst(overflow)
+        _syncedIds.subtract(removedIds)
+        pinnedIds.subtract(removedIds)
+        if let selectedEntry, removedIds.contains(selectedEntry.id) {
+            self.selectedEntry = entries.last
+        }
     }
     
     /// Force refresh (used after unpausing or manual refresh)

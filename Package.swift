@@ -17,7 +17,17 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "TTBDebugPlus",
-            path: "TTBDebugPlus"
+            path: "TTBDebugPlus",
+            exclude: [
+                "Info.plist",
+                "TTBDebugPlus.entitlements",
+                "TTBDebugPlusRelease.entitlements",
+                "Resources/Assets.xcassets"
+            ],
+            resources: [
+                .process("Assets.xcassets"),
+                .process("Resources/WebEditor")
+            ]
         )
     ]
 )

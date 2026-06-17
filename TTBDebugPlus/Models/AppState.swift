@@ -27,6 +27,13 @@ class AppState {
     
     // JSON Editor payload (for "Open in JSON Editor" buttons)
     var jsonEditorPayload: JSONEditorPayload? = nil
+
+    // JWT tool payload (for "Decode JWT" / quick-decode entry points)
+    var jwtToolPayload: JWTToolPayload? = nil
+
+    // Pending "Save as Template" request (drives the global save sheet)
+    var pendingTemplateDraft: TemplateDraft? = nil
+
     var requestedDevTool: DevTool? = nil
     var devToolsMenuRequestID = UUID()
     var devToolsToolRequestID = UUID()
@@ -49,6 +56,20 @@ class AppState {
     func openInJSONEditor(json: String, source: String) {
         jsonEditorPayload = JSONEditorPayload(json: json, sourceLabel: source)
         selectedTab = .devtools
+    }
+
+    /// Open the JWT Debugger with a token loaded (from Network capture, quick-decode, etc.).
+    func openJWTTool(token: String, source: String) {
+        jwtToolPayload = JWTToolPayload(token: token, sourceLabel: source)
+        requestedDevTool = .jwt
+        devToolsToolRequestID = UUID()
+        selectedTab = .devtools
+    }
+
+    /// Request the global "Save as Template" sheet for the given JSON.
+    func requestSaveAsTemplate(json: String, source: String) {
+        guard !json.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        pendingTemplateDraft = TemplateDraft(json: json, sourceLabel: source)
     }
     
     init() {

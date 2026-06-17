@@ -10,8 +10,8 @@ import AppKit
 import SwiftUI
 
 struct CaseConverterToolView: View {
-    @State private var inputText = ""
-    @State private var selectedMode: CaseConversionMode = .lower
+    @AppStorage("devTools.caseConverter.inputText") private var inputText = ""
+    @AppStorage("devTools.caseConverter.selectedMode") private var selectedMode: CaseConversionMode = .lower
     @State private var isCopied = false
     
     private var outputText: String {

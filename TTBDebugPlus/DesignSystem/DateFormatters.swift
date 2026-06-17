@@ -43,4 +43,16 @@ enum TTDateFormatter {
         let f = ISO8601DateFormatter()
         return f
     }()
+
+    /// Relative time ("3 minutes ago") — used in library timestamps (cached)
+    static let relativeFormatter: RelativeDateTimeFormatter = {
+        let f = RelativeDateTimeFormatter()
+        f.unitsStyle = .abbreviated
+        return f
+    }()
+
+    /// Convenience for a relative string from a date to now.
+    static func relative(_ date: Date) -> String {
+        relativeFormatter.localizedString(for: date, relativeTo: Date())
+    }
 }

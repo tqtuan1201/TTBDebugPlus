@@ -14,6 +14,10 @@ struct JSONQueryView: View {
     @State private var result: QueryResult = QueryResult(matches: [], error: nil)
     @State private var isQuerying: Bool = false
     @State private var copiedMatchId: UUID? = nil
+
+    private enum DefaultsKey {
+        static let queryPath = "devTools.jsonQuery.queryPath"
+    }
     
     // Common path suggestions
     private let suggestions = [
@@ -49,9 +53,11 @@ struct JSONQueryView: View {
         .background(Color.ttBackground)
         .frame(minWidth: 400, minHeight: 300)
         .onChange(of: queryPath) { _, _ in
+            saveState()
             executeQuery()
         }
         .onAppear {
+            restoreState()
             executeQuery()
         }
     }
@@ -319,5 +325,13 @@ struct JSONQueryView: View {
                 isQuerying = false
             }
         }
+    }
+
+    private func restoreState() {
+        queryPath = UserDefaults.standard.string(forKey: DefaultsKey.queryPath) ?? "$"
+    }
+
+    private func saveState() {
+        UserDefaults.standard.set(queryPath, forKey: DefaultsKey.queryPath)
     }
 }

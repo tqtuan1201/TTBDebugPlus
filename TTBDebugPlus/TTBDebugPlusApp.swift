@@ -7,6 +7,7 @@
 
 import SwiftUI
 import AppKit
+import SwiftData
 
 @main
 struct TTBDebugPlusApp: App {
@@ -14,6 +15,8 @@ struct TTBDebugPlusApp: App {
     @State private var connectionManager = ConnectionManager()
     @State private var sessionManager = SessionManager()
     @State private var storageManager = StorageManager()
+    @State private var libraryStore = LibraryStore()
+    @State private var tokenStore = TokenStore()
     @AppStorage("hasSeenWelcome") private var hasSeenWelcome: Bool = false
     @State private var showWelcome: Bool = false
     @State private var appErrorMessage: String?
@@ -25,6 +28,9 @@ struct TTBDebugPlusApp: App {
                 .environment(connectionManager)
                 .environment(sessionManager)
                 .environment(storageManager)
+                .environment(libraryStore)
+                .environment(tokenStore)
+                .modelContainer(libraryStore.container)
                 .preferredColorScheme(.dark)
                 .frame(minWidth: 1200, minHeight: 800)
                 .onAppear {
@@ -144,6 +150,7 @@ struct TTBDebugPlusApp: App {
             MenuBarView()
                 .environment(appState)
                 .environment(connectionManager)
+                .environment(tokenStore)
         }
         .menuBarExtraStyle(.window)
         

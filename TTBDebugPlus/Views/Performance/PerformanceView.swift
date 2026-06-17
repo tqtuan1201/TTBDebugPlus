@@ -127,6 +127,14 @@ struct PerformanceView: View {
             viewModel.syncMetrics(from: connectionManager)
             viewModel.analyzeAPIs(from: connectionManager.allAPILogs)
         }
+        .onChange(of: connectionManager.totalPerformanceMetrics) {
+            viewModel.syncMetrics(from: connectionManager)
+        }
+        .onChange(of: connectionManager.selectedDeviceId) {
+            viewModel.resetMetrics()
+            viewModel.syncMetrics(from: connectionManager)
+            viewModel.analyzeAPIs(from: connectionManager.allAPILogs)
+        }
     }
     
     // MARK: - Metric Card

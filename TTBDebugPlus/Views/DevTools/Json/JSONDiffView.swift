@@ -16,6 +16,11 @@ struct JSONDiffView: View {
     @State private var isComputing: Bool = false
     @State private var currentDiffIndex: Int = 0
     @State private var hoveredSide: DiffSide? = nil
+
+    private enum DefaultsKey {
+        static let leftJSON = "devTools.jsonDiff.leftJSON"
+        static let rightJSON = "devTools.jsonDiff.rightJSON"
+    }
     
     var body: some View {
         GeometryReader { geometry in
@@ -60,9 +65,24 @@ struct JSONDiffView: View {
         .background(Color.ttBackground)
         .frame(minWidth: 600, minHeight: 400)
         .onAppear {
+            restoreState()
             if !initialLeft.isEmpty {
                 leftJSON = initialLeft
             }
+            saveState()
+            if !leftJSON.isEmpty && !rightJSON.isEmpty {
+                executeDiff()
+            }
+        }
+        .onChange(of: leftJSON) { _, _ in
+            saveState()
+        }
+        .onChange(of: rightJSON) { _, _ in
+            saveState()
+        }
+        .onChange(of: initialLeft) { _, newValue in
+            guard !newValue.isEmpty else { return }
+            leftJSON = newValue
         }
     }
     
@@ -469,6 +489,16 @@ struct JSONDiffView: View {
         let total = result.stats.total
         guard total > 0 else { return }
         currentDiffIndex = (currentDiffIndex + direction + total) % total
+    }
+
+    private func restoreState() {
+        leftJSON = UserDefaults.standard.string(forKey: DefaultsKey.leftJSON) ?? ""
+        rightJSON = UserDefaults.standard.string(forKey: DefaultsKey.rightJSON) ?? ""
+    }
+
+    private func saveState() {
+        UserDefaults.standard.set(leftJSON, forKey: DefaultsKey.leftJSON)
+        UserDefaults.standard.set(rightJSON, forKey: DefaultsKey.rightJSON)
     }
 }
 

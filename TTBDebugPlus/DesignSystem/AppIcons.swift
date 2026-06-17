@@ -29,12 +29,16 @@ enum AppIcon {
     static let jsonConvert = "arrow.triangle.2.circlepath"
     static let jsonGraph = "point.3.connected.trianglepath.dotted"
 
+    static let templateLibrary = "books.vertical.fill"
+    static let saveTemplate = "tray.and.arrow.down.fill"
+
     static let qrCode = "qrcode"
     static let caseConverter = "textformat.abc"
     static let base64 = "text.quote"
     static let urlEncode = "link.circle"
     static let hash = "number.square"
     static let timestamp = "clock"
+    static let jwt = "key.horizontal"
 
     static let settings = "gearshape"
     static let permissions = "lock.shield"

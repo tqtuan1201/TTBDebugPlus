@@ -89,51 +89,61 @@ enum JSONTool: String, CaseIterable, Identifiable {
 // MARK: - Dev Tools Category
 enum DevTool: String, CaseIterable, Identifiable {
     case json = "JSON"
+    case templateLibrary = "Library"
     case qrCode = "QR Code"
     case caseConverter = "Case Converter"
+    case jwt = "JWT"
     case base64 = "Base64"
     case urlEncode = "URL Encode"
     case hashGenerator = "Hash"
     case timestamp = "Timestamp"
-    
+
     var id: String { rawValue }
-    
+
     var icon: String {
         switch self {
         case .json: return AppIcon.json
+        case .templateLibrary: return AppIcon.templateLibrary
         case .qrCode: return AppIcon.qrCode
         case .caseConverter: return AppIcon.caseConverter
+        case .jwt: return AppIcon.jwt
         case .base64: return AppIcon.base64
         case .urlEncode: return AppIcon.urlEncode
         case .hashGenerator: return AppIcon.hash
         case .timestamp: return AppIcon.timestamp
         }
     }
-    
+
     var isAvailable: Bool {
         switch self {
-        case .json, .qrCode, .caseConverter: return true
+        case .json, .templateLibrary, .qrCode, .caseConverter, .jwt: return true
         default: return false
         }
     }
-    
+
     var menuTitle: String {
         switch self {
         case .json: return "View JSON"
+        case .templateLibrary: return "Template Library"
         case .qrCode: return "QR Code"
         case .caseConverter: return "Case Converter"
+        case .jwt: return "JWT Debugger"
         default: return rawValue
         }
     }
-    
+
     var menuDescription: String {
         switch self {
         case .json:
             return "Editor, query, diff, convert, and graph tools for JSON payloads."
+        case .templateLibrary:
+            return "Save, organize, search, and version JSON templates across projects."
         case .qrCode:
             return "Generate, preview, export, and decode QR codes."
         case .caseConverter:
             return "Convert text input between title, sentence, upper, lower, alternate, and toggle cases."
+        case .jwt:
+            return "Decode, verify, generate, compare, and audit JWTs offline with token history."
         case .base64:
             return "Encode and decode Base64 text."
         case .urlEncode:

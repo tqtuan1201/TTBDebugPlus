@@ -15,6 +15,8 @@ struct NetworkDetailPaneView: View {
     @Binding var selectedTab: NetworkDetailTab
     var onClose: () -> Void = {}
     var onOpenInEditor: ((String, String) -> Void)? = nil
+    var onSaveAsTemplate: ((String, String) -> Void)? = nil
+    var onDecodeJWT: ((String, String) -> Void)? = nil
     @State private var copiedHeaderKey: String? = nil
     @State private var responseHeadersExpanded: Bool = true
     
@@ -26,7 +28,15 @@ struct NetworkDetailPaneView: View {
             return NetworkDetailTab.allCases.filter { $0 != .cookies }
         }
     }
-    
+
+    /// A JWT extracted from an `Authorization` request header, if present.
+    private var bearerJWT: String? {
+        guard let entry = request.requestHeaders.first(where: { $0.key.lowercased() == "authorization" }) else {
+            return nil
+        }
+        return JWTDecoder.extractBearerToken(from: entry.value)
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             // Summary header
@@ -205,6 +215,32 @@ struct NetworkDetailPaneView: View {
                 }
             }
             
+            // Bearer-token JWT decode action (when an Authorization header carries a JWT)
+            if let bearerJWT, let onDecodeJWT {
+                sectionCard(title: "JWT", icon: AppIcon.jwt) {
+                    HStack(spacing: 10) {
+                        Image(systemName: AppIcon.jwt)
+                            .font(.ttIcon(TTIcon.md))
+                            .foregroundColor(.ttPrimaryLight)
+                        Text("This request carries a bearer token.")
+                            .font(TTFont.bodySmall)
+                            .foregroundColor(.ttTextSecondary)
+                        Spacer()
+                        Button {
+                            onDecodeJWT(bearerJWT, "Network — \(request.method) \(request.urlPath)")
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: "arrow.up.forward.app").font(.ttIcon(TTIcon.sm))
+                                Text("Decode JWT").font(TTFont.labelSmall)
+                            }
+                            .foregroundColor(.ttPrimary)
+                        }
+                        .buttonStyle(.plain)
+                        .help("Open this token in the JWT Debugger")
+                    }
+                }
+            }
+
             // Request Headers Card
             if !request.requestHeaders.isEmpty {
                 sectionCard(title: "REQUEST HEADERS", icon: "arrow.up.doc", count: request.requestHeaders.count) {
@@ -219,17 +255,45 @@ struct NetworkDetailPaneView: View {
             // Payload Card
             if !request.requestBody.isEmpty {
                 sectionCard(title: "PAYLOAD", icon: "doc.text") {
-                    OnlineJsonViewerView(
-                        jsonString: request.requestBody,
-                        showToolbar: true,
-                        initialMode: "tree",
-                        onOpenInEditor: { json in
-                            onOpenInEditor?(json, "Request Body — \(request.method) \(request.urlPath)")
-                        }
-                    )
-                    .frame(minHeight: 150, idealHeight: 250)
+                    VStack(spacing: 0) {
+                        saveTemplateBar(json: request.requestBody,
+                                        source: "Request Body — \(request.method) \(request.urlPath)")
+                        OnlineJsonViewerView(
+                            jsonString: request.requestBody,
+                            showToolbar: true,
+                            initialMode: "tree",
+                            onOpenInEditor: { json in
+                                onOpenInEditor?(json, "Request Body — \(request.method) \(request.urlPath)")
+                            }
+                        )
+                        .frame(minHeight: 150, idealHeight: 250)
+                    }
                 }
             }
+        }
+    }
+
+    // MARK: - Save as Template Bar
+    /// Compact trailing action to save the displayed JSON to the Template Library.
+    @ViewBuilder
+    private func saveTemplateBar(json: String, source: String) -> some View {
+        if let onSaveAsTemplate {
+            HStack(spacing: 0) {
+                Spacer()
+                Button(action: { onSaveAsTemplate(json, source) }) {
+                    HStack(spacing: 3) {
+                        Image(systemName: AppIcon.saveTemplate)
+                            .font(.ttIcon(TTIcon.sm))
+                        Text("Save as Template")
+                            .font(TTFont.labelSmall)
+                    }
+                    .foregroundColor(.ttPrimary)
+                }
+                .buttonStyle(.ttGhost)
+                .help("Save this JSON to the Template Library")
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
         }
     }
     
@@ -343,15 +407,19 @@ struct NetworkDetailPaneView: View {
             
             // Response Body — fills remaining space
             if !request.responseBody.isEmpty {
-                OnlineJsonViewerView(
-                    jsonString: request.responseBody,
-                    showToolbar: true,
-                    initialMode: "code",
-                    onOpenInEditor: { json in
-                        onOpenInEditor?(json, "Response Body — \(request.method) \(request.urlPath)")
-                    }
-                )
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                VStack(spacing: 0) {
+                    saveTemplateBar(json: request.responseBody,
+                                    source: "Response Body — \(request.method) \(request.urlPath)")
+                    OnlineJsonViewerView(
+                        jsonString: request.responseBody,
+                        showToolbar: true,
+                        initialMode: "code",
+                        onOpenInEditor: { json in
+                            onOpenInEditor?(json, "Response Body — \(request.method) \(request.urlPath)")
+                        }
+                    )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
             } else {
                 EmptyStateView(
                     icon: "doc.text",
