@@ -27,11 +27,17 @@ extension Color {
     static let ttBorder = Color(hex: "#334155")
     static let ttBorderLight = Color(hex: "#475569")
     
-    // Text
+    // Text hierarchy (Dark Theme, WCAG AA on ttBackground #0F172A)
+    // Primary   — body/content/input values          (~17:1)
+    // Secondary — supporting meta, timestamps        (~9:1)
+    // Tertiary  — labels, idle filters, column chrome (~7:1, was 3.8 — AA fail)
+    // Muted     — disabled / decorative only         (~3.8:1 — not for readable body)
     static let ttTextPrimary = Color(hex: "#F8FAFC")
-    static let ttTextSecondary = Color(hex: "#94A3B8")
-    static let ttTextTertiary = Color(hex: "#64748B")
-    static let ttTextMuted = Color(hex: "#475569")
+    static let ttTextSecondary = Color(hex: "#B8C5D6")
+    static let ttTextTertiary = Color(hex: "#94A3B8")
+    static let ttTextMuted = Color(hex: "#64748B")
+    /// Placeholder text in TextFields (alias of tertiary for semantic clarity)
+    static let ttTextPlaceholder = ttTextTertiary
     
     // Status colors
     static let ttSuccess = Color(hex: "#22C55E")

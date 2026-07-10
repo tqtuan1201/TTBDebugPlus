@@ -35,7 +35,7 @@ struct PermissionsView: View {
                         
                         Text(localNetworkStatusText)
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.ttTextSecondary)
                     }
                     
                     Spacer()
@@ -48,7 +48,7 @@ struct PermissionsView: View {
                 
                 Text("TTBDebugPlus uses the local network to discover and communicate with iOS devices running the debug bridge SDK via Bonjour (_ttbdebug._tcp).")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.ttTextSecondary)
             }
             
             // Network & Firewall
@@ -64,7 +64,7 @@ struct PermissionsView: View {
                         
                         Text("If the firewall is enabled, ensure TTBDebugPlus is allowed to receive incoming connections.")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.ttTextSecondary)
                     }
                     
                     Spacer()
@@ -103,7 +103,7 @@ struct PermissionsView: View {
                 
                 Text("These permissions are declared in the app's entitlements and are always enabled.")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.ttTextSecondary)
             }
         }
         .formStyle(.grouped)
@@ -130,7 +130,7 @@ struct PermissionsView: View {
                     .font(.callout)
                 Text(description)
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.ttTextSecondary)
             }
         }
     }

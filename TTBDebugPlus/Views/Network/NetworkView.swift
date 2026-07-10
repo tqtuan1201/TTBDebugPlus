@@ -180,7 +180,7 @@ struct NetworkView: View {
                     HStack {
                         Text(app.displayName)
                         Text("\(app.count)")
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.ttTextSecondary)
                         if viewModel.selectedAppFilter == app.key {
                             Image(systemName: "checkmark")
                         }
@@ -269,6 +269,7 @@ struct NetworkView: View {
                 TextField("Filter requests...", text: $viewModel.searchText)
                     .textFieldStyle(.plain)
                     .font(TTFont.codeMedium)
+                    .foregroundColor(.ttTextPrimary)
                 
                 if !viewModel.searchText.isEmpty {
                     Button(action: { viewModel.searchText = "" }) {
@@ -407,7 +408,7 @@ struct NetworkView: View {
                         HStack {
                             Text(item.domain)
                             Text("\(item.count)")
-                                .foregroundColor(.secondary)
+                                .foregroundColor(.ttTextSecondary)
                             if viewModel.selectedDomainFilter == item.domain {
                                 Image(systemName: "checkmark")
                             }
@@ -621,7 +622,7 @@ struct NetworkView: View {
                 .padding(.leading, 12)
         }
         .font(TTFont.sidebarHeader)
-        .foregroundColor(.ttTextTertiary)
+        .foregroundColor(.ttTextSecondary)
         .tracking(0.8)
         .padding(.horizontal, 16)
         .padding(.vertical, 8)

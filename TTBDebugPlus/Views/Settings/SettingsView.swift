@@ -69,7 +69,7 @@ struct SettingsView: View {
                 Stepper("JSON Indentation: \(jsonIndentation) spaces", value: $jsonIndentation, in: 1...8)
                 Text("Used by JSON Editor format / Auto Fix pretty-print.")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.ttTextSecondary)
             }
 
             Section("Keyboard Shortcuts") {
@@ -93,7 +93,7 @@ struct SettingsView: View {
                 LabeledContent("Service Type") {
                     Text("_ttbdebug._tcp")
                         .font(.body.monospaced())
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.ttTextSecondary)
                 }
 
                 LabeledContent("Status") {
@@ -104,13 +104,13 @@ struct SettingsView: View {
                 if connectionManager.serverPorts.isEmpty {
                     Text("Ports are assigned by the system when the server starts (dynamic bind).")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.ttTextSecondary)
                 } else {
                     ForEach(connectionManager.serverPorts.sorted(by: { $0.key < $1.key }), id: \.key) { name, port in
                         LabeledContent(name) {
                             Text(":\(port)")
                                 .font(.body.monospaced())
-                                .foregroundColor(.secondary)
+                                .foregroundColor(.ttTextSecondary)
                         }
                     }
                 }
@@ -119,21 +119,21 @@ struct SettingsView: View {
             Section("Heartbeat Policy") {
                 LabeledContent("UI online window") {
                     Text("15s")
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.ttTextSecondary)
                 }
                 LabeledContent("Hard disconnect") {
                     Text("20s without heartbeat")
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.ttTextSecondary)
                 }
                 Text("iOS SDK sends heartbeats; macOS cancels the socket after the hard timeout and waits for reconnect.")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.ttTextSecondary)
             }
 
             Section("Tips") {
                 Text("Start the server from the sidebar or menu bar, keep Mac and iOS on the same Wi‑Fi (or use simulator), and allow Local Network when prompted.")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.ttTextSecondary)
             }
         }
         .formStyle(.grouped)
@@ -149,7 +149,7 @@ struct SettingsView: View {
     private var connectionStatusColor: Color {
         if connectionManager.isServerRunning { return .ttSuccess }
         if connectionManager.isLifecycleActive { return .ttWarning }
-        return .secondary
+        return .ttTextMuted
     }
 
     // MARK: - Dev Tools
@@ -160,7 +160,7 @@ struct SettingsView: View {
 
                 Text("Shared with General → JSON Indentation.")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.ttTextSecondary)
             }
 
             Section("Available Tools") {
@@ -191,17 +191,17 @@ struct SettingsView: View {
                 Toggle("Mask Authorization Headers in HAR export", isOn: $maskAuthHeaders)
                 Text("When enabled, Authorization headers are redacted when exporting HAR from the Network inspector.")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.ttTextSecondary)
             }
 
             Section("Security") {
                 Text("All device communication is local network only — no telemetry or remote analytics are sent by TTBDebugPlus.")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.ttTextSecondary)
 
                 Text("Session data, templates, and tokens stay inside the macOS app sandbox under Application Support.")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.ttTextSecondary)
             }
         }
         .formStyle(.grouped)
@@ -216,19 +216,19 @@ struct SettingsView: View {
             Spacer()
             Text(keys)
                 .font(TTFont.codeMedium)
-                .foregroundColor(.secondary)
+                .foregroundColor(.ttTextSecondary)
         }
     }
 
     private func toolStatusRow(icon: String, title: String, available: Bool) -> some View {
         HStack {
             Image(systemName: icon)
-                .foregroundColor(available ? .ttPrimary : .secondary)
+                .foregroundColor(available ? .ttPrimary : .ttTextMuted)
             Text(title)
             Spacer()
             Text(available ? "Available" : "Coming Soon")
                 .font(.caption)
-                .foregroundColor(available ? .ttSuccess : .secondary)
+                .foregroundColor(available ? .ttSuccess : .ttTextMuted)
         }
     }
 }

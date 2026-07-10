@@ -147,7 +147,7 @@ struct MenuBarView: View {
                 
                 Text("v\(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0")")
                     .font(.system(size: 10))
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.ttTextSecondary)
             }
             
             Spacer()
@@ -182,11 +182,11 @@ struct MenuBarView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(serverModeTitle)
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(.primary)
+                    .foregroundColor(.ttTextPrimary)
                 
                 Text(serverStatusDetail)
                     .font(.system(size: 10))
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.ttTextSecondary)
                     .lineLimit(1)
             }
             
@@ -215,7 +215,7 @@ struct MenuBarView: View {
         VStack(alignment: .leading, spacing: 4) {
             Text("CONNECTED DEVICES")
                 .font(.system(size: 10, weight: .semibold))
-                .foregroundColor(.secondary)
+                .foregroundColor(.ttTextSecondary)
                 .tracking(0.5)
                 .padding(.horizontal, 12)
             
@@ -223,10 +223,10 @@ struct MenuBarView: View {
                 HStack(spacing: 6) {
                     Image(systemName: AppIcon.connectionOffline)
                         .font(.system(size: 11))
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.ttTextSecondary)
                     Text("No devices connected")
                         .font(.system(size: 11))
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.ttTextSecondary)
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 4)
@@ -245,7 +245,7 @@ struct MenuBarView: View {
             HStack(spacing: 6) {
                 Text("DEV TOOLS")
                     .font(.system(size: 10, weight: .semibold))
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.ttTextSecondary)
                     .tracking(0.5)
                 
                 Spacer()
@@ -262,17 +262,18 @@ struct MenuBarView: View {
             HStack(spacing: 7) {
                 Image(systemName: "magnifyingglass")
                     .font(.system(size: 11, weight: .semibold))
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.ttTextSecondary)
                 
                 TextField("Search tools", text: $toolSearchText)
                     .textFieldStyle(.plain)
                     .font(.system(size: 12))
+                    .foregroundColor(.ttTextPrimary)
                 
                 if !toolSearchText.isEmpty {
                     Button(action: { toolSearchText = "" }) {
                         Image(systemName: "xmark.circle.fill")
                             .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.ttTextSecondary)
                     }
                     .buttonStyle(.plain)
                     .help("Clear search")
@@ -568,14 +569,14 @@ struct MenuBarDevToolRow: View {
                     
                     Image(systemName: tool.icon)
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(tool.isAvailable ? .ttPrimary : .secondary)
+                        .foregroundColor(tool.isAvailable ? .ttPrimary : .ttTextMuted)
                 }
                 
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 6) {
                         Text(tool.menuTitle)
                             .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(tool.isAvailable ? .primary : .secondary)
+                            .foregroundColor(tool.isAvailable ? .ttTextPrimary : .ttTextMuted)
                             .lineLimit(1)
                         
                         Text(tool.statusText.uppercased())
@@ -591,7 +592,7 @@ struct MenuBarDevToolRow: View {
                     
                     Text(tool.menuDescription)
                         .font(.system(size: 10))
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.ttTextSecondary)
                         .lineLimit(1)
                 }
                 
@@ -599,7 +600,7 @@ struct MenuBarDevToolRow: View {
                 
                 Image(systemName: tool.isAvailable ? "chevron.right" : "clock")
                     .font(.system(size: 10, weight: .semibold))
-                    .foregroundColor((isHovered || isSelected) && tool.isAvailable ? .ttPrimary : .secondary)
+                    .foregroundColor((isHovered || isSelected) && tool.isAvailable ? .ttPrimary : .ttTextMuted)
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
@@ -689,7 +690,7 @@ struct MenuBarToolPopoverContent: View {
                 
                 Text("Menu Bar Tool")
                     .font(.system(size: 10))
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.ttTextSecondary)
             }
             
             Spacer()
@@ -846,15 +847,15 @@ struct MenuBarUnavailableToolView: View {
         VStack(spacing: 12) {
             Image(systemName: tool.icon)
                 .font(.system(size: 34, weight: .semibold))
-                .foregroundColor(.secondary)
+                .foregroundColor(.ttTextSecondary)
             
             Text(tool.menuTitle)
                 .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(.primary)
+                .foregroundColor(.ttTextPrimary)
             
             Text("This tool is not available yet.")
                 .font(.system(size: 12))
-                .foregroundColor(.secondary)
+                .foregroundColor(.ttTextSecondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -945,19 +946,19 @@ struct MenuBarToggleRow: View {
             HStack(spacing: 8) {
                 Image(systemName: icon)
                     .font(.system(size: 12))
-                    .foregroundColor(isEnabled ? .primary : .secondary)
+                    .foregroundColor(isEnabled ? .ttTextPrimary : .ttTextMuted)
                     .frame(width: 16)
 
                 VStack(alignment: .leading, spacing: 1) {
                     Text(title)
                         .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(isEnabled ? .primary : .secondary)
+                        .foregroundColor(isEnabled ? .ttTextPrimary : .ttTextMuted)
                         .lineLimit(1)
 
                     if let detail {
                         Text(detail)
                             .font(.system(size: 10))
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.ttTextSecondary)
                             .lineLimit(1)
                     }
                 }

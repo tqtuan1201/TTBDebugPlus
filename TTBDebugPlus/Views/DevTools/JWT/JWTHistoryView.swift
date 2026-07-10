@@ -76,6 +76,7 @@ struct JWTHistoryView: View {
                 TextField("Search name, source, algorithm…", text: $search)
                     .textFieldStyle(.plain)
                     .font(TTFont.bodyMedium)
+                    .foregroundColor(.ttTextPrimary)
                 if !search.isEmpty {
                     Button { search = "" } label: {
                         Image(systemName: "xmark.circle.fill").font(.system(size: 11)).foregroundColor(.ttTextTertiary)
@@ -247,12 +248,14 @@ struct JWTTokenEditSheet: View {
                 Text("Name").font(TTFont.labelMedium).foregroundColor(.ttTextSecondary)
                 TextField("Token name", text: $name)
                     .textFieldStyle(.roundedBorder)
+                    .foregroundColor(.ttTextPrimary)
             }
 
             VStack(alignment: .leading, spacing: 6) {
                 Text("Notes").font(TTFont.labelMedium).foregroundColor(.ttTextSecondary)
                 TextEditor(text: $notes)
                     .font(TTFont.bodyMedium)
+                    .foregroundColor(.ttTextPrimary)
                     .frame(height: 90)
                     .padding(4)
                     .background(RoundedRectangle(cornerRadius: TTRadius.sm).fill(Color.ttSurface.opacity(0.4)))

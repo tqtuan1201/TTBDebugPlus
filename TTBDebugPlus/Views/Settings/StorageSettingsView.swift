@@ -27,7 +27,7 @@ struct StorageSettingsView: View {
                             .scaleEffect(0.7)
                         Text("Calculating...")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.ttTextSecondary)
                     }
                 } else {
                     storageRow(title: "Sessions", size: storageManager.currentUsage.sessionsSize)
@@ -145,7 +145,7 @@ struct StorageSettingsView: View {
             Spacer()
             Text(storageManager.currentUsage.formatted(size))
                 .font(.body)
-                .foregroundColor(.secondary)
+                .foregroundColor(.ttTextSecondary)
         }
     }
     
@@ -156,7 +156,7 @@ struct StorageSettingsView: View {
                     .font(.body)
                 Text(path)
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.ttTextSecondary)
                     .lineLimit(1)
                     .truncationMode(.middle)
             }

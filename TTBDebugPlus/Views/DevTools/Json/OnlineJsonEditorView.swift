@@ -159,6 +159,7 @@ struct OnlineJsonEditorView: View {
                     TextField("Search…", text: $localSearch)
                         .textFieldStyle(.plain)
                         .font(TTFont.codeSmall)
+                        .foregroundColor(.ttTextPrimary)
                         .frame(width: 140)
                         .focused($searchFocused)
                         .onSubmit { bridge.searchNext() }

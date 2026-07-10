@@ -80,11 +80,12 @@ extension View {
     }
     
     func ttLabel() -> some View {
-        modifier(TTTextStyle(font: TTFont.labelMedium, color: .ttTextSecondary))
+        // Labels use tertiary (chrome) — AA-compliant after token recalibration
+        modifier(TTTextStyle(font: TTFont.labelMedium, color: .ttTextTertiary))
     }
     
     func ttLabelSmall() -> some View {
-        modifier(TTTextStyle(font: TTFont.labelSmall, color: .ttTextSecondary))
+        modifier(TTTextStyle(font: TTFont.labelSmall, color: .ttTextTertiary))
     }
     
     func ttCodeSmall() -> some View {
@@ -104,11 +105,17 @@ extension View {
     }
     
     func ttSidebarHeader() -> some View {
-        modifier(TTTextStyle(font: TTFont.sidebarHeader, color: .ttTextSecondary))
+        // Section/column chrome headers
+        modifier(TTTextStyle(font: TTFont.sidebarHeader, color: .ttTextTertiary))
     }
     
     func ttSidebarItem() -> some View {
         modifier(TTTextStyle(font: TTFont.sidebarItem, color: .ttTextSecondary))
+    }
+    
+    /// Placeholder / idle chrome text (filter labels, empty hints)
+    func ttPlaceholder() -> some View {
+        modifier(TTTextStyle(font: TTFont.bodyMedium, color: .ttTextPlaceholder))
     }
     
     func ttDisplayLarge() -> some View {

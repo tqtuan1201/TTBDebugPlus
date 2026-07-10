@@ -16,7 +16,6 @@ struct AnnotationTextField: NSViewRepresentable {
     
     func makeNSView(context: Context) -> NSTextField {
         let textField = NSTextField()
-        textField.placeholderString = placeholder
         textField.stringValue = text
         textField.delegate = context.coordinator
         textField.font = NSFont.systemFont(ofSize: 14)
@@ -24,6 +23,13 @@ struct AnnotationTextField: NSViewRepresentable {
         textField.bezelStyle = .roundedBezel
         textField.backgroundColor = NSColor(Color.ttBackground)
         textField.textColor = NSColor(Color.ttTextPrimary)
+        textField.placeholderAttributedString = NSAttributedString(
+            string: placeholder,
+            attributes: [
+                .foregroundColor: NSColor(Color.ttTextPlaceholder),
+                .font: NSFont.systemFont(ofSize: 14)
+            ]
+        )
         textField.focusRingType = .none
         DispatchQueue.main.async {
             textField.window?.makeFirstResponder(textField)

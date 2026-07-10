@@ -22,7 +22,7 @@ struct MenuBarDeviceRow: View {
             // Device icon
             Image(systemName: session.isSimulator ? AppIcon.simulator : AppIcon.device)
                 .font(.system(size: 11))
-                .foregroundColor(online ? .ttSuccess : .secondary)
+                .foregroundColor(online ? .ttSuccess : .ttTextMuted)
                 .frame(width: 16)
             
             // Device info
@@ -33,14 +33,14 @@ struct MenuBarDeviceRow: View {
                 
                 Text(session.osVersionString)
                     .font(.system(size: 10))
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.ttTextSecondary)
             }
             
             Spacer()
             
             // Status dot: green / amber / offline
             Circle()
-                .fill(online ? (warning ? Color.ttWarning : Color.ttSuccess) : Color.secondary.opacity(0.5))
+                .fill(online ? (warning ? Color.ttWarning : Color.ttSuccess) : Color.ttTextMuted.opacity(0.5))
                 .frame(width: 6, height: 6)
         }
         .padding(.horizontal, 12)

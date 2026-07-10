@@ -99,6 +99,7 @@ struct BugReportComposerView: View {
             TextField("Brief description of the issue", text: $report.title)
                 .textFieldStyle(.roundedBorder)
                 .font(TTFont.heading3)
+                .foregroundColor(.ttTextPrimary)
         }
     }
     
@@ -217,6 +218,7 @@ struct BugReportComposerView: View {
                     TextField("Step \(i + 1)", text: $report.reproSteps[i])
                         .textFieldStyle(.roundedBorder)
                         .font(TTFont.bodyMedium)
+                        .foregroundColor(.ttTextPrimary)
                     
                     // Remove button
                     if report.reproSteps.count > 1 {

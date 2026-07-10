@@ -105,6 +105,7 @@ struct FeedbackView: View {
                 TextField("Brief summary of the issue", text: $viewModel.formTitle)
                     .textFieldStyle(.plain)
                     .font(TTFont.bodyMedium)
+                    .foregroundColor(.ttTextPrimary)
                     .padding(10)
                     .background(
                         RoundedRectangle(cornerRadius: 8)
@@ -122,6 +123,7 @@ struct FeedbackView: View {
                 
                 TextEditor(text: $viewModel.formDescription)
                     .font(TTFont.bodyMedium)
+                    .foregroundColor(.ttTextPrimary)
                     .scrollContentBackground(.hidden)
                     .padding(8)
                     .frame(minHeight: 80, maxHeight: 200)
