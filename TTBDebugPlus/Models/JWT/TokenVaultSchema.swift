@@ -54,19 +54,29 @@ enum TokenVaultContainer {
                 configurations: config
             )
         } catch {
+            #if DEBUG
             print("[TokenVaultContainer] ⚠️ On-disk store failed (\(error)). Falling back to in-memory.")
+            #endif
             let memoryConfig = ModelConfiguration(
                 "TokenVault-Memory",
                 schema: activeSchema,
                 isStoredInMemoryOnly: true
             )
-            return try! ModelContainer(for: activeSchema, configurations: memoryConfig)
+            do {
+                return try ModelContainer(for: activeSchema, configurations: memoryConfig)
+            } catch {
+                preconditionFailure("Token Vault store failed to initialize: \(error)")
+            }
         }
     }
 
     static func makeInMemory() -> ModelContainer {
         let config = ModelConfiguration(schema: activeSchema, isStoredInMemoryOnly: true)
-        return try! ModelContainer(for: activeSchema, configurations: config)
+        do {
+            return try ModelContainer(for: activeSchema, configurations: config)
+        } catch {
+            preconditionFailure("In-memory Token Vault failed: \(error)")
+        }
     }
 
     /// `…/Application Support/TTBDebugPlus/JWT/TokenVault.store`

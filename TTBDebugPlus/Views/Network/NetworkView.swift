@@ -803,7 +803,8 @@ struct NetworkView: View {
     }
     
     private func exportHAR() {
-        let har = viewModel.generateHARExport(stripAuth: true)
+        let stripAuth = UserDefaults.standard.object(forKey: "maskAuthHeaders") as? Bool ?? true
+        let har = viewModel.generateHARExport(stripAuth: stripAuth)
         let panel = NSSavePanel()
         panel.nameFieldStringValue = "TTBDebugPlus_Export.har"
         panel.allowedContentTypes = [.json]

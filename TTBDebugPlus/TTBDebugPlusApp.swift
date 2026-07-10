@@ -3,11 +3,13 @@
 //  TTBDebugPlus
 //
 //  Created by TuanTruong on 2026-03-27.
+//  Production hardening 2026-07-10: safe UTType, appearance, session lifecycle, export UX.
 //
 
 import SwiftUI
 import AppKit
 import SwiftData
+import UniformTypeIdentifiers
 
 @main
 struct TTBDebugPlusApp: App {
@@ -18,9 +20,11 @@ struct TTBDebugPlusApp: App {
     @State private var libraryStore = LibraryStore()
     @State private var tokenStore = TokenStore()
     @AppStorage("hasSeenWelcome") private var hasSeenWelcome: Bool = false
+    @AppStorage("appearance") private var appearance: String = "dark"
     @State private var showWelcome: Bool = false
     @State private var appErrorMessage: String?
-    
+    @State private var didRegisterTerminateObserver = false
+
     var body: some Scene {
         WindowGroup(id: "main-window") {
             ContentView()
@@ -31,21 +35,16 @@ struct TTBDebugPlusApp: App {
                 .environment(libraryStore)
                 .environment(tokenStore)
                 .modelContainer(libraryStore.container)
-                .preferredColorScheme(.dark)
-                .frame(minWidth: 1200, minHeight: 800)
+                .preferredColorScheme(preferredScheme)
+                .frame(minWidth: 1000, minHeight: 700)
                 .onAppear {
-                    // Wire session persistence into connection lifecycle (once per window)
                     connectionManager.sessionRecorder = sessionManager
-                    // Show welcome on first launch  
                     if !hasSeenWelcome {
                         showWelcome = true
                     }
-                }
-                .onDisappear {
-                    sessionManager.endSession()
+                    registerAppTerminateHandlerIfNeeded()
                 }
                 .sheet(isPresented: $showWelcome) {
-                    // Mark as seen when welcome is dismissed
                     hasSeenWelcome = true
                 } content: {
                     WelcomeSheet(isPresented: $showWelcome)
@@ -61,10 +60,11 @@ struct TTBDebugPlusApp: App {
         }
         .defaultSize(width: 1400, height: 900)
         .windowResizability(.contentMinSize)
+        // Compact unified titlebar so content canvas meets traffic lights without a light strip
+        .windowToolbarStyle(.unifiedCompact(showsTitle: true))
         .commands {
             CommandGroup(replacing: .newItem) { }
-            
-            // Navigation menu
+
             CommandMenu("Navigate") {
                 Button("Console") { appState.selectedTab = .console }
                     .keyboardShortcut("1", modifiers: .command)
@@ -81,70 +81,71 @@ struct TTBDebugPlusApp: App {
                 Button("Connection Health") { appState.selectedTab = .connectionHealth }
                     .keyboardShortcut("7", modifiers: .command)
             }
-            
+
             CommandMenu("Debug") {
                 Button("Clear Console") {
-                    // Console only — Network inspector keeps API capture
                     connectionManager.clearConsoleLogs()
                     NotificationCenter.default.post(name: .clearConsole, object: nil)
                 }
                 .keyboardShortcut("k", modifiers: .command)
-                
+
                 Button("Capture Screenshot") {
                     connectionManager.requestScreenshot()
                     NotificationCenter.default.post(name: .captureScreenshot, object: nil)
                 }
                 .keyboardShortcut("c", modifiers: [.command, .shift])
-                
+
                 Divider()
-                
+
                 Button("Export Session...") {
                     exportCurrentSession()
                 }
                 .keyboardShortcut("e", modifiers: [.command, .shift])
-                
+
                 Button("Import Session...") {
                     importSession()
                 }
                 .keyboardShortcut("i", modifiers: [.command, .shift])
-                
+
                 Divider()
-                
+
                 Button(connectionManager.isLifecycleActive ? "Stop Server" : "Start Server") {
                     connectionManager.toggleServer()
                 }
-                
+
                 Button("Force Reconnect") {
                     connectionManager.forceReconnect()
                 }
                 .keyboardShortcut("r", modifiers: [.command, .shift])
                 .disabled(!connectionManager.isLifecycleActive)
-                
+
                 Button("Restart Server") {
                     connectionManager.restartServer()
                 }
                 .disabled(!connectionManager.isLifecycleActive)
             }
-            
-            // Help menu
+
             CommandGroup(replacing: .help) {
                 Button("Show Welcome Guide") {
                     showWelcome = true
                 }
-                
+
                 Button("Integration Guide") {
                     appState.selectedTab = .guide
                 }
                 .keyboardShortcut("?", modifiers: .command)
             }
         }
-        
-        // MARK: - Menu Bar Extra
+
         MenuBarExtra(
-            connectionManager.isServerRunning ? "TTBDebugPlus Server Running" : "TTBDebugPlus Dev Tools Mode",
+            connectionManager.isServerRunning
+                ? "TTBDebugPlus Server Running"
+                : (connectionManager.isLifecycleActive
+                   ? "TTBDebugPlus Server Starting"
+                   : "TTBDebugPlus Dev Tools Mode"),
             systemImage: connectionManager.isServerRunning
                 ? AppIcon.connectionHealth
-                : AppIcon.devToolsMode
+                : (connectionManager.isLifecycleActive ? AppIcon.reconnect : AppIcon.devToolsMode)
         ) {
             MenuBarView()
                 .environment(appState)
@@ -152,46 +153,81 @@ struct TTBDebugPlusApp: App {
                 .environment(tokenStore)
         }
         .menuBarExtraStyle(.window)
-        
-        // MARK: - Settings
+
         Settings {
             SettingsView()
                 .environment(appState)
                 .environment(connectionManager)
                 .environment(storageManager)
+                .preferredColorScheme(preferredScheme)
         }
     }
-    
+
+    private var preferredScheme: ColorScheme? {
+        switch appearance {
+        case "light": return .light
+        case "system": return nil
+        default: return .dark
+        }
+    }
+
+    /// End session only on real app quit — not when a single window disappears.
+    private func registerAppTerminateHandlerIfNeeded() {
+        guard !didRegisterTerminateObserver else { return }
+        didRegisterTerminateObserver = true
+        NotificationCenter.default.addObserver(
+            forName: NSApplication.willTerminateNotification,
+            object: nil,
+            queue: .main
+        ) { [sessionManager, connectionManager] _ in
+            sessionManager.endSession()
+            if connectionManager.isLifecycleActive {
+                connectionManager.stopServer()
+            }
+        }
+    }
+
     // MARK: - Session Export/Import
-    
+
     private func exportCurrentSession() {
         guard let session = sessionManager.currentSession else {
-            NotificationCenter.default.post(name: .exportSession, object: nil)
+            appErrorMessage = "No active debug session to export. Connect a device and generate logs first, then try again."
             return
         }
-        
+
         let panel = NSSavePanel()
         panel.nameFieldStringValue = "\(session.deviceName)_\(session.formattedDate).ttbdebug"
+        panel.canCreateDirectories = true
         panel.begin { response in
             if response == .OK, let url = panel.url {
                 do {
                     try sessionManager.exportSession(session, to: url)
                 } catch {
-                    appErrorMessage = "Could not export session: \(error.localizedDescription)"
+                    DispatchQueue.main.async {
+                        appErrorMessage = "Could not export session: \(error.localizedDescription)"
+                    }
                 }
             }
         }
     }
-    
+
     private func importSession() {
         let panel = NSOpenPanel()
-        panel.allowedContentTypes = [.init(filenameExtension: "ttbdebug")!]
+        if let ttbType = UTType(filenameExtension: "ttbdebug") {
+            panel.allowedContentTypes = [ttbType, .json, .data]
+        } else {
+            panel.allowedContentTypes = [.json, .data]
+        }
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
         panel.begin { response in
             if response == .OK, let url = panel.url {
                 do {
                     _ = try sessionManager.importSession(from: url)
                 } catch {
-                    appErrorMessage = "Could not import session: \(error.localizedDescription)"
+                    DispatchQueue.main.async {
+                        appErrorMessage = "Could not import session: \(error.localizedDescription)"
+                    }
                 }
             }
         }

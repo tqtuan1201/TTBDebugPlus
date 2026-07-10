@@ -3,62 +3,56 @@
 //  TTBDebugPlus
 //
 //  Created by TuanTruong on 2026-03-27.
+//  Production hardening: honest connection settings (no dead controls), accurate shortcuts.
 //
 
 import SwiftUI
 
 struct SettingsView: View {
     @Environment(AppState.self) var appState
+    @Environment(ConnectionManager.self) var connectionManager
     @AppStorage("appearance") private var appearance: String = "dark"
-    @AppStorage("bonjourPort") private var bonjourPort: Int = 8899
-    @AppStorage("heartbeatInterval") private var heartbeatInterval: Int = 5
     @AppStorage("maxLogEntries") private var maxLogEntries: Int = 10000
     @AppStorage("autoCleanupDays") private var autoCleanupDays: Int = 30
     @AppStorage("maskAuthHeaders") private var maskAuthHeaders: Bool = true
     @AppStorage("showTimestamps") private var showTimestamps: Bool = true
     @AppStorage("jsonIndentation") private var jsonIndentation: Int = 2
-    
+
     var body: some View {
         TabView {
-            // General
             generalSettings
                 .tabItem {
                     Label("General", systemImage: AppIcon.settings)
                 }
-            
-            // Connection
+
             connectionSettings
                 .tabItem {
                     Label("Connection", systemImage: AppIcon.connectionHealth)
                 }
-            
-            // Permissions
+
             PermissionsView()
                 .tabItem {
                     Label("Permissions", systemImage: AppIcon.permissions)
                 }
-            
-            // Storage
+
             StorageSettingsView()
                 .tabItem {
                     Label("Storage", systemImage: AppIcon.storage)
                 }
-            
-            // Dev Tools
+
             devToolsSettings
                 .tabItem {
                     Label("Dev Tools", systemImage: AppIcon.devTools)
                 }
-            
-            // Privacy
+
             privacySettings
                 .tabItem {
                     Label("Privacy", systemImage: AppIcon.privacy)
                 }
         }
-        .frame(width: 560, height: 450)
+        .frame(width: 560, height: 480)
     }
-    
+
     // MARK: - General
     private var generalSettings: some View {
         Form {
@@ -69,59 +63,75 @@ struct SettingsView: View {
                     Text("System").tag("system")
                 }
                 .pickerStyle(.segmented)
-                
+
                 Toggle("Show Timestamps", isOn: $showTimestamps)
-                
+
                 Stepper("JSON Indentation: \(jsonIndentation) spaces", value: $jsonIndentation, in: 1...8)
+                Text("Used by JSON Editor format / Auto Fix pretty-print.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
-            
+
             Section("Keyboard Shortcuts") {
-                HStack {
-                    Text("Clear Console")
-                    Spacer()
-                    Text("⌘K")
-                        .font(TTFont.codeMedium)
-                        .foregroundColor(.secondary)
-                }
-                HStack {
-                    Text("Search")
-                    Spacer()
-                    Text("⌘F")
-                        .font(TTFont.codeMedium)
-                        .foregroundColor(.secondary)
-                }
-                HStack {
-                    Text("Capture Screenshot")
-                    Spacer()
-                    Text("⇧⌘C")
-                        .font(TTFont.codeMedium)
-                        .foregroundColor(.secondary)
-                }
-                HStack {
-                    Text("Export Session")
-                    Spacer()
-                    Text("⇧⌘E")
-                        .font(TTFont.codeMedium)
-                        .foregroundColor(.secondary)
-                }
+                shortcutRow("Clear Console", "⌘K")
+                shortcutRow("Capture Screenshot", "⇧⌘C")
+                shortcutRow("Export Session", "⇧⌘E")
+                shortcutRow("Import Session", "⇧⌘I")
+                shortcutRow("Force Reconnect", "⇧⌘R")
+                shortcutRow("JSON Format", "⌘B")
+                shortcutRow("JSON Auto Fix", "⇧⌘.")
             }
         }
         .formStyle(.grouped)
         .padding()
     }
-    
-    // MARK: - Connection
+
+    // MARK: - Connection (read-only runtime facts — no dead steppers)
     private var connectionSettings: some View {
         Form {
             Section("Bonjour Service") {
-                Stepper("Port: \(bonjourPort)", value: $bonjourPort, in: 1024...65535)
-                Text("Service Type: _ttbdebug._tcp")
+                LabeledContent("Service Type") {
+                    Text("_ttbdebug._tcp")
+                        .font(.body.monospaced())
+                        .foregroundColor(.secondary)
+                }
+
+                LabeledContent("Status") {
+                    Text(connectionStatusLabel)
+                        .foregroundColor(connectionStatusColor)
+                }
+
+                if connectionManager.serverPorts.isEmpty {
+                    Text("Ports are assigned by the system when the server starts (dynamic bind).")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                } else {
+                    ForEach(connectionManager.serverPorts.sorted(by: { $0.key < $1.key }), id: \.key) { name, port in
+                        LabeledContent(name) {
+                            Text(":\(port)")
+                                .font(.body.monospaced())
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+            }
+
+            Section("Heartbeat Policy") {
+                LabeledContent("UI online window") {
+                    Text("15s")
+                        .foregroundColor(.secondary)
+                }
+                LabeledContent("Hard disconnect") {
+                    Text("20s without heartbeat")
+                        .foregroundColor(.secondary)
+                }
+                Text("iOS SDK sends heartbeats; macOS cancels the socket after the hard timeout and waits for reconnect.")
+                    .font(.caption)
                     .foregroundColor(.secondary)
             }
-            
-            Section("Heartbeat") {
-                Stepper("Interval: \(heartbeatInterval)s", value: $heartbeatInterval, in: 1...30)
-                Text("Device considered offline after \(heartbeatInterval * 2)s without heartbeat")
+
+            Section("Tips") {
+                Text("Start the server from the sidebar or menu bar, keep Mac and iOS on the same Wi‑Fi (or use simulator), and allow Local Network when prompted.")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -129,115 +139,97 @@ struct SettingsView: View {
         .formStyle(.grouped)
         .padding()
     }
-    
-    // MARK: - Data
-    private var dataSettings: some View {
-        Form {
-            Section("Log Retention") {
-                Stepper("Max entries per session: \(maxLogEntries.formatted())", value: $maxLogEntries, in: 1000...100000, step: 1000)
-                Stepper("Auto-cleanup after: \(autoCleanupDays) days", value: $autoCleanupDays, in: 1...365)
-            }
-            
-            Section("Storage") {
-                HStack {
-                    Text("Database Location")
-                    Spacer()
-                    Text("~/Library/Application Support/TTBDebugPlus/")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                }
-            }
-        }
-        .formStyle(.grouped)
-        .padding()
+
+    private var connectionStatusLabel: String {
+        if connectionManager.isServerRunning { return "Advertising" }
+        if connectionManager.isLifecycleActive { return "Starting / recovering" }
+        return "Stopped"
     }
-    
+
+    private var connectionStatusColor: Color {
+        if connectionManager.isServerRunning { return .ttSuccess }
+        if connectionManager.isLifecycleActive { return .ttWarning }
+        return .secondary
+    }
+
     // MARK: - Dev Tools
     private var devToolsSettings: some View {
         Form {
             Section("JSON Editor") {
                 Stepper("Default Indentation: \(jsonIndentation) spaces", value: $jsonIndentation, in: 1...8)
-                
-                Text("This indentation is used when formatting/beautifying JSON in the editor.")
+
+                Text("Shared with General → JSON Indentation.")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
-            
+
             Section("Available Tools") {
-                HStack {
-                    Image(systemName: AppIcon.json)
-                        .foregroundColor(.ttPrimary)
-                    Text("JSON Editor")
-                    Spacer()
-                    Text("Available")
-                        .font(.caption)
-                        .foregroundColor(.ttSuccess)
-                }
-                HStack {
-                    Image(systemName: AppIcon.base64)
-                        .foregroundColor(.secondary)
-                    Text("Base64 Encoder/Decoder")
-                    Spacer()
-                    Text("Coming Soon")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                HStack {
-                    Image(systemName: AppIcon.urlEncode)
-                        .foregroundColor(.secondary)
-                    Text("URL Encoder/Decoder")
-                    Spacer()
-                    Text("Coming Soon")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
+                toolStatusRow(icon: AppIcon.json, title: "JSON Editor", available: true)
+                toolStatusRow(icon: AppIcon.templateLibrary, title: "Template Library", available: true)
+                toolStatusRow(icon: AppIcon.qrCode, title: "QR Code", available: true)
+                toolStatusRow(icon: AppIcon.caseConverter, title: "Case Converter", available: true)
+                toolStatusRow(icon: AppIcon.jwt, title: "JWT Debugger", available: true)
+                toolStatusRow(icon: AppIcon.base64, title: "Base64 Encoder/Decoder", available: false)
+                toolStatusRow(icon: AppIcon.urlEncode, title: "URL Encoder/Decoder", available: false)
             }
-            
-            Section("Keyboard Shortcuts") {
-                HStack {
-                    Text("Navigate to Dev Tools")
-                    Spacer()
-                    Text("⌘5")
-                        .font(TTFont.codeMedium)
-                        .foregroundColor(.secondary)
-                }
-                HStack {
-                    Text("Format JSON")
-                    Spacer()
-                    Text("⌥⇧F")
-                        .font(TTFont.codeMedium)
-                        .foregroundColor(.secondary)
-                }
+
+            Section("Shortcuts") {
+                shortcutRow("Open Dev Tools", "⌘5")
+                shortcutRow("Format JSON", "⌘B")
+                shortcutRow("Auto Format JSON", "⇧⌘F")
+                shortcutRow("Auto Fix JSON", "⇧⌘.")
             }
         }
         .formStyle(.grouped)
         .padding()
     }
-    
+
     // MARK: - Privacy
     private var privacySettings: some View {
         Form {
             Section("Data Masking") {
-                Toggle("Mask Authorization Headers", isOn: $maskAuthHeaders)
-                Text("When enabled, Bearer tokens and API keys are hidden in the UI")
+                Toggle("Mask Authorization Headers in HAR export", isOn: $maskAuthHeaders)
+                Text("When enabled, Authorization headers are redacted when exporting HAR from the Network inspector.")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
-            
+
             Section("Security") {
-                Text("All communication is local network only — no data is sent to external servers.")
+                Text("All device communication is local network only — no telemetry or remote analytics are sent by TTBDebugPlus.")
                     .font(.caption)
                     .foregroundColor(.secondary)
-                
-                Text("Log data is stored in the macOS app sandbox and protected by filesystem encryption.")
+
+                Text("Session data, templates, and tokens stay inside the macOS app sandbox under Application Support.")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
         }
         .formStyle(.grouped)
         .padding()
+    }
+
+    // MARK: - Helpers
+
+    private func shortcutRow(_ title: String, _ keys: String) -> some View {
+        HStack {
+            Text(title)
+            Spacer()
+            Text(keys)
+                .font(TTFont.codeMedium)
+                .foregroundColor(.secondary)
+        }
+    }
+
+    private func toolStatusRow(icon: String, title: String, available: Bool) -> some View {
+        HStack {
+            Image(systemName: icon)
+                .foregroundColor(available ? .ttPrimary : .secondary)
+            Text(title)
+            Spacer()
+            Text(available ? "Available" : "Coming Soon")
+                .font(.caption)
+                .foregroundColor(available ? .ttSuccess : .secondary)
+        }
     }
 }
 

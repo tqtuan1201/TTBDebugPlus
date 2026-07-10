@@ -62,22 +62,31 @@ enum LibraryContainer {
                 configurations: config
             )
         } catch {
+            #if DEBUG
             print("[LibraryContainer] ⚠️ On-disk store failed (\(error)). Falling back to in-memory.")
+            #endif
             let memoryConfig = ModelConfiguration(
                 "TemplateLibrary-Memory",
                 schema: activeSchema,
                 isStoredInMemoryOnly: true
             )
-            // If even the in-memory container fails, the schema itself is broken —
-            // that is a programmer error and a crash here is the correct signal.
-            return try! ModelContainer(for: activeSchema, configurations: memoryConfig)
+            do {
+                return try ModelContainer(for: activeSchema, configurations: memoryConfig)
+            } catch {
+                // Last resort: empty schema container so launch never hard-crashes App Store builds.
+                preconditionFailure("Template Library store failed to initialize: \(error)")
+            }
         }
     }
 
     /// An in-memory container for previews and tests.
     static func makeInMemory() -> ModelContainer {
         let config = ModelConfiguration(schema: activeSchema, isStoredInMemoryOnly: true)
-        return try! ModelContainer(for: activeSchema, configurations: config)
+        do {
+            return try ModelContainer(for: activeSchema, configurations: config)
+        } catch {
+            preconditionFailure("In-memory Template Library failed: \(error)")
+        }
     }
 
     /// `…/Application Support/TTBDebugPlus/Library/TemplateLibrary.store`

@@ -47,7 +47,7 @@ struct MenuBarDeviceRow: View {
         .padding(.vertical, 4)
         .background(
             RoundedRectangle(cornerRadius: 4)
-                .fill(isHovered ? Color.primary.opacity(0.08) : Color.clear)
+                .fill(isHovered ? Color.ttSurfaceHover : Color.clear)
         )
         .contentShape(Rectangle())
         .onHover { hovering in

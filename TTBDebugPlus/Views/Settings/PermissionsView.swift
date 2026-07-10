@@ -7,24 +7,33 @@
 //
 
 import SwiftUI
+import AppKit
 
 struct PermissionsView: View {
     @Environment(ConnectionManager.self) var connectionManager
+
+    private var localNetworkStatusText: String {
+        if connectionManager.isServerRunning {
+            return "Active — Bonjour is advertising and accepting connections"
+        }
+        if connectionManager.isLifecycleActive {
+            return "Server lifecycle is on — waiting for network interfaces / Local Network permission"
+        }
+        return "Server stopped — start the server to request Local Network access if needed"
+    }
     
     var body: some View {
         Form {
             // Local Network
             Section("Local Network") {
                 HStack(spacing: 12) {
-                    permissionIcon(granted: connectionManager.isServerRunning)
+                    permissionIcon(granted: connectionManager.isServerRunning || connectionManager.isLifecycleActive)
                     
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Local Network Access")
                             .font(.body)
                         
-                        Text(connectionManager.isServerRunning
-                             ? "Granted — Bonjour server is running"
-                             : "Unknown — Server not started or permission denied")
+                        Text(localNetworkStatusText)
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }

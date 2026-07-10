@@ -36,3 +36,14 @@ targets:
         COMBINE_HIDPI_IMAGES: true
         SWIFT_EMIT_LOC_STRINGS: true
         ENABLE_PREVIEWS: true
+        # App Store / notarization-friendly defaults
+        ENABLE_APP_SANDBOX: true
+        SWIFT_STRICT_CONCURRENCY: minimal
+      configs:
+        Debug:
+          CODE_SIGN_ENTITLEMENTS: TTBDebugPlus/TTBDebugPlus.entitlements
+          SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG
+        Release:
+          CODE_SIGN_ENTITLEMENTS: TTBDebugPlus/TTBDebugPlusRelease.entitlements
+          SWIFT_COMPILATION_MODE: wholemodule
+          SWIFT_OPTIMIZATION_LEVEL: -O

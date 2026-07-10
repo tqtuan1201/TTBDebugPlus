@@ -4,7 +4,7 @@
 //
 //  Created by TuanTruong on 2026-03-27.
 //  Hardened 2026-07-10: full deviceId mirror, drive sync from ConnectionManager.uiNow
-//  (no private 5s timer).
+//  (no private 5s timer). Unified window chrome (no light titlebar strip).
 //
 
 import SwiftUI
@@ -12,6 +12,7 @@ import SwiftUI
 struct ContentView: View {
     @Environment(AppState.self) var appState
     @Environment(ConnectionManager.self) var connectionManager
+    @Environment(\.colorScheme) private var colorScheme
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
 
     var body: some View {
@@ -19,6 +20,7 @@ struct ContentView: View {
             // MARK: - Sidebar
             SidebarView()
                 .navigationSplitViewColumnWidth(min: 200, ideal: 230, max: 280)
+                .background(Color.ttBackground)
         } detail: {
             // MARK: - Main Content Area
             VStack(spacing: 0) {
@@ -35,6 +37,23 @@ struct ContentView: View {
             .background(Color.ttBackground)
         }
         .navigationSplitViewStyle(.balanced)
+        .background(Color.ttBackground)
+        // Empty system titles — they paint black on transparent titlebars.
+        // Custom toolbar label uses explicit design-system white.
+        .navigationTitle("")
+        .toolbar {
+            ToolbarItem(placement: .navigation) {
+                windowTitleLabel
+            }
+        }
+        .toolbarBackground(Color.ttBackground, for: .windowToolbar)
+        .toolbarBackground(.visible, for: .windowToolbar)
+        .toolbarColorScheme(colorScheme == .light ? .light : .dark, for: .windowToolbar)
+        .appWindowChrome(
+            prefersDark: colorScheme != .light,
+            title: AppBrand.name,
+            subtitle: AppBrand.tagline
+        )
         .sheet(item: Binding(
             get: { appState.pendingTemplateDraft },
             set: { appState.pendingTemplateDraft = $0 }
@@ -66,6 +85,24 @@ struct ContentView: View {
         .onChange(of: connectionManager.uiNow) {
             syncAppStateFromConnectionManager()
         }
+    }
+
+    /// Title + tagline for the window chrome — forced light colors (not system primary).
+    private var windowTitleLabel: some View {
+        VStack(alignment: .leading, spacing: 1) {
+            Text(AppBrand.name)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundColor(.white)
+            Text(AppBrand.tagline)
+                .font(.system(size: 11, weight: .regular))
+                .foregroundColor(Color.white.opacity(0.72))
+        }
+        .padding(.leading, 2)
+        // Prevent toolbar from re-theming labels to black
+        .environment(\.colorScheme, .dark)
+        .colorScheme(.dark)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(AppBrand.name), \(AppBrand.tagline)")
     }
 
     @ViewBuilder
@@ -124,5 +161,5 @@ struct ContentView: View {
     ContentView()
         .environment(AppState())
         .environment(ConnectionManager())
-        .frame(width: 1400, height: 900)
+        .frame(width: 1200, height: 800)
 }

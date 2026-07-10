@@ -101,6 +101,8 @@ struct MenuBarView: View {
         }
         .padding(.vertical, 8)
         .frame(width: 340)
+        // Match app canvas — solid design token (no system/primary wash)
+        .background(Color.ttBackground)
         .popover(isPresented: $isToolPopoverPresented, arrowEdge: .trailing) {
             if let selectedPopoverTool {
                 MenuBarToolPopoverContent(
@@ -169,7 +171,7 @@ struct MenuBarView: View {
         HStack(spacing: 12) {
             ZStack {
                 RoundedRectangle(cornerRadius: 6)
-                    .fill(serverModeColor.opacity(0.14))
+                    .fill(serverModeColor.opacity(0.16))
                     .frame(width: 28, height: 28)
                 
                 Image(systemName: serverModeIcon)
@@ -198,7 +200,7 @@ struct MenuBarView: View {
                     .padding(.vertical, 7)
                     .background {
                         RoundedRectangle(cornerRadius: 7)
-                            .fill(connectionManager.isLifecycleActive ? Color.ttError.opacity(0.14) : Color.ttSuccess.opacity(0.14))
+                            .fill(connectionManager.isLifecycleActive ? Color.ttError.opacity(0.16) : Color.ttSuccess.opacity(0.16))
                     }
             }
             .buttonStyle(.plain)
@@ -280,7 +282,11 @@ struct MenuBarView: View {
             .padding(.vertical, 7)
             .background(
                 RoundedRectangle(cornerRadius: 7)
-                    .fill(Color.primary.opacity(0.06))
+                    .fill(Color.ttSurface)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 7)
+                            .stroke(Color.ttBorder.opacity(0.6), lineWidth: 1)
+                    )
             )
             .padding(.horizontal, 12)
             
@@ -288,19 +294,19 @@ struct MenuBarView: View {
                 HStack {
                     Text(toolSearchText.isEmpty ? "All tools" : "Search results")
                         .font(.system(size: 10, weight: .medium))
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.ttTextTertiary)
                     
                     Spacer()
                     
                     Text("\(filteredDevTools.count)")
                         .font(.system(size: 10, weight: .semibold, design: .monospaced))
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.ttTextTertiary)
                 }
                 .padding(.horizontal, 10)
                 .padding(.vertical, 6)
                 
                 Divider()
-                    .background(Color.primary.opacity(0.08))
+                    .overlay(Color.ttBorder)
                 
                 ScrollView(.vertical, showsIndicators: true) {
                     LazyVStack(spacing: 2) {
@@ -308,10 +314,10 @@ struct MenuBarView: View {
                             HStack(spacing: 7) {
                                 Image(systemName: "magnifyingglass")
                                     .font(.system(size: 11))
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(.ttTextTertiary)
                                 Text("No matching tools")
                                     .font(.system(size: 11))
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(.ttTextTertiary)
                                 Spacer()
                             }
                             .padding(.horizontal, 10)
@@ -333,10 +339,10 @@ struct MenuBarView: View {
             .frame(height: devToolListHeight + 29)
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(Color.primary.opacity(0.035))
+                    .fill(Color.ttSurface)
                     .overlay(
                         RoundedRectangle(cornerRadius: 8)
-                            .stroke(Color.primary.opacity(0.08), lineWidth: 1)
+                            .stroke(Color.ttBorder.opacity(0.6), lineWidth: 1)
                     )
             )
             .padding(.horizontal, 12)
@@ -611,13 +617,13 @@ struct MenuBarDevToolRow: View {
     }
     
     private var iconBackgroundColor: Color {
-        if !tool.isAvailable { return Color.primary.opacity(0.05) }
+        if !tool.isAvailable { return Color.ttSurfaceLight.opacity(0.35) }
         return Color.ttPrimary.opacity((isHovered || isSelected) ? 0.2 : 0.12)
     }
     
     private var rowBackgroundColor: Color {
         if isSelected { return Color.ttPrimary.opacity(0.12) }
-        return isHovered ? Color.primary.opacity(0.08) : Color.clear
+        return isHovered ? Color.ttSurfaceHover : Color.clear
     }
 }
 
@@ -648,7 +654,7 @@ struct MenuBarToolPopoverContent: View {
                 header
                 
                 Divider()
-                    .background(Color.ttBorder.opacity(0.3))
+                    .overlay(Color.ttBorder)
                 
                 toolContent
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -706,7 +712,7 @@ struct MenuBarToolPopoverContent: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
-        .background(Color.ttSurface.opacity(0.22))
+        .background(Color.ttSurface)
     }
 
     private var resizeHandle: some View {
@@ -805,10 +811,10 @@ struct MenuBarJSONToolPopoverView: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
             }
-            .background(Color.ttSurface.opacity(0.1))
+            .background(Color.ttSurface)
             
             Divider()
-                .background(Color.ttBorder.opacity(0.25))
+                .overlay(Color.ttBorder)
             
             jsonContent
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -965,7 +971,7 @@ struct MenuBarToggleRow: View {
             .padding(.vertical, 3)
             .background(
                 RoundedRectangle(cornerRadius: 5)
-                    .fill(isHovered && isEnabled ? Color.primary.opacity(0.08) : Color.clear)
+                    .fill(isHovered && isEnabled ? Color.ttSurfaceHover : Color.clear)
             )
             .contentShape(Rectangle())
         }
@@ -990,7 +996,7 @@ struct CompactSwitch: View {
                 .frame(width: 34, height: 20)
 
             Circle()
-                .fill(isEnabled ? Color.white : Color.white.opacity(0.65))
+                .fill(isEnabled ? Color.ttTextPrimary : Color.ttTextTertiary)
                 .frame(width: 16, height: 16)
                 .shadow(color: .black.opacity(0.25), radius: 1, x: 0, y: 1)
                 .padding(.horizontal, 2)
@@ -999,8 +1005,8 @@ struct CompactSwitch: View {
     }
 
     private var trackColor: Color {
-        guard isEnabled else { return Color.primary.opacity(0.12) }
-        return isOn ? Color.ttPrimary : Color.primary.opacity(0.16)
+        guard isEnabled else { return Color.ttSurfaceLight.opacity(0.45) }
+        return isOn ? Color.ttPrimary : Color.ttSurfaceLight
     }
 }
 
@@ -1018,26 +1024,26 @@ struct MenuBarActionButton: View {
             HStack(spacing: 8) {
                 Image(systemName: icon)
                     .font(.system(size: 12))
-                    .foregroundColor(isDestructive ? .ttError : .primary)
+                    .foregroundColor(isDestructive ? .ttError : .ttTextPrimary)
                     .frame(width: 16)
                 
                 Text(title)
                     .font(.system(size: 12))
-                    .foregroundColor(isDestructive ? .ttError : .primary)
+                    .foregroundColor(isDestructive ? .ttError : .ttTextPrimary)
                 
                 Spacer()
                 
                 if !shortcut.isEmpty {
                     Text(shortcut)
                         .font(.system(size: 10, design: .monospaced))
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.ttTextTertiary)
                 }
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 5)
             .background(
                 RoundedRectangle(cornerRadius: 4)
-                    .fill(isHovered ? Color.primary.opacity(0.08) : Color.clear)
+                    .fill(isHovered ? Color.ttSurfaceHover : Color.clear)
             )
         }
         .buttonStyle(.plain)

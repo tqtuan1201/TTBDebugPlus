@@ -48,9 +48,9 @@
     <key>NSHighResolutionCapable</key>
     <true/>
 
-    <!-- Supports Secure Coding -->
+    <!-- Keep the app alive while Bonjour/WebSocket server may be running -->
     <key>NSSupportsAutomaticTermination</key>
-    <true/>
+    <false/>
     <key>NSSupportsSuddenTermination</key>
     <false/>
 </dict>

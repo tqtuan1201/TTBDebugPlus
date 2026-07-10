@@ -17,13 +17,13 @@ struct SidebarView: View {
             brandingHeader
             
             Divider()
-                .background(Color.ttBorder)
+                .overlay(Color.ttBorder)
             
             // MARK: - Server Status
             serverStatusBar
             
             Divider()
-                .background(Color.ttBorder)
+                .overlay(Color.ttBorder)
             
             // MARK: - Content
             ScrollView {
@@ -43,7 +43,8 @@ struct SidebarView: View {
             // MARK: - Bottom Actions
             bottomActions
         }
-        .background(Color.ttBackground.opacity(0.5))
+        // Solid design-system canvas — matches main content `ttBackground`
+        .background(Color.ttBackground)
     }
     
     // MARK: - Branding
@@ -65,16 +66,22 @@ struct SidebarView: View {
                     .foregroundColor(.ttTextPrimary)
             }
             
-            VStack(alignment: .leading, spacing: 2) {
-                Text("TTBDebugPlus")
+            VStack(alignment: .leading, spacing: 3) {
+                Text(AppBrand.name)
                     .font(TTFont.heading3)
                     .foregroundColor(.ttTextPrimary)
-                
-                let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0"
-                Text("V\(version)")
+                    .lineLimit(1)
+
+                Text(AppBrand.tagline)
                     .font(TTFont.labelSmall)
+                    .foregroundColor(.ttTextSecondary)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Text(AppBrand.versionLabel)
+                    .font(TTFont.codeSmall)
                     .foregroundColor(.ttTextTertiary)
-                    .tracking(0.5)
+                    .tracking(0.3)
             }
             
             Spacer()
@@ -147,7 +154,7 @@ struct SidebarView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
-        .background(Color.ttSurface.opacity(0.3))
+        // No strip fill — keep sidebar flat; dividers separate sections
     }
     
     // MARK: - Connected Devices
@@ -262,7 +269,7 @@ struct SidebarView: View {
     private var bottomActions: some View {
         VStack(spacing: 8) {
             Divider()
-                .background(Color.ttBorder)
+                .overlay(Color.ttBorder)
             
             HStack(spacing: 0) {
                 Button(action: {
@@ -313,7 +320,7 @@ struct DeviceRowView: View {
             // Device icon
             ZStack {
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(online ? Color.ttSuccess.opacity(0.12) : Color.ttSurface)
+                    .fill(online ? Color.ttSuccess.opacity(0.12) : Color.ttSurface.opacity(0.55))
                     .frame(width: 32, height: 32)
                 
                 Image(systemName: session.isSimulator ? AppIcon.simulator : AppIcon.device)
