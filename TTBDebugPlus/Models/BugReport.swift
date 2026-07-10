@@ -94,6 +94,54 @@ struct BugReport: Identifiable, Codable {
         f.dateFormat = "yyyy-MM-dd HH:mm"
         return f.string(from: createdAt)
     }
+
+    // MARK: - Slack Export (mrkdwn)
+    func toSlack() -> String {
+        var s = "*\(severity.emoji) \(title.isEmpty ? "Untitled issue" : title)*\n"
+        s += "Severity: \(severity.rawValue)"
+        if !tags.isEmpty { s += "  |  Tags: \(tags.map(\.label).joined(separator: ", "))" }
+        s += "\n"
+        s += "Device: \(deviceInfo.deviceName)  |  OS: \(deviceInfo.osVersion)\n"
+        s += "App: \(deviceInfo.appName) v\(deviceInfo.appVersion)  |  Screen: \(deviceInfo.screenResolution)\n"
+        if reproSteps.contains(where: { !$0.isEmpty }) {
+            s += "\n*Steps to reproduce:*\n"
+            var n = 0
+            for step in reproSteps where !step.isEmpty { n += 1; s += "\(n). \(step)\n" }
+        }
+        if !expectedResult.isEmpty { s += "\n*Expected:* \(expectedResult)\n" }
+        if !actualResult.isEmpty { s += "*Actual:* \(actualResult)\n" }
+        if !notes.isEmpty { s += "\n*Notes:* \(notes)\n" }
+        if !screenshotFileNames.isEmpty { s += "\n_\(screenshotFileNames.count) screenshot(s) attached_\n" }
+        return s
+    }
+
+    // MARK: - Jira Export (wiki markup)
+    func toJira() -> String {
+        var s = "h2. \(severity.emoji) \(title.isEmpty ? "Untitled issue" : title)\n"
+        s += "*Severity:* \(severity.rawValue)"
+        if !tags.isEmpty { s += " | *Tags:* \(tags.map(\.label).joined(separator: ", "))" }
+        s += "\n"
+        s += "*Device:* \(deviceInfo.deviceName) | *OS:* \(deviceInfo.osVersion)\n"
+        s += "*App:* \(deviceInfo.appName) v\(deviceInfo.appVersion) | *SDK:* \(deviceInfo.sdkVersion)\n"
+        s += "*Screen:* \(deviceInfo.screenResolution) | *Date:* \(formattedDate)\n"
+        if reproSteps.contains(where: { !$0.isEmpty }) {
+            s += "\nh3. Reproduction Steps\n"
+            for step in reproSteps where !step.isEmpty { s += "# \(step)\n" }
+        }
+        if !expectedResult.isEmpty { s += "\nh3. Expected Result\n\(expectedResult)\n" }
+        if !actualResult.isEmpty { s += "\nh3. Actual Result\n\(actualResult)\n" }
+        if !notes.isEmpty { s += "\nh3. Notes\n\(notes)\n" }
+        if !screenshotFileNames.isEmpty { s += "\n_\(screenshotFileNames.count) screenshot(s) attached_\n" }
+        return s
+    }
+}
+
+// MARK: - Metadata Text Format
+enum MetadataFormat: String, CaseIterable {
+    case plain = "Plain Text"
+    case markdown = "Markdown"
+    case slack = "Slack"
+    case jira = "Jira"
 }
 
 // MARK: - Severity
@@ -161,6 +209,61 @@ struct DeviceInfoSnapshot: Codable {
         deviceName: "—", osVersion: "—", appName: "—",
         appVersion: "—", sdkVersion: "—", screenResolution: "—", isSimulator: false
     )
+
+    /// Returns true when a field carries a real value (filters placeholders / blanks).
+    private func isReal(_ value: String) -> Bool {
+        let v = value.trimmingCharacters(in: .whitespaces)
+        return !v.isEmpty && v != "—"
+    }
+
+    /// App label such as "MyApp v1.0.5" (omits version when unknown).
+    var appLabel: String {
+        guard isReal(appName) else { return isReal(appVersion) ? "v\(appVersion)" : "—" }
+        return isReal(appVersion) ? "\(appName) v\(appVersion)" : appName
+    }
+
+    /// Label/value pairs for the footer banner & metadata export — only real values.
+    var displayPairs: [(label: String, value: String)] {
+        var pairs: [(String, String)] = []
+        if isReal(deviceName)       { pairs.append(("Device", deviceName)) }
+        if isReal(osVersion)        { pairs.append(("OS", osVersion)) }
+        if appLabel != "—"          { pairs.append(("App", appLabel)) }
+        if isReal(screenResolution) { pairs.append(("Screen", screenResolution)) }
+        if isReal(sdkVersion)       { pairs.append(("SDK", sdkVersion)) }
+        return pairs
+    }
+
+    private static let stampFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        return f
+    }()
+
+    func formattedStamp(_ date: Date) -> String { Self.stampFormatter.string(from: date) }
+
+    /// One-line / multi-line metadata text for "copy image + info" in the chosen format.
+    func metadataText(format: MetadataFormat, timestamp: Date, appTitle: String = "TTBDebugPlus") -> String {
+        let stamp = formattedStamp(timestamp)
+        let typeBadge = isSimulator ? "Simulator" : "Real Device"
+        var fields = displayPairs
+        fields.append(("Type", typeBadge))
+        fields.append(("Captured", stamp))
+
+        switch format {
+        case .plain:
+            let body = fields.map { "\($0.label): \($0.value)" }.joined(separator: "  •  ")
+            return "[\(appTitle)] \(body)"
+        case .markdown:
+            let body = fields.map { "**\($0.label):** \($0.value)" }.joined(separator: " | ")
+            return "_Captured with \(appTitle)_\n\(body)"
+        case .slack:
+            let body = fields.map { "*\($0.label):* \($0.value)" }.joined(separator: "  |  ")
+            return "_\(appTitle)_\n\(body)"
+        case .jira:
+            let body = fields.map { "*\($0.label):* \($0.value)" }.joined(separator: " | ")
+            return "_\(appTitle)_\n\(body)"
+        }
+    }
 }
 
 // MARK: - Recording Session

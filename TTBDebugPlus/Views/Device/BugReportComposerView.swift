@@ -349,15 +349,20 @@ struct BugReportComposerView: View {
     // MARK: - Footer
     private var footer: some View {
         HStack(spacing: 8) {
-            // Copy Markdown
-            Button(action: copyMarkdown) {
+            // Copy as… (Markdown / Slack / Jira)
+            Menu {
+                Button(action: { copyText(.markdown) }) { Label("Copy as Markdown", systemImage: "doc.plaintext") }
+                Button(action: { copyText(.slack) }) { Label("Copy for Slack", systemImage: "bubble.left.and.bubble.right") }
+                Button(action: { copyText(.jira) }) { Label("Copy for Jira", systemImage: "ladybug") }
+            } label: {
                 HStack(spacing: 6) {
                     Image(systemName: "doc.on.clipboard")
-                    Text("Copy Markdown")
+                    Text("Copy as…")
                 }
             }
-            .buttonStyle(.ttSecondary)
-            .help("Copy formatted Markdown to clipboard")
+            .menuStyle(.borderlessButton)
+            .fixedSize()
+            .help("Copy formatted report to clipboard (Markdown, Slack, or Jira)")
             
             // Save Report
             Button(action: saveReport) {
@@ -432,11 +437,16 @@ struct BugReportComposerView: View {
         )
     }
     
-    private func copyMarkdown() {
-        let md = report.toMarkdown()
+    private func copyText(_ format: MetadataFormat) {
+        let text: String
+        switch format {
+        case .slack: text = report.toSlack()
+        case .jira:  text = report.toJira()
+        default:     text = report.toMarkdown()
+        }
         NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(md, forType: .string)
-        
+        NSPasteboard.general.setString(text, forType: .string)
+
         withAnimation { showCopiedToast = true }
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             withAnimation { showCopiedToast = false }

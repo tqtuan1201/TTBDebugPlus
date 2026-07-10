@@ -298,6 +298,7 @@ final class ScreenCaptureViewModel {
     }
     
     // MARK: - Export
+    @MainActor
     func exportScreenshot(withAnnotations: Bool = false) -> URL? {
         guard let image = currentScreenshot else { return nil }
         
@@ -364,199 +365,116 @@ final class ScreenCaptureViewModel {
         openBugReport(with: images)
     }
     
-    // MARK: - Annotation Rendering (for export)
-    func renderAnnotatedImage(baseImage: NSImage) -> NSImage {
-        let size = baseImage.size
-        let image = NSImage(size: size)
-        
-        image.lockFocus()
-        baseImage.draw(in: NSRect(origin: .zero, size: size))
-        
-        guard let context = NSGraphicsContext.current?.cgContext else {
-            image.unlockFocus()
-            return baseImage
+    // MARK: - Annotation Rendering (SwiftUI ImageRenderer — pixel-identical to editor)
+    //
+    // Annotations are authored in a *fitted display* coordinate space (the editor
+    // canvas or the small preview). We scale their points to full image pixels and
+    // re-draw them with the SAME SwiftUI Canvas code the editor uses (AnnotationCanvasRenderer),
+    // so the exported image matches exactly — no bottom-left/top-left Y-flip drift.
+
+    /// Scales annotations from a display coordinate space to full image pixels.
+    func scaleAnnotations(_ items: [AnnotationItem], from displaySize: CGSize, to pixel: CGSize) -> [AnnotationItem] {
+        guard displaySize.width > 0, displaySize.height > 0 else { return items }
+        let sx = pixel.width / displaySize.width
+        let sy = pixel.height / displaySize.height
+        let s = max(sx, sy)
+        return items.map { item in
+            var c = item
+            c.points = item.points.map { CGPoint(x: $0.x * sx, y: $0.y * sy) }
+            c.lineWidth = item.lineWidth * s
+            return c
         }
-        
-        for annotation in annotations {
-            renderAnnotationToCG(annotation, context: context, imageSize: size)
-        }
-        
-        image.unlockFocus()
-        return image
     }
-    
-    // MARK: - Render Quick Annotations onto Image (for copy/export)
+
+    /// Renders `annotationsInPixels` (already in image-pixel coords) onto `baseImage`.
+    @MainActor
+    func composeAnnotatedImage(baseImage: NSImage, annotationsInPixels: [AnnotationItem]) -> NSImage {
+        guard !annotationsInPixels.isEmpty else { return baseImage }
+        let px = pixelSize(of: baseImage)
+        guard px.width > 0, px.height > 0 else { return baseImage }
+
+        let view = AnnotatedImageRender(
+            baseImage: baseImage,
+            annotations: annotationsInPixels,
+            width: px.width,
+            height: px.height
+        )
+        let renderer = ImageRenderer(content: view)
+        renderer.scale = 1 // size is already in pixels
+        return renderer.nsImage ?? baseImage
+    }
+
+    /// Back-compat: render the editor's own `annotations` onto an image, given the
+    /// editor canvas display size (pass `.zero` to treat annotations as already 1:1).
+    @MainActor
+    func renderAnnotatedImage(baseImage: NSImage, displaySize: CGSize = .zero) -> NSImage {
+        let px = pixelSize(of: baseImage)
+        let source = displaySize.width > 0 ? displaySize : px
+        return composeAnnotatedImage(baseImage: baseImage, annotationsInPixels: scaleAnnotations(annotations, from: source, to: px))
+    }
+
     /// Renders annotations drawn in a display-sized preview onto the full-resolution image.
-    /// Points are scaled from `displaySize` (preview canvas) to `image.size` (pixel coords).
+    @MainActor
     func renderImageWithQuickAnnotations(
         baseImage: NSImage,
         annotations: [AnnotationItem],
         displaySize: CGSize
     ) -> NSImage {
-        let imageSize = baseImage.size
-        let scaleX = imageSize.width / displaySize.width
-        let scaleY = imageSize.height / displaySize.height
-        let scale = max(scaleX, scaleY)
-        
-        let result = NSImage(size: imageSize)
+        let px = pixelSize(of: baseImage)
+        return composeAnnotatedImage(baseImage: baseImage, annotationsInPixels: scaleAnnotations(annotations, from: displaySize, to: px))
+    }
+
+    // MARK: - Device-Info Footer Banner (for "Copy + Info")
+    /// Pixel dimensions of an NSImage (falls back to point size).
+    func pixelSize(of image: NSImage) -> CGSize {
+        if let rep = image.representations.first {
+            let w = rep.pixelsWide, h = rep.pixelsHigh
+            if w > 0 && h > 0 { return CGSize(width: w, height: h) }
+        }
+        return image.size
+    }
+
+    /// Composites a device-info footer banner BELOW `image`.
+    /// `image` should ALREADY contain any rendered annotations.
+    @MainActor
+    func imageWithInfoFooter(_ image: NSImage, deviceInfo: DeviceInfoSnapshot, timestamp: Date) -> NSImage {
+        let basePx = pixelSize(of: image)
+        guard basePx.width > 0, basePx.height > 0 else { return image }
+
+        // Footer scale tracks image width so text stays legible at full resolution.
+        let scale = max(1.0, basePx.width / 1170.0)
+        let footerView = ScreenshotInfoFooterView(info: deviceInfo, timestamp: timestamp, scale: scale)
+            .frame(width: basePx.width)
+            .fixedSize(horizontal: false, vertical: true)
+
+        let renderer = ImageRenderer(content: footerView)
+        renderer.scale = 1 // work directly in pixel units
+        guard let footerImage = renderer.nsImage else { return image }
+        let footerH = footerImage.size.height
+
+        let total = CGSize(width: basePx.width, height: basePx.height + footerH)
+        let result = NSImage(size: total)
         result.lockFocus()
-        baseImage.draw(in: NSRect(origin: .zero, size: imageSize))
-        
-        guard let context = NSGraphicsContext.current?.cgContext else {
-            result.unlockFocus()
-            return baseImage
-        }
-        
-        for annotation in annotations {
-            let scaledPoints = annotation.points.map {
-                CGPoint(x: $0.x * scaleX, y: $0.y * scaleY)
-            }
-            var scaled = AnnotationItem(
-                tool: annotation.tool,
-                points: scaledPoints,
-                color: annotation.color,
-                lineWidth: annotation.lineWidth * scale
-            )
-            scaled.text = annotation.text
-            scaled.stepNumber = annotation.stepNumber
-            scaled.isFilled = annotation.isFilled
-            renderAnnotationToCG(scaled, context: context, imageSize: imageSize)
-        }
-        
+        // NSImage origin is bottom-left: image on top, footer underneath.
+        image.draw(in: NSRect(x: 0, y: footerH, width: basePx.width, height: basePx.height))
+        footerImage.draw(in: NSRect(x: 0, y: 0, width: basePx.width, height: footerH))
         result.unlockFocus()
         return result
     }
-    
-    func renderAnnotationToCG(_ annotation: AnnotationItem, context: CGContext, imageSize: CGSize) {
-        context.setStrokeColor(NSColor(annotation.color).cgColor)
-        context.setFillColor(NSColor(annotation.color).cgColor)
-        context.setLineWidth(annotation.lineWidth)
-        context.setLineCap(.round)
-        context.setLineJoin(.round)
-        
-        switch annotation.tool {
-        case .pen:
-            if annotation.points.count >= 2 {
-                PathSmoothing.addSmoothedPath(to: context, from: annotation.points)
-                context.strokePath()
-            }
-            
-        case .marker:
-            if annotation.points.count >= 2 {
-                context.setStrokeColor(NSColor(annotation.color).withAlphaComponent(0.4).cgColor)
-                context.setLineWidth(annotation.lineWidth * 5)
-                PathSmoothing.addSmoothedPath(to: context, from: annotation.points)
-                context.strokePath()
-            }
-            
-        case .highlight:
-            if annotation.points.count >= 2 {
-                context.setStrokeColor(NSColor(annotation.color).withAlphaComponent(0.35).cgColor)
-                context.setLineWidth(annotation.lineWidth * 4)
-                PathSmoothing.addSmoothedPath(to: context, from: annotation.points)
-                context.strokePath()
-            }
-            
-        case .arrow:
-            if annotation.points.count >= 2,
-               let start = annotation.points.first, let end = annotation.points.last {
-                context.move(to: start)
-                context.addLine(to: end)
-                context.strokePath()
-                
-                let head = ArrowGeometry.arrowHead(start: start, end: end, lineWidth: annotation.lineWidth, headLengthMultiplier: 4.0)
-                context.move(to: head.p1)
-                context.addLine(to: head.tip)
-                context.addLine(to: head.p2)
-                context.closePath()
-                context.fillPath()
-            }
-            
-        case .line:
-            if annotation.points.count >= 2,
-               let start = annotation.points.first, let end = annotation.points.last {
-                context.move(to: start)
-                context.addLine(to: end)
-                context.strokePath()
-            }
-            
-        case .rectangle:
-            if let rect = annotation.boundingRect {
-                if annotation.isFilled {
-                    context.setFillColor(NSColor(annotation.color).withAlphaComponent(0.3).cgColor)
-                    context.fill(rect)
-                }
-                context.stroke(rect)
-            }
-            
-        case .ellipse:
-            if let rect = annotation.boundingRect {
-                if annotation.isFilled {
-                    context.setFillColor(NSColor(annotation.color).withAlphaComponent(0.3).cgColor)
-                    context.fillEllipse(in: rect)
-                }
-                context.strokeEllipse(in: rect)
-            }
-            
-        case .text:
-            if let pos = annotation.points.first {
-                let fontSize = max(14, annotation.lineWidth * 4)
-                let attrs: [NSAttributedString.Key: Any] = [
-                    .font: NSFont.systemFont(ofSize: fontSize, weight: .medium),
-                    .foregroundColor: NSColor(annotation.color)
-                ]
-                annotation.text.draw(at: pos, withAttributes: attrs)
-            }
-            
-        case .stepCounter:
-            if let pos = annotation.points.first {
-                let r: CGFloat = max(14, annotation.lineWidth * 3)
-                let size = r * 2
-                let rect = CGRect(x: pos.x - r, y: pos.y - r, width: size, height: size)
-                context.fillEllipse(in: rect)
-                
-                // White outline
-                context.setStrokeColor(NSColor.white.withAlphaComponent(0.8).cgColor)
-                context.setLineWidth(2)
-                context.strokeEllipse(in: rect)
-                
-                let numStr = "\(annotation.stepNumber)"
-                let attrs: [NSAttributedString.Key: Any] = [
-                    .font: NSFont.systemFont(ofSize: r * 1.1, weight: .bold),
-                    .foregroundColor: NSColor.white
-                ]
-                let textSize = (numStr as NSString).size(withAttributes: attrs)
-                let textPos = CGPoint(x: pos.x - textSize.width/2, y: pos.y - textSize.height/2)
-                numStr.draw(at: textPos, withAttributes: attrs)
-            }
-            
-        case .blur:
-            if let rect = annotation.boundingRect {
-                context.setFillColor(NSColor.gray.withAlphaComponent(0.5).cgColor)
-                context.fill(rect)
-            }
-            
-        case .spotlight:
-            if let spotRect = annotation.boundingRect {
-                let fullRect = CGRect(origin: .zero, size: imageSize)
-                
-                context.saveGState()
-                context.addRect(fullRect)
-                context.addRect(spotRect)
-                context.clip(using: .evenOdd)
-                context.setFillColor(NSColor.black.withAlphaComponent(0.55).cgColor)
-                context.fill(fullRect)
-                context.restoreGState()
-                
-                context.setStrokeColor(NSColor(annotation.color).cgColor)
-                context.setLineWidth(2.5)
-                context.stroke(spotRect)
-            }
-            
-        case .eraser:
-            break
+
+    // MARK: - Clipboard Helpers
+    /// Copies an image to the pasteboard, optionally with a metadata text representation
+    /// (so paste targets that prefer text — Slack/Jira fields — also receive context).
+    func copyToPasteboard(image: NSImage, metadata: String? = nil) {
+        let pb = NSPasteboard.general
+        pb.clearContents()
+        var objects: [NSPasteboardWriting] = [image]
+        if let metadata, !metadata.isEmpty {
+            objects.append(metadata as NSString)
         }
+        pb.writeObjects(objects)
     }
+
 }
 
 // MARK: - Supporting Models
@@ -619,11 +537,16 @@ struct AnnotationItem: Identifiable {
     let id = UUID()
     let tool: AnnotationTool
     var points: [CGPoint]
-    let color: Color
-    let lineWidth: CGFloat
+    var color: Color          // mutable: re-color a selected annotation
+    var lineWidth: CGFloat    // mutable: re-stroke a selected annotation
     var text: String = ""
     var stepNumber: Int = 0
     var isFilled: Bool = false
+
+    /// Translate all points by a delta (used when dragging a selected annotation).
+    mutating func translate(by delta: CGSize) {
+        points = points.map { CGPoint(x: $0.x + delta.width, y: $0.y + delta.height) }
+    }
 }
 
 enum AnnotationTool: String, CaseIterable {
@@ -707,5 +630,101 @@ enum AnnotationTool: String, CaseIterable {
         case shape = "Shape"
         case annotate = "Annotate"
         case edit = "Edit"
+    }
+}
+
+// MARK: - Annotated Image Renderer (SwiftUI → image)
+/// Base screenshot + annotations drawn with the shared Canvas renderer.
+/// Rendered to a bitmap via ImageRenderer so export matches the live editor exactly.
+struct AnnotatedImageRender: View {
+    let baseImage: NSImage
+    let annotations: [AnnotationItem]  // already in image-pixel coordinates
+    let width: CGFloat
+    let height: CGFloat
+
+    var body: some View {
+        ZStack {
+            Image(nsImage: baseImage)
+                .resizable()
+                .frame(width: width, height: height)
+            Canvas { context, size in
+                for annotation in annotations {
+                    AnnotationCanvasRenderer.draw(annotation, in: &context, size: size)
+                }
+            }
+            .frame(width: width, height: height)
+        }
+        .frame(width: width, height: height)
+    }
+}
+
+// MARK: - Screenshot Info Footer Banner
+/// Dark banner appended below a screenshot when exporting "Copy + Info".
+/// Rendered to an image via ImageRenderer, so it must use only static SwiftUI.
+struct ScreenshotInfoFooterView: View {
+    let info: DeviceInfoSnapshot
+    let timestamp: Date
+    var scale: CGFloat = 1.0
+    var appTitle: String = "TTBDebugPlus"
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8 * scale) {
+            // Row 1 — brand · capture time · device-type badge
+            HStack(alignment: .center, spacing: 10 * scale) {
+                Image(systemName: AppIcon.app)
+                    .font(.system(size: 19 * scale, weight: .semibold))
+                    .foregroundColor(.ttError)
+                Text(appTitle)
+                    .font(.system(size: 15 * scale, weight: .bold))
+                    .foregroundColor(.white)
+                Text(info.formattedStamp(timestamp))
+                    .font(.system(size: 12 * scale, weight: .regular).monospacedDigit())
+                    .foregroundColor(.white.opacity(0.55))
+
+                Spacer(minLength: 8 * scale)
+
+                Text(info.isSimulator ? "SIMULATOR" : "REAL DEVICE")
+                    .font(.system(size: 11 * scale, weight: .bold))
+                    .tracking(0.8 * scale)
+                    .foregroundColor(info.isSimulator ? .ttWarning : .ttSuccess)
+                    .padding(.horizontal, 9 * scale)
+                    .padding(.vertical, 4 * scale)
+                    .background(
+                        RoundedRectangle(cornerRadius: 5 * scale)
+                            .fill((info.isSimulator ? Color.ttWarning : Color.ttSuccess).opacity(0.16))
+                    )
+            }
+
+            // Row 2 — Device · OS · App · Screen · SDK (wraps if needed, never overlaps)
+            infoText
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(.horizontal, 22 * scale)
+        .padding(.vertical, 15 * scale)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(nsColor: NSColor(calibratedWhite: 0.11, alpha: 1.0)))
+    }
+
+    /// Field pairs as a single concatenated Text — label dim, value bright,
+    /// separated by a faint dot. Wraps cleanly inside ImageRenderer.
+    private var infoText: Text {
+        let pairs = info.displayPairs
+        var result = Text("")
+        for (i, pair) in pairs.enumerated() {
+            if i > 0 {
+                result = result + Text("   ·   ")
+                    .font(.system(size: 13 * scale))
+                    .foregroundColor(.white.opacity(0.3))
+            }
+            result = result
+                + Text("\(pair.label)  ")
+                    .font(.system(size: 11 * scale, weight: .semibold))
+                    .foregroundColor(.white.opacity(0.5))
+                + Text(pair.value)
+                    .font(.system(size: 13 * scale, weight: .medium))
+                    .foregroundColor(.white.opacity(0.95))
+        }
+        return result
     }
 }

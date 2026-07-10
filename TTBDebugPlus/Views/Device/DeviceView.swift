@@ -29,6 +29,8 @@ struct DeviceView: View {
     @State private var quickAnnotations: [AnnotationItem] = []
     @State private var quickRedoStack: [AnnotationItem] = []
     @State private var previewDisplaySize: CGSize = .zero
+    // Fitted canvas size reported by the full annotation editor (for export scaling)
+    @State private var editorCanvasSize: CGSize = .zero
     // Quick text input
     @State private var quickTextInput: String = ""
     @State private var quickTextPosition: CGPoint = .zero
@@ -54,11 +56,16 @@ struct DeviceView: View {
                 captureVM.handleScreenshotReceived(screenshot)
             }
         }
-        // Clear quick annotations when switching screenshots
+        // Clear ALL annotations when switching screenshots so they never leak
+        // onto a different image on copy/save/share.
         .onChange(of: captureVM.selectedHistoryItem?.id) { _, _ in
             quickAnnotations.removeAll()
             quickRedoStack.removeAll()
             quickDragPoints.removeAll()
+            // Full-editor annotations are invisible in the preview but baked into
+            // exports — they belong to the previously selected image, so reset them.
+            captureVM.annotations.removeAll()
+            editorCanvasSize = .zero
         }
         // Annotation editor — opens as large window-sized sheet
         .sheet(isPresented: $captureVM.isAnnotating) {
@@ -66,6 +73,9 @@ struct DeviceView: View {
                 AnnotationEditorView(
                     baseImage: image,
                     annotations: $captureVM.annotations,
+                    onCopyPlain: { copyEditorImage(withInfo: false) },
+                    onCopyWithInfo: { copyEditorImage(withInfo: true) },
+                    onCanvasSizeChange: { editorCanvasSize = $0 },
                     onDone: { captureVM.isAnnotating = false },
                     onCancel: { captureVM.isAnnotating = false }
                 )
@@ -349,7 +359,28 @@ struct DeviceView: View {
                 .help("Copy to clipboard (⌘C)")
                 .keyboardShortcut("c", modifiers: .command)
                 .accessibilityLabel("Copy Screenshot")
-                
+
+                // Copy as… (image + device info, or metadata text presets)
+                Menu {
+                    Button(action: { copyScreenshot(withInfo: true) }) {
+                        Label("Image + Device Info", systemImage: "photo.badge.plus")
+                    }
+                    .help("Copy the screenshot with a device-info footer — ready to paste to a tester/PM")
+                    Divider()
+                    Button(action: { copyMetadataText(.markdown) }) { Label("Info as Markdown", systemImage: "doc.plaintext") }
+                    Button(action: { copyMetadataText(.slack) }) { Label("Info for Slack", systemImage: "bubble.left.and.bubble.right") }
+                    Button(action: { copyMetadataText(.jira) }) { Label("Info for Jira", systemImage: "ladybug") }
+                } label: {
+                    Image(systemName: "chevron.down")
+                        .font(.ttIcon(TTIcon.sm))
+                        .foregroundColor(.ttTextSecondary)
+                }
+                .menuStyle(.borderlessButton)
+                .menuIndicator(.hidden)
+                .frame(width: 18)
+                .disabled(captureVM.currentScreenshot == nil)
+                .help("Copy as… (with device info, Markdown, Slack, Jira)")
+
                 // Save
                 Button(action: exportScreenshotWithQuickAnnotations) {
                     Image(systemName: "square.and.arrow.down")
@@ -389,50 +420,73 @@ struct DeviceView: View {
     
     // MARK: - Copy to Clipboard
     private func copyScreenshotToClipboard() {
-        guard let image = captureVM.currentScreenshot else { return }
-        
-        var finalImage = image
-        
-        // Render full-editor annotations if present
-        if !captureVM.annotations.isEmpty {
-            finalImage = captureVM.renderAnnotatedImage(baseImage: finalImage)
+        guard let composed = buildAnnotatedImage() else { return }
+        captureVM.copyToPasteboard(image: composed)
+        flashCopied()
+    }
+
+    private var captureTimestamp: Date { captureVM.selectedHistoryItem?.timestamp ?? Date() }
+
+    // MARK: - Copy with Device Info / Metadata
+    /// Copies the annotated screenshot, optionally with a device-info footer banner + text metadata.
+    private func copyScreenshot(withInfo: Bool) {
+        guard let composed = buildAnnotatedImage() else { return }
+        if withInfo {
+            let info = currentDeviceInfoSnapshot
+            let stamp = captureTimestamp
+            let withFooter = captureVM.imageWithInfoFooter(composed, deviceInfo: info, timestamp: stamp)
+            captureVM.copyToPasteboard(image: withFooter, metadata: info.metadataText(format: .plain, timestamp: stamp))
+        } else {
+            captureVM.copyToPasteboard(image: composed)
         }
-        
-        // Render quick-draw annotations if present
-        if !quickAnnotations.isEmpty && previewDisplaySize.width > 0 {
-            finalImage = captureVM.renderImageWithQuickAnnotations(
-                baseImage: finalImage,
-                annotations: quickAnnotations,
-                displaySize: previewDisplaySize
-            )
+        flashCopied()
+    }
+
+    /// Copies device-info metadata text only, in the chosen format.
+    private func copyMetadataText(_ format: MetadataFormat) {
+        let text = currentDeviceInfoSnapshot.metadataText(format: format, timestamp: captureTimestamp)
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
+        flashCopied()
+    }
+
+    /// Copy invoked from inside the annotation editor (annotations already in captureVM.annotations).
+    private func copyEditorImage(withInfo: Bool) {
+        guard var image = buildAnnotatedImage() else { return }
+        if withInfo {
+            let info = currentDeviceInfoSnapshot
+            let stamp = captureTimestamp
+            image = captureVM.imageWithInfoFooter(image, deviceInfo: info, timestamp: stamp)
+            captureVM.copyToPasteboard(image: image, metadata: info.metadataText(format: .plain, timestamp: stamp))
+        } else {
+            captureVM.copyToPasteboard(image: image)
         }
-        
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-        pasteboard.writeObjects([finalImage])
-        
-        // Show feedback
+    }
+
+    private func flashCopied() {
         withAnimation { showCopiedFeedback = true }
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             withAnimation { showCopiedFeedback = false }
         }
     }
-    
+
     // MARK: - Export Helpers (includes quick annotations)
     private func buildAnnotatedImage() -> NSImage? {
-        guard var finalImage = captureVM.currentScreenshot else { return nil }
-        
+        guard let base = captureVM.currentScreenshot else { return nil }
+        let px = captureVM.pixelSize(of: base)
+
+        // Scale both annotation sets (drawn in different display spaces) to image pixels,
+        // then render them all in a single SwiftUI pass that matches the editor exactly.
+        var pixelAnnotations: [AnnotationItem] = []
         if !captureVM.annotations.isEmpty {
-            finalImage = captureVM.renderAnnotatedImage(baseImage: finalImage)
+            let source = editorCanvasSize.width > 0 ? editorCanvasSize : px
+            pixelAnnotations += captureVM.scaleAnnotations(captureVM.annotations, from: source, to: px)
         }
         if !quickAnnotations.isEmpty && previewDisplaySize.width > 0 {
-            finalImage = captureVM.renderImageWithQuickAnnotations(
-                baseImage: finalImage,
-                annotations: quickAnnotations,
-                displaySize: previewDisplaySize
-            )
+            pixelAnnotations += captureVM.scaleAnnotations(quickAnnotations, from: previewDisplaySize, to: px)
         }
-        return finalImage
+        guard !pixelAnnotations.isEmpty else { return base }
+        return captureVM.composeAnnotatedImage(baseImage: base, annotationsInPixels: pixelAnnotations)
     }
     
     private func exportScreenshotToURL() -> URL? {
