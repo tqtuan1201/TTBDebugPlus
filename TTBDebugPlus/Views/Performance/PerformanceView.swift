@@ -135,6 +135,10 @@ struct PerformanceView: View {
             viewModel.syncMetrics(from: connectionManager)
             viewModel.analyzeAPIs(from: connectionManager.allAPILogs)
         }
+        .onChange(of: connectionManager.uiNow) {
+            // Pull latest metrics on shared connection clock (no private timer)
+            viewModel.syncMetrics(from: connectionManager)
+        }
     }
     
     // MARK: - Metric Card

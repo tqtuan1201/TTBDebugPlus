@@ -208,9 +208,20 @@ class JSONWebViewBridge: NSObject {
     // MARK: - Cleanup
     
     func cleanup() {
+        webView?.stopLoading()
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: "jsonBridge")
         webView?.navigationDelegate = nil
         webView = nil
+        isReady = false
+        pendingCommands.removeAll()
+        onContentChanged = nil
+        onReady = nil
+        onCopied = nil
+    }
+
+    deinit {
+        // Ensure script handler is removed so WKWebView does not retain the bridge
+        cleanup()
     }
 }
 

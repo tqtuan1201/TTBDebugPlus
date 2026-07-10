@@ -34,6 +34,8 @@ struct TTBDebugPlusApp: App {
                 .preferredColorScheme(.dark)
                 .frame(minWidth: 1200, minHeight: 800)
                 .onAppear {
+                    // Wire session persistence into connection lifecycle (once per window)
+                    connectionManager.sessionRecorder = sessionManager
                     // Show welcome on first launch  
                     if !hasSeenWelcome {
                         showWelcome = true
@@ -82,7 +84,8 @@ struct TTBDebugPlusApp: App {
             
             CommandMenu("Debug") {
                 Button("Clear Console") {
-                    connectionManager.clearAllLogs()
+                    // Console only — Network inspector keeps API capture
+                    connectionManager.clearConsoleLogs()
                     NotificationCenter.default.post(name: .clearConsole, object: nil)
                 }
                 .keyboardShortcut("k", modifiers: .command)
@@ -107,24 +110,20 @@ struct TTBDebugPlusApp: App {
                 
                 Divider()
                 
-                Button(connectionManager.isServerRunning ? "Stop Server" : "Start Server") {
-                    if connectionManager.isServerRunning {
-                        connectionManager.stopServer()
-                    } else {
-                        connectionManager.startServer()
-                    }
+                Button(connectionManager.isLifecycleActive ? "Stop Server" : "Start Server") {
+                    connectionManager.toggleServer()
                 }
                 
                 Button("Force Reconnect") {
                     connectionManager.forceReconnect()
                 }
                 .keyboardShortcut("r", modifiers: [.command, .shift])
-                .disabled(!connectionManager.isServerRunning)
+                .disabled(!connectionManager.isLifecycleActive)
                 
                 Button("Restart Server") {
                     connectionManager.restartServer()
                 }
-                .disabled(!connectionManager.isServerRunning)
+                .disabled(!connectionManager.isLifecycleActive)
             }
             
             // Help menu

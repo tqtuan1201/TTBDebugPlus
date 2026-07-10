@@ -52,6 +52,12 @@ final class ScreenCaptureViewModel {
     private let maxHistoryCount = 50
     private let maxRecordingFrames = 600
     private let timerQueue = DispatchQueue(label: "com.ttbdebug.recording", qos: .utility)
+    /// Bumps on each capture request so stale timeouts cannot clear a newer capture.
+    private var captureGeneration: UInt64 = 0
+    /// Last screenshot timestamp applied (dedupe rapid onChange fires).
+    private var lastHandledScreenshotKey: String?
+    /// Weak ref for recording ticks — avoids retaining ConnectionManager via timer.
+    private weak var recordingConnectionManager: ConnectionManager?
 
     deinit {
         recordingSource?.cancel()
@@ -72,28 +78,39 @@ final class ScreenCaptureViewModel {
     
     // MARK: - Capture Screenshot
     func requestCapture(from connectionManager: ConnectionManager) {
-        guard connectionManager.isServerRunning, connectionManager.selectedDevice?.isOnline == true else {
+        // Prefer lifecycle + live selected device (not only port-bound isServerRunning)
+        let deviceOnline = connectionManager.selectedDevice?.isOnline(relativeTo: connectionManager.uiNow) == true
+        guard connectionManager.isLifecycleActive, deviceOnline else {
             isCapturing = false
             if recordingSession.isActive {
                 stopRecording()
             }
             return
         }
-        guard !isCapturing else { return }
+        // During recording allow pipelined requests; single capture still serializes.
+        if !isRecording {
+            guard !isCapturing else { return }
+        }
         isCapturing = true
+        captureGeneration &+= 1
+        let generation = captureGeneration
         
         let quality = isRecording ? 0.4 : 0.7
         let maxWidth = isRecording ? 750 : 1170
         connectionManager.requestScreenshot(quality: quality, maxWidth: maxWidth)
         
-        // Timeout fallback — reset isCapturing if no response within 8s
+        // Timeout fallback — only clear if this generation is still current
         DispatchQueue.main.asyncAfter(deadline: .now() + 8) { [weak self] in
-            self?.isCapturing = false
+            guard let self, self.captureGeneration == generation else { return }
+            self.isCapturing = false
         }
     }
     
     // MARK: - Handle Received Screenshot
     func handleScreenshotReceived(_ response: ScreenshotResponsePayload) {
+        let key = "\(response.timestamp)-\(response.imageData.count)"
+        guard lastHandledScreenshotKey != key else { return }
+        lastHandledScreenshotKey = key
         isCapturing = false
         
         // Decode image on background queue to avoid blocking main thread
@@ -142,17 +159,29 @@ final class ScreenCaptureViewModel {
     // MARK: - Recording
     func startRecording(connectionManager: ConnectionManager, interval: TimeInterval = 0.5) {
         guard !recordingSession.isActive else { return }
+        guard connectionManager.isLifecycleActive,
+              connectionManager.selectedDevice?.isOnline(relativeTo: connectionManager.uiNow) == true else {
+            return
+        }
         recordingSession = RecordingSession()
         recordingSession.isActive = true
         recordingSession.interval = interval
         recordingSession.startTime = Date()
         recordingElapsed = 0
         
-        // Use DispatchSourceTimer on background queue to avoid main thread blocking
+        // Use DispatchSourceTimer on background queue to avoid main thread blocking.
+        recordingConnectionManager = connectionManager
         let source = DispatchSource.makeTimerSource(queue: timerQueue)
         source.schedule(deadline: .now() + interval, repeating: interval, leeway: .milliseconds(100))
         source.setEventHandler { [weak self] in
-            DispatchQueue.main.async { self?.requestCapture(from: connectionManager) }
+            DispatchQueue.main.async {
+                guard let self else { return }
+                guard let cm = self.recordingConnectionManager else {
+                    self.stopRecording()
+                    return
+                }
+                self.requestCapture(from: cm)
+            }
         }
         source.resume()
         recordingSource = source
@@ -173,10 +202,21 @@ final class ScreenCaptureViewModel {
         recordingSource = nil
         elapsedTimer?.invalidate()
         elapsedTimer = nil
+        recordingConnectionManager = nil
         
         if recordingSession.frameCount > 0 {
             showRecordingExport = true
         }
+    }
+
+    /// Call when selected device disconnects or changes to avoid cross-device frames.
+    func handleDeviceContextLost() {
+        if recordingSession.isActive {
+            stopRecording()
+        }
+        isCapturing = false
+        captureGeneration &+= 1
+        recordingConnectionManager = nil
     }
     
     var formattedRecordingTime: String {

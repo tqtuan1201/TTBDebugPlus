@@ -385,8 +385,8 @@ final class NetworkViewModel {
         pinnedIds.removeAll()
         _syncedIds.removeAll()
         _cachedStats = nil
-        // Also clear source data if connection manager provided
-        connectionManager?.clearAllLogs()
+        // Only clear API/network source data — never wipe console logs
+        connectionManager?.clearAPILogs()
     }
     
     func togglePin(_ id: String) {

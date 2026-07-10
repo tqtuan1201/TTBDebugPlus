@@ -13,8 +13,11 @@ import SwiftUI
 /// troubleshooting checklist, and connected device diagnostics (if available).
 struct ConnectionHealthView: View {
     @Environment(ConnectionManager.self) var connectionManager
-    @State private var refreshTick: Int = 0
-    @State private var timer: Timer?
+
+    /// Derived from shared ConnectionManager clock — no private Timer.
+    private var refreshTick: Int {
+        Int(connectionManager.uiNow.timeIntervalSince1970 / 5)
+    }
     
     var body: some View {
         ScrollView {
@@ -61,15 +64,6 @@ struct ConnectionHealthView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.ttBackground)
-        .onAppear {
-            updateRefreshTimer()
-        }
-        .onDisappear {
-            stopRefreshTimer()
-        }
-        .onChange(of: connectionManager.isServerRunning) {
-            updateRefreshTimer()
-        }
     }
     
     // MARK: - Hero Section
@@ -124,38 +118,22 @@ struct ConnectionHealthView: View {
         }
     }
 
-    private func updateRefreshTimer() {
-        if connectionManager.isServerRunning {
-            startRefreshTimerIfNeeded()
-        } else {
-            stopRefreshTimer()
-        }
-    }
-
-    private func startRefreshTimerIfNeeded() {
-        guard timer == nil else { return }
-        let timer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { _ in
-            refreshTick += 1
-        }
-        timer.tolerance = 1.0
-        self.timer = timer
-    }
-
-    private func stopRefreshTimer() {
-        timer?.invalidate()
-        timer = nil
-    }
-    
     // MARK: - Server Status Card
     
     private var serverStatusCard: some View {
         CardView(title: "SERVER STATUS") {
             VStack(alignment: .leading, spacing: 10) {
                 statusRow(
-                    icon: connectionManager.isServerRunning ? "checkmark.circle.fill" : "xmark.circle.fill",
-                    iconColor: connectionManager.isServerRunning ? .ttSuccess : .ttError,
+                    icon: connectionManager.isServerRunning
+                        ? "checkmark.circle.fill"
+                        : (connectionManager.isLifecycleActive ? "exclamationmark.triangle.fill" : "xmark.circle.fill"),
+                    iconColor: connectionManager.isServerRunning
+                        ? .ttSuccess
+                        : (connectionManager.isLifecycleActive ? .ttWarning : .ttError),
                     label: "Bonjour Service",
-                    value: connectionManager.isServerRunning ? "Running" : "Stopped"
+                    value: connectionManager.isServerRunning
+                        ? "Running"
+                        : (connectionManager.isLifecycleActive ? "Active (no ports)" : "Stopped")
                 )
                 
                 if let port = connectionManager.serverPort {
@@ -182,13 +160,14 @@ struct ConnectionHealthView: View {
                 )
                 
                 // ── Action Buttons ──────────────────────────────────────
+                // Lifecycle (isLifecycleActive) drives Start/Stop; isServerRunning is port-bound advertise.
                 HStack(spacing: 8) {
-                    if connectionManager.isServerRunning {
+                    if connectionManager.isLifecycleActive {
                         // Force Reconnect — restart Bonjour without clearing sessions
                         Button(action: { connectionManager.forceReconnect() }) {
                             HStack(spacing: 5) {
                                 Image(systemName: AppIcon.reconnect)
-                                Text("Force Reconnect")
+                                Text(connectionManager.isServerRunning ? "Force Reconnect" : "Recover Advertise")
                             }
                         }
                         .buttonStyle(.ttSecondary)
@@ -198,6 +177,14 @@ struct ConnectionHealthView: View {
                             HStack(spacing: 5) {
                                 Image(systemName: "arrow.clockwise")
                                 Text("Restart Server")
+                            }
+                        }
+                        .buttonStyle(.ttGhost)
+
+                        Button(action: { connectionManager.stopServer() }) {
+                            HStack(spacing: 5) {
+                                Image(systemName: "stop.circle.fill")
+                                Text("Stop Server")
                             }
                         }
                         .buttonStyle(.ttGhost)
@@ -593,10 +580,14 @@ extension ConnectionHealthView {
                                 .font(TTFont.labelLarge)
                                 .foregroundColor(.ttTextPrimary)
                             Spacer()
-                            let elapsed = Int(Date().timeIntervalSince(session.lastHeartbeat))
+                            let elapsed = Int(session.heartbeatAge(relativeTo: connectionManager.uiNow))
                             Text("♥ \(elapsed)s ago")
                                 .font(TTFont.codeSmall)
-                                .foregroundColor(elapsed < 10 ? .ttSuccess : .ttWarning)
+                                .foregroundColor(
+                                    session.isOnline(relativeTo: connectionManager.uiNow)
+                                        ? (session.isHeartbeatWarning(relativeTo: connectionManager.uiNow) ? .ttWarning : .ttSuccess)
+                                        : .ttError
+                                )
                         }
 
                         HStack(spacing: 16) {

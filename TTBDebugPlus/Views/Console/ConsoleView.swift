@@ -48,6 +48,8 @@ struct ConsoleView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .clearConsole)) { _ in
             viewModel.clearAll()
+            // Source of truth: console only (network capture stays intact)
+            connectionManager.clearConsoleLogs()
         }
         // Keyboard navigation
         .onKeyPress(.upArrow) { selectPrevious(); return .handled }
@@ -178,7 +180,7 @@ struct ConsoleView: View {
             // Clear
             Button(action: {
                 viewModel.clearAll()
-                connectionManager.clearAllLogs()
+                connectionManager.clearConsoleLogs()
             }) {
                 HStack(spacing: 4) {
                     Image(systemName: "trash")

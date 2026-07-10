@@ -107,7 +107,11 @@ struct SidebarView: View {
                     .frame(width: 8, height: 8)
             }
             
-            Text(connectionManager.isServerRunning ? "Server Active" : "Server Offline")
+            Text(
+                connectionManager.isServerRunning
+                    ? "Server Active"
+                    : (connectionManager.isLifecycleActive ? "Server Starting…" : "Server Offline")
+            )
                 .font(TTFont.labelSmall)
                 .foregroundColor(.ttTextSecondary)
             
@@ -123,27 +127,23 @@ struct SidebarView: View {
             Button(action: { connectionManager.forceReconnect() }) {
                 Image(systemName: AppIcon.reconnect)
                     .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(connectionManager.isServerRunning ? .ttWarning : .ttTextMuted)
+                    .foregroundColor(connectionManager.isLifecycleActive ? .ttWarning : .ttTextMuted)
             }
             .buttonStyle(.plain)
-            .disabled(!connectionManager.isServerRunning)
+            .disabled(!connectionManager.isLifecycleActive)
             .help("Force Reconnect (restart Bonjour, keep logs)")
             .accessibilityLabel("Force Reconnect")
             
-            // Toggle server
+            // Toggle server lifecycle (not just port-bound advertise state)
             Button(action: {
-                if connectionManager.isServerRunning {
-                    connectionManager.stopServer()
-                } else {
-                    connectionManager.startServer()
-                }
+                connectionManager.toggleServer()
             }) {
-                Image(systemName: connectionManager.isServerRunning ? AppIcon.stopServer : AppIcon.startServer)
+                Image(systemName: connectionManager.isLifecycleActive ? AppIcon.stopServer : AppIcon.startServer)
                     .font(.ttIcon(TTIcon.xl))
-                    .foregroundColor(connectionManager.isServerRunning ? .ttError : .ttSuccess)
+                    .foregroundColor(connectionManager.isLifecycleActive ? .ttError : .ttSuccess)
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(connectionManager.isServerRunning ? "Stop Server" : "Start Server")
+            .accessibilityLabel(connectionManager.isLifecycleActive ? "Stop Server" : "Start Server")
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
@@ -210,7 +210,8 @@ struct SidebarView: View {
                 ForEach(connectionManager.connectedDevices) { session in
                     DeviceRowView(
                         session: session,
-                        isSelected: connectionManager.selectedDeviceId == session.id
+                        isSelected: connectionManager.selectedDeviceId == session.id,
+                        now: connectionManager.uiNow
                     )
                     .onTapGesture {
                         connectionManager.selectedDeviceId = session.id
@@ -301,18 +302,23 @@ struct SidebarView: View {
 struct DeviceRowView: View {
     let session: DeviceSession
     var isSelected: Bool = false
-    
+    /// Shared connection clock from ConnectionManager (optional; falls back to Date()).
+    var now: Date = Date()
+
+    private var online: Bool { session.isOnline(relativeTo: now) }
+    private var warning: Bool { session.isHeartbeatWarning(relativeTo: now) }
+
     var body: some View {
         HStack(spacing: 10) {
             // Device icon
             ZStack {
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(session.isOnline ? Color.ttSuccess.opacity(0.12) : Color.ttSurface)
+                    .fill(online ? Color.ttSuccess.opacity(0.12) : Color.ttSurface)
                     .frame(width: 32, height: 32)
                 
                 Image(systemName: session.isSimulator ? AppIcon.simulator : AppIcon.device)
                     .font(.ttIcon(TTIcon.xl))
-                    .foregroundColor(session.isOnline ? .ttSuccess : .ttTextTertiary)
+                    .foregroundColor(online ? .ttSuccess : .ttTextTertiary)
             }
             
             VStack(alignment: .leading, spacing: 2) {
@@ -328,9 +334,9 @@ struct DeviceRowView: View {
             
             Spacer()
             
-            // Status
+            // Status: green / amber / offline
             Circle()
-                .fill(session.isOnline ? Color.ttSuccess : Color.ttTextTertiary)
+                .fill(online ? (warning ? Color.ttWarning : Color.ttSuccess) : Color.ttTextTertiary)
                 .frame(width: 6, height: 6)
         }
         .padding(.horizontal, 8)

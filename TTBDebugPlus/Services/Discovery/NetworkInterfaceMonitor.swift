@@ -5,6 +5,8 @@
 //  Created by TuanTruong on 2026-04-09.
 //  Monitors active network interfaces via NWPathMonitor and publishes changes.
 //  Fixed: POSIX-based immediate scan avoids empty-first-call NWPathMonitor bug.
+//  Hardened 2026-07-10: queue-owned state, merge rescan (preserve NWInterface), stopAndWait.
+//  Hardened 2026-07-10b: rescanAndWait for wake/reconnect (no race with async publish).
 //
 
 import Foundation
@@ -40,17 +42,19 @@ enum InterfaceKind: String, CaseIterable {
 // MARK: - Network Interface Model
 
 struct NetworkInterface: Identifiable, Equatable {
-    let id: String            // interface name e.g. "en0"
+    let id: String
     let name: String
     let kind: InterfaceKind
     let ipAddress: String?
-    let nwInterface: NWInterface? // Optional — nil for POSIX-only entries
+    let nwInterface: NWInterface?
 
     static func == (lhs: NetworkInterface, rhs: NetworkInterface) -> Bool {
-        lhs.name == rhs.name && lhs.ipAddress == rhs.ipAddress && lhs.kind == rhs.kind
+        lhs.name == rhs.name
+            && lhs.ipAddress == rhs.ipAddress
+            && lhs.kind == rhs.kind
+            && (lhs.nwInterface != nil) == (rhs.nwInterface != nil)
     }
 
-    // MARK: Init from NWInterface (used by NWPathMonitor)
     init(nwInterface: NWInterface) {
         self.nwInterface = nwInterface
         self.name        = nwInterface.name
@@ -58,40 +62,30 @@ struct NetworkInterface: Identifiable, Equatable {
         self.ipAddress   = NetworkInterface.resolveIP(for: nwInterface.name)
 
         switch nwInterface.type {
-        case .wifi:         self.kind = .wifi
-        case .wiredEthernet:self.kind = .ethernet
-        case .other:        self.kind = nwInterface.name.hasPrefix("utun") ? .vpn : .other
-        default:            self.kind = .other
+        case .wifi:          self.kind = .wifi
+        case .wiredEthernet: self.kind = .ethernet
+        case .other:         self.kind = nwInterface.name.hasPrefix("utun") ? .vpn : .other
+        default:             self.kind = .other
         }
     }
 
-    // MARK: Init from POSIX name (used for immediate scan at startup)
     init(posixName: String) {
         self.nwInterface = nil
         self.name        = posixName
         self.id          = posixName
         self.ipAddress   = NetworkInterface.resolveIP(for: posixName)
 
-        // Classify by macOS interface naming conventions:
-        // - utun*, ipsec*, tun* → VPN / tunnel
-        // - bridge*, bond* → virtual/ethernet aggregate
-        // - en* → could be Wi-Fi OR Ethernet; we label as .wifi for common
-        //         MacBook setup; NWPathMonitor will correct this when it fires.
-        // - llw*, awdl* → Apple Wireless Direct Link — skip (filtered upstream)
         if posixName.hasPrefix("utun") || posixName.hasPrefix("ipsec") || posixName.hasPrefix("tun") {
             self.kind = .vpn
         } else if posixName.hasPrefix("bridge") || posixName.hasPrefix("bond") || posixName.hasPrefix("eth") {
             self.kind = .ethernet
         } else if posixName.hasPrefix("en") {
-            // en0 on MacBook = Wi-Fi, en0 on Mac Studio/iMac = Ethernet.
-            // NWPathMonitor will correct this; mark as .wifi initially.
             self.kind = .wifi
         } else {
             self.kind = .other
         }
     }
 
-    // MARK: Resolve IPv4 via POSIX getifaddrs
     static func resolveIP(for interfaceName: String) -> String? {
         var ifaddr: UnsafeMutablePointer<ifaddrs>?
         guard getifaddrs(&ifaddr) == 0, let first = ifaddr else { return nil }
@@ -111,36 +105,25 @@ struct NetworkInterface: Identifiable, Equatable {
         return nil
     }
 
-    // MARK: Immediate POSIX scan (no NWInterface, purely from getifaddrs)
     static func posixScanAll() -> [NetworkInterface] {
         var ifaddr: UnsafeMutablePointer<ifaddrs>?
         guard getifaddrs(&ifaddr) == 0, let first = ifaddr else { return [] }
         defer { freeifaddrs(ifaddr) }
 
-        // Skip loopback + Apple-internal wireless (AWDL/LLW)
-        // VPN tunnels (utun*) are included — users may want to toggle them
         let excludePrefixes = ["lo", "awdl", "llw"]
-
-        var seen  = Set<String>()
+        var seen = Set<String>()
         var result: [NetworkInterface] = []
 
         for ptr in sequence(first: first, next: { $0.pointee.ifa_next }) {
             let name = String(cString: ptr.pointee.ifa_name)
-
             guard !excludePrefixes.contains(where: { name.hasPrefix($0) }) else { continue }
             guard ptr.pointee.ifa_addr.pointee.sa_family == UInt8(AF_INET) else { continue }
             guard seen.insert(name).inserted else { continue }
-
-            // Resolve IP first so we can check for link-local
             guard let ip = NetworkInterface.resolveIP(for: name) else { continue }
-
-            // Skip link-local (169.254.x.x) — APIPA/self-assigned, not routable
-            // These cause spurious Bonjour advertisements that confuse iOS mDNS
             guard !ip.hasPrefix("169.254.") else {
                 print("[TTBDebug] 🔕 Skipping link-local interface \(name) (\(ip))")
                 continue
             }
-
             result.append(NetworkInterface(posixName: name))
         }
 
@@ -150,14 +133,20 @@ struct NetworkInterface: Identifiable, Equatable {
 
 // MARK: - Network Interface Monitor
 
-/// Uses POSIX getifaddrs for an immediate first read, then NWPathMonitor for live change events.
+/// POSIX getifaddrs for immediate first read, then NWPathMonitor for live updates.
+/// All mutations run on `queue`; callbacks always fire on main.
 final class NetworkInterfaceMonitor {
 
     private var pathMonitor: NWPathMonitor?
     private var isMonitoring = false
     private let queue = DispatchQueue(label: "com.ttbdebug.ifmonitor", qos: .utility)
 
-    private(set) var activeInterfaces: [NetworkInterface] = []
+    private var _activeInterfaces: [NetworkInterface] = []
+
+    /// Thread-safe snapshot of the latest interface list.
+    var activeInterfaces: [NetworkInterface] {
+        queue.sync { _activeInterfaces }
+    }
 
     /// Called on main thread whenever the interface list changes.
     var onInterfacesChanged: (([NetworkInterface]) -> Void)?
@@ -165,84 +154,167 @@ final class NetworkInterfaceMonitor {
     // MARK: - Start
 
     func start() {
-        guard !isMonitoring else {
-            rescan()
-            return
-        }
-        isMonitoring = true
-
-        // ── Step 1: Immediate POSIX scan so UI is never "No interfaces detected" ──
-        let initial = NetworkInterface.posixScanAll()
-        if !initial.isEmpty {
-            activeInterfaces = initial
-            DispatchQueue.main.async { [weak self] in
-                self?.onInterfacesChanged?(initial)
-            }
-            print("[TTBDebug] 📡 Initial POSIX scan: \(initial.map { "\($0.name)(\($0.ipAddress ?? "no-ip"))" })")
-        }
-
-        // ── Step 2: NWPathMonitor for live updates & accurate NWInterface objects ──
-        let monitor = NWPathMonitor()
-        pathMonitor = monitor
-        monitor.pathUpdateHandler = { [weak self] path in
+        queue.async { [weak self] in
             guard let self else { return }
-
-            var seen = Set<String>()
-            let nwInterfaces = path.availableInterfaces
-                .filter { iface in
-                    guard iface.type != .loopback else { return false }
-                    guard seen.insert(iface.name).inserted else { return false }
-                    return true
-                }
-                .map { NetworkInterface(nwInterface: $0) }
-                // Also filter link-local IPs here (NWPathMonitor can return them too)
-                .filter { iface in
-                    if let ip = iface.ipAddress, ip.hasPrefix("169.254.") {
-                        print("[TTBDebug] 🔕 NWPath: skipping link-local \(iface.name) (\(ip))")
-                        return false
-                    }
-                    return true
-                }
-                .sorted { $0.name < $1.name }
-
-            // If NWPathMonitor returns empty (known first-call bug), fallback to POSIX
-            let resolved = nwInterfaces.isEmpty
-                ? NetworkInterface.posixScanAll()
-                : nwInterfaces
-
-            guard resolved != self.activeInterfaces else { return }
-            self.activeInterfaces = resolved
-
-            DispatchQueue.main.async {
-                self.onInterfacesChanged?(resolved)
+            if self.isMonitoring {
+                self.rescanOnQueue(forceNotify: true)
+                return
             }
-            print("[TTBDebug] 📡 Interfaces updated: \(resolved.map { $0.name }.joined(separator: ", "))")
+            self.isMonitoring = true
+
+            let initial = NetworkInterface.posixScanAll()
+            if !initial.isEmpty {
+                self._activeInterfaces = initial
+                self.publishOnMain(initial)
+                print("[TTBDebug] 📡 Initial POSIX scan: \(initial.map { "\($0.name)(\($0.ipAddress ?? "no-ip"))" })")
+            }
+
+            let monitor = NWPathMonitor()
+            self.pathMonitor = monitor
+            monitor.pathUpdateHandler = { [weak self] path in
+                self?.handlePathUpdate(path)
+            }
+            monitor.start(queue: self.queue)
+            print("[TTBDebug] 📡 NetworkInterfaceMonitor started")
         }
-        monitor.start(queue: queue)
-        print("[TTBDebug] 📡 NetworkInterfaceMonitor started")
+    }
+
+    // MARK: - Path Update (on queue)
+
+    private func handlePathUpdate(_ path: NWPath) {
+        var seen = Set<String>()
+        let nwInterfaces = path.availableInterfaces
+            .filter { iface in
+                guard iface.type != .loopback else { return false }
+                let n = iface.name
+                if n.hasPrefix("awdl") || n.hasPrefix("llw") { return false }
+                return seen.insert(n).inserted
+            }
+            .map { NetworkInterface(nwInterface: $0) }
+            .filter { iface in
+                if let ip = iface.ipAddress, ip.hasPrefix("169.254.") {
+                    print("[TTBDebug] 🔕 NWPath: skipping link-local \(iface.name) (\(ip))")
+                    return false
+                }
+                return true
+            }
+            .filter { iface in
+                // Keep WiFi/Ethernet even without IPv4 yet (DHCP race after wake)
+                if let ip = iface.ipAddress, !ip.isEmpty { return true }
+                return iface.kind == .wifi || iface.kind == .ethernet
+            }
+            .sorted { $0.name < $1.name }
+
+        // Prefer NWPath list when it has real IPs; otherwise merge with POSIX so we
+        // don't wipe interfaces during brief path flaps.
+        let resolved: [NetworkInterface]
+        if nwInterfaces.isEmpty {
+            resolved = NetworkInterface.posixScanAll()
+        } else if nwInterfaces.contains(where: { $0.ipAddress != nil }) {
+            resolved = nwInterfaces
+        } else {
+            let posix = NetworkInterface.posixScanAll()
+            resolved = mergePreservingNW(existing: nwInterfaces, posix: posix)
+        }
+
+        applyIfChanged(resolved, source: "NWPath")
     }
 
     // MARK: - Manual Rescan
 
-    /// Triggers a fresh POSIX scan and notifies. Useful for "Refresh" button.
+    /// Fresh scan without waiting for NWPathMonitor. Preserves NWInterface handles when possible.
     func rescan() {
-        let fresh = NetworkInterface.posixScanAll()
-        guard fresh != activeInterfaces else { return }
-        activeInterfaces = fresh
-        DispatchQueue.main.async { [weak self] in
-            self?.onInterfacesChanged?(fresh)
+        queue.async { [weak self] in
+            self?.rescanOnQueue(forceNotify: false)
         }
-        print("[TTBDebug] 📡 Manual rescan: \(fresh.map { $0.name })")
+    }
+
+    /// Synchronous rescan for wake/reconnect recovery. Must NOT be called from `queue`.
+    /// Returns the post-rescan interface list and notifies the main-thread callback.
+    @discardableResult
+    func rescanAndWait() -> [NetworkInterface] {
+        queue.sync {
+            rescanOnQueue(forceNotify: true)
+            return _activeInterfaces
+        }
+    }
+
+    private func rescanOnQueue(forceNotify: Bool) {
+        let fresh = NetworkInterface.posixScanAll()
+
+        if _activeInterfaces.contains(where: { $0.nwInterface != nil }) {
+            let merged = mergePreservingNW(existing: _activeInterfaces, posix: fresh)
+            applyIfChanged(merged, source: "rescan-merge", force: forceNotify)
+        } else {
+            applyIfChanged(fresh, source: "rescan", force: forceNotify)
+        }
+    }
+
+    /// Rebuild list: keep NWInterface when POSIX still sees the name; add new POSIX entries.
+    private func mergePreservingNW(existing: [NetworkInterface], posix: [NetworkInterface]) -> [NetworkInterface] {
+        let posixNames = Set(posix.map(\.name))
+        var merged: [NetworkInterface] = []
+        var seen = Set<String>()
+
+        for existing in existing {
+            if let nw = existing.nwInterface, posixNames.contains(existing.name) {
+                // Re-resolve IP while keeping NWInterface handle
+                merged.append(NetworkInterface(nwInterface: nw))
+                seen.insert(existing.name)
+            } else if let p = posix.first(where: { $0.name == existing.name }) {
+                merged.append(p)
+                seen.insert(existing.name)
+            }
+        }
+
+        for p in posix where !seen.contains(p.name) {
+            merged.append(p)
+        }
+
+        return merged.sorted { $0.name < $1.name }
+    }
+
+    // MARK: - Apply + Publish
+
+    private func applyIfChanged(_ resolved: [NetworkInterface], source: String, force: Bool = false) {
+        guard force || resolved != _activeInterfaces else { return }
+        _activeInterfaces = resolved
+        publishOnMain(resolved)
+        let desc = resolved.map { "\($0.name)\($0.nwInterface != nil ? "*" : "")" }.joined(separator: ", ")
+        print("[TTBDebug] 📡 Interfaces updated (\(source)): \(desc)")
+    }
+
+    private func publishOnMain(_ interfaces: [NetworkInterface]) {
+        DispatchQueue.main.async { [weak self] in
+            self?.onInterfacesChanged?(interfaces)
+        }
     }
 
     // MARK: - Stop
 
     func stop() {
-        guard isMonitoring else { return }
+        queue.async { [weak self] in
+            self?.stopOnQueue()
+        }
+    }
+
+    /// Synchronous stop for clean server teardown. Must not be called from `queue`.
+    func stopAndWait() {
+        queue.sync { [weak self] in
+            self?.stopOnQueue()
+        }
+    }
+
+    private func stopOnQueue() {
+        guard isMonitoring else {
+            _activeInterfaces = []
+            return
+        }
         isMonitoring = false
         pathMonitor?.pathUpdateHandler = nil
         pathMonitor?.cancel()
         pathMonitor = nil
+        _activeInterfaces = []
         print("[TTBDebug] 📡 NetworkInterfaceMonitor stopped")
     }
 

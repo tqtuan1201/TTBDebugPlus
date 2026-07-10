@@ -5,10 +5,15 @@
 //  Created by TuanTruong on 2026-03-27.
 //  Central manager for all device connections, Bonjour advertising, and message routing.
 //  Updated 2026-04-09: multi-interface support via NetworkInterfaceMonitor.
+//  Hardened 2026-07-10: sleep/wake recovery, honest isServerRunning, single-writer
+//  heartbeat disconnect, shared uiNow clock, stopAllAndWait reconnect.
+//  Hardened 2026-07-10b: isLifecycleActive, recoverAdvertising (sync rescan),
+//  wake debounce, disconnectAllAndWait, offline session prune, startServer recover.
 //
 
 import Foundation
 import Network
+import AppKit
 
 // MARK: - Connection Manager
 
@@ -20,10 +25,14 @@ final class ConnectionManager {
     // MARK: - State
 
     var sessions: [String: DeviceSession] = [:] // deviceId → session
+
+    /// True only when at least one Bonjour listener has a bound port.
     var isServerRunning: Bool = false
 
-    /// Guards against double-start while listeners are still initializing
-    private var isStarted: Bool = false
+    /// True while the connection stack is intended to be active (monitor + heartbeat + observers).
+    /// Distinct from `isServerRunning` — ports may be temporarily unbound after wake/interface loss.
+    private(set) var isLifecycleActive: Bool = false
+
     private var lifecycleGeneration: Int = 0
 
     /// Per-interface port map (interfaceName → port)
@@ -39,13 +48,16 @@ final class ConnectionManager {
     /// Currently active network interfaces (excluding loopback)
     var activeInterfaces: [NetworkInterface] = []
 
+    /// Shared UI clock — bumped by the single heartbeat timer so views don't need private timers.
+    var uiNow: Date = Date()
+
     // Sorted device list for UI binding
     var connectedDevices: [DeviceSession] {
         sessions.values.sorted { $0.connectedAt > $1.connectedAt }
     }
 
     var onlineDevices: [DeviceSession] {
-        connectedDevices.filter { $0.isOnline }
+        connectedDevices.filter { $0.isOnline(relativeTo: uiNow) }
     }
 
     // Active device selection
@@ -105,6 +117,23 @@ final class ConnectionManager {
     private let ifMonitor    = NetworkInterfaceMonitor()
     private let ifPrefs      = InterfacePreferences.shared
     private var heartbeatTimer: Timer?
+    private var workspaceObservers: [NSObjectProtocol] = []
+    private var wakeRecoveryWorkItem: DispatchWorkItem?
+    private var advertiseRecoveryWorkItem: DispatchWorkItem?
+    private var lastAdvertiseRecoveryAt: Date = .distantPast
+    /// Suppresses advertiser updates from interface callbacks while a recovery rebind is in flight.
+    private var isRecoveringAdvertise = false
+    private var advertiseRecoveryToken: UInt64 = 0
+
+    /// Optional session persistence sink (wired from app lifecycle — weak to avoid cycles).
+    weak var sessionRecorder: SessionManager?
+
+    /// Hard cancel aligns with TCP keepalive budget (~20s). Soft online is 15s (DeviceSession).
+    private let hardHeartbeatTimeout: TimeInterval = 20
+    /// Drop fully offline sessions after this age to prevent unbounded memory growth.
+    private let offlineSessionRetention: TimeInterval = 30 * 60
+    /// Min gap between automatic advertise recoveries (avoids thrash when bind keeps failing).
+    private let advertiseRecoveryCooldown: TimeInterval = 15
 
     // MARK: - Init
 
@@ -112,14 +141,28 @@ final class ConnectionManager {
         setupCallbacks()
     }
 
+    deinit {
+        removeWorkspaceObservers()
+        wakeRecoveryWorkItem?.cancel()
+        advertiseRecoveryWorkItem?.cancel()
+        stopHeartbeatMonitor()
+    }
+
     // MARK: - Start Server
 
     func startServer() {
-        guard !isStarted else {
-            print("[TTBDebug] ⚠️ startServer called but already started — skipping")
+        // Already in lifecycle: recover advertise if ports died (was a silent no-op before).
+        if isLifecycleActive {
+            if !isServerRunning {
+                print("[TTBDebug] ⚠️ startServer while lifecycle active but not advertising — recovering")
+                recoverAdvertising(reason: "startServer-recover", force: true)
+            } else {
+                print("[TTBDebug] ⚠️ startServer called but already started — skipping")
+            }
             return
         }
-        isStarted = true
+
+        isLifecycleActive = true
         lifecycleGeneration += 1
 
         // Start monitoring interfaces — first update will kick off listeners
@@ -127,6 +170,7 @@ final class ConnectionManager {
         // NOTE: isServerRunning is driven by onStateChange (.ready callback)
         // to avoid showing "Running" before a port is actually bound.
         startHeartbeatMonitor()
+        registerWorkspaceObservers()
         print("[TTBDebug] 🚀 Connection manager started (multi-interface mode)")
     }
 
@@ -134,10 +178,16 @@ final class ConnectionManager {
 
     func stopServer() {
         lifecycleGeneration += 1
-        isStarted = false
-        ifMonitor.stop()
-        advertiser.stopAll()
-        wsServer.disconnectAll()
+        isLifecycleActive = false
+        wakeRecoveryWorkItem?.cancel()
+        wakeRecoveryWorkItem = nil
+        advertiseRecoveryWorkItem?.cancel()
+        advertiseRecoveryWorkItem = nil
+        isRecoveringAdvertise = false
+        removeWorkspaceObservers()
+        ifMonitor.stopAndWait()
+        advertiser.stopAllAndWait()
+        wsServer.disconnectAllAndWait()
         stopHeartbeatMonitor()
         sessions.removeAll()
         selectedDeviceId = nil
@@ -149,7 +199,17 @@ final class ConnectionManager {
         isServerRunning = false
         serverPorts.removeAll()
         activeInterfaces = []
+        sessionRecorder?.endSession()
         print("[TTBDebug] Server stopped")
+    }
+
+    /// Toggle lifecycle using `isLifecycleActive` (not port-bound state).
+    func toggleServer() {
+        if isLifecycleActive {
+            stopServer()
+        } else {
+            startServer()
+        }
     }
 
     // MARK: - Restart Server (full stop + start, clears sessions)
@@ -158,9 +218,9 @@ final class ConnectionManager {
         print("[TTBDebug] 🔄 Restarting server...")
         stopServer()
         let generation = lifecycleGeneration
-        // Small delay to let NWListeners fully tear down
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-            guard let self, self.lifecycleGeneration == generation, !self.isStarted else { return }
+        // Small delay to let NW stack fully release ports after cancel
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in
+            guard let self, self.lifecycleGeneration == generation, !self.isLifecycleActive else { return }
             self.startServer()
         }
     }
@@ -168,25 +228,70 @@ final class ConnectionManager {
     // MARK: - Force Reconnect (restart Bonjour only, keep sessions/logs)
 
     /// Tears down and re-creates all NWListeners without clearing sessions.
-    /// Use when QC needs to "kick" the Bonjour stack without losing logs.
     func forceReconnect() {
-        print("[TTBDebug] 🔄 Force-reconnecting Bonjour listeners...")
-        let generation = lifecycleGeneration
-        advertiser.stopAll()
-        // Small delay to let NWListeners fully tear down
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
-            guard let self else { return }
-            guard self.isStarted, self.lifecycleGeneration == generation else { return }
-            self.advertiser.updateInterfaces(self.activeInterfaces, preferences: self.ifPrefs)
-            print("[TTBDebug] ✅ Bonjour listeners restarted")
+        guard isLifecycleActive else { return }
+        recoverAdvertising(reason: "forceReconnect", force: true)
+    }
+
+    // MARK: - Advertise recovery (single path for wake / force / stuck-start)
+
+    /// Synchronously rescans interfaces, stops listeners, then rebinds after a short yield.
+    /// - Parameter force: When true (user force-reconnect / wake), ignore cooldown.
+    private func recoverAdvertising(reason: String, force: Bool = false) {
+        guard isLifecycleActive else { return }
+        let now = Date()
+        if !force, now.timeIntervalSince(lastAdvertiseRecoveryAt) < advertiseRecoveryCooldown {
+            return
         }
+        lastAdvertiseRecoveryAt = now
+
+        let generation = lifecycleGeneration
+        print("[TTBDebug] 🔄 Recover advertising (\(reason))...")
+
+        // Cancel any in-flight recovery to avoid stacked rebinds
+        advertiseRecoveryWorkItem?.cancel()
+        advertiseRecoveryToken &+= 1
+        let recoveryToken = advertiseRecoveryToken
+        isRecoveringAdvertise = true
+
+        // Sync rescan so we don't rebuild listeners with a stale interface list.
+        // Interface callback may fire; isRecoveringAdvertise suppresses mid-recovery rebind.
+        let interfaces = ifMonitor.rescanAndWait()
+        if !interfaces.isEmpty {
+            activeInterfaces = interfaces
+        }
+        advertiser.stopAllAndWait()
+        syncServerRunningFromPorts()
+
+        let work = DispatchWorkItem { [weak self] in
+            guard let self else { return }
+            defer {
+                // Only the latest recovery may clear the flag (cancelled predecessors no-op)
+                if self.advertiseRecoveryToken == recoveryToken {
+                    self.isRecoveringAdvertise = false
+                }
+            }
+            guard self.isLifecycleActive, self.lifecycleGeneration == generation else { return }
+            guard self.advertiseRecoveryToken == recoveryToken else { return }
+            // Prefer monitor snapshot (may have merged NWInterface from path)
+            let latest = self.ifMonitor.activeInterfaces
+            let target = latest.isEmpty ? self.activeInterfaces : latest
+            if !target.isEmpty {
+                self.activeInterfaces = target
+            }
+            self.advertiser.updateInterfaces(self.activeInterfaces, preferences: self.ifPrefs)
+            self.syncServerRunningFromPorts()
+            print("[TTBDebug] ✅ Advertise recovery complete (\(reason))")
+        }
+        advertiseRecoveryWorkItem = work
+        // Brief yield so cancelled listeners release sockets before re-bind
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2, execute: work)
     }
 
     // MARK: - Interface Preference Toggle (called from UI)
 
     func setInterfaceEnabled(_ name: String, _ enabled: Bool) {
         ifPrefs.setEnabled(name, enabled)
-        // Re-apply current interface list with updated prefs
         advertiser.updateInterfaces(activeInterfaces, preferences: ifPrefs)
     }
 
@@ -194,7 +299,7 @@ final class ConnectionManager {
         ifPrefs.isEnabled(name)
     }
 
-    /// Force a fresh POSIX scan without waiting for NWPathMonitor event.
+    /// Force a fresh scan without waiting for NWPathMonitor event.
     func rescanInterfaces() {
         ifMonitor.rescan()
     }
@@ -206,7 +311,10 @@ final class ConnectionManager {
         // Interface monitor → advertiser
         ifMonitor.onInterfacesChanged = { [weak self] interfaces in
             guard let self else { return }
+            guard self.isLifecycleActive else { return }
             self.activeInterfaces = interfaces
+            // During recovery we only refresh the list; rebind is owned by recoverAdvertising.
+            guard !self.isRecoveringAdvertise else { return }
             self.advertiser.updateInterfaces(interfaces, preferences: self.ifPrefs)
         }
 
@@ -215,34 +323,31 @@ final class ConnectionManager {
             self?.wsServer.handleNewConnection(connection)
         }
 
-        advertiser.onStateChange = { [weak self] interfaceName, state in
+        advertiser.onStateChange = { [weak self] _, state in
             DispatchQueue.main.async {
                 guard let self else { return }
-                guard self.isStarted else {
+                guard self.isLifecycleActive else {
                     self.isServerRunning = false
                     self.serverPorts.removeAll()
                     return
                 }
-                // Sync port snapshot AFTER the serial queue has updated ports
                 let snapshot = self.advertiser.portSnapshot
+                self.serverPorts = snapshot
                 switch state {
                 case .ready:
-                    self.isServerRunning = true
-                    self.serverPorts = snapshot
+                    self.isServerRunning = !snapshot.isEmpty
                 case .failed, .cancelled:
-                    self.serverPorts = snapshot
-                    // Still running if any other interface has a bound port or a device is connected
-                    self.isServerRunning = !snapshot.isEmpty || !self.sessions.isEmpty
+                    // Honest advertise state — sessions alone do NOT mean server is running
+                    self.isServerRunning = !snapshot.isEmpty
                 case .waiting:
-                    // Waiting means interface is trying — keep current running state
-                    break
+                    self.isServerRunning = !snapshot.isEmpty
                 default:
                     break
                 }
             }
         }
 
-        // WebSocket → Sessions
+        // WebSocket → Sessions (single writer for connect/disconnect state)
         wsServer.onDeviceConnected    = { [weak self] id, conn, info in self?.handleDeviceConnected(deviceId: id, connection: conn, info: info) }
         wsServer.onDeviceDisconnected = { [weak self] id in self?.handleDeviceDisconnected(deviceId: id) }
         wsServer.onAPILog             = { [weak self] id, log in self?.handleAPILog(deviceId: id, log: log) }
@@ -253,19 +358,62 @@ final class ConnectionManager {
         wsServer.onConnectionDiagnostics = { [weak self] id, d in self?.handleConnectionDiagnostics(deviceId: id, diagnostics: d) }
     }
 
+    private func syncServerRunningFromPorts() {
+        let snapshot = advertiser.portSnapshot
+        serverPorts = snapshot
+        isServerRunning = isLifecycleActive && !snapshot.isEmpty
+    }
+
+    // MARK: - Sleep / Wake
+
+    private func registerWorkspaceObservers() {
+        removeWorkspaceObservers()
+        let nc = NSWorkspace.shared.notificationCenter
+
+        let wake = nc.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) { [weak self] _ in
+            self?.handleSystemWake()
+        }
+        let screensWake = nc.addObserver(forName: NSWorkspace.screensDidWakeNotification, object: nil, queue: .main) { [weak self] _ in
+            self?.handleSystemWake()
+        }
+        workspaceObservers = [wake, screensWake]
+    }
+
+    private func removeWorkspaceObservers() {
+        let nc = NSWorkspace.shared.notificationCenter
+        for token in workspaceObservers {
+            nc.removeObserver(token)
+        }
+        workspaceObservers.removeAll()
+    }
+
+    private func handleSystemWake() {
+        guard isLifecycleActive else { return }
+        // Debounce didWake + screensDidWake which often fire together
+        wakeRecoveryWorkItem?.cancel()
+        let generation = lifecycleGeneration
+        let work = DispatchWorkItem { [weak self] in
+            guard let self, self.isLifecycleActive, self.lifecycleGeneration == generation else { return }
+            print("[TTBDebug] 💤→☀️ System wake — recovering Bonjour advertise")
+            self.recoverAdvertising(reason: "systemWake", force: true)
+        }
+        wakeRecoveryWorkItem = work
+        // Path stack may still be coming up after wake
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6, execute: work)
+    }
+
     // MARK: - Event Handlers
 
     private func handleDeviceConnected(deviceId: String, connection: NWConnection, info: DeviceInfoPayload) {
-        let session: DeviceSession
         if let existing = sessions[deviceId] {
             existing.connection = connection
             existing.connectionState = .connected
             existing.deviceInfo = info
             existing.lastHeartbeat = Date()
-            session = existing
+            // Keep original connectedAt for stable sort; only refresh heartbeat
             print("[TTBDebug] 📱 Device reconnected: \(info.deviceName)")
         } else {
-            session = DeviceSession(id: deviceId, connection: connection)
+            let session = DeviceSession(id: deviceId, connection: connection)
             session.deviceInfo = info
             session.connectionState = .connected
             session.lastHeartbeat = Date()
@@ -273,6 +421,11 @@ final class ConnectionManager {
             print("[TTBDebug] 📱 New device connected: \(info.deviceName)")
         }
         if selectedDeviceId == nil { selectedDeviceId = deviceId }
+        sessionRecorder?.noteDeviceConnected(
+            deviceId: deviceId,
+            deviceName: info.deviceName,
+            appName: info.appName
+        )
     }
 
     private func handleDeviceDisconnected(deviceId: String) {
@@ -281,9 +434,9 @@ final class ConnectionManager {
             session.connection = nil
             print("[TTBDebug] 📱 Device disconnected: \(session.displayName)")
         }
-        // If the disconnected device was selected, auto-pivot to another online device
         if selectedDeviceId == deviceId {
             selectedDeviceId = onlineDevices.first(where: { $0.id != deviceId })?.id
+                ?? connectedDevices.first(where: { $0.id != deviceId && $0.connectionState == .connected })?.id
         }
     }
 
@@ -291,14 +444,21 @@ final class ConnectionManager {
         guard let session = sessions[deviceId] else { return }
         session.apiLogs.append(log)
         totalAPILogs += 1
-        if session.apiLogs.count > 5000 { session.apiLogs.removeFirst(1000) }
+        // Cap without pathological O(n) churn: drop a chunk when over limit
+        if session.apiLogs.count > 5000 {
+            session.apiLogs.removeFirst(min(1000, session.apiLogs.count - 4000))
+        }
+        sessionRecorder?.addAPILog(log)
     }
 
     private func handleConsoleLog(deviceId: String, log: ConsoleLogPayload) {
         guard let session = sessions[deviceId] else { return }
         session.consoleLogs.append(log)
         totalConsoleLogs += 1
-        if session.consoleLogs.count > 10000 { session.consoleLogs.removeFirst(2000) }
+        if session.consoleLogs.count > 10000 {
+            session.consoleLogs.removeFirst(min(2000, session.consoleLogs.count - 8000))
+        }
+        sessionRecorder?.addConsoleLog(log)
     }
 
     private func handleHeartbeat(deviceId: String) {
@@ -313,6 +473,7 @@ final class ConnectionManager {
     private func handlePerformanceMetrics(deviceId: String, metrics: PerformanceMetricsPayload) {
         sessions[deviceId]?.latestPerformance = metrics
         totalPerformanceMetrics += 1
+        sessionRecorder?.addPerformanceSnapshot(metrics)
     }
 
     private func handleConnectionDiagnostics(deviceId: String, diagnostics: ConnectionDiagnosticsPayload) {
@@ -322,38 +483,31 @@ final class ConnectionManager {
 
     // MARK: - macOS Network Info
 
-    /// All active interface IPs (interfaceName → IPv4)
     var allLocalIPs: [String: String] {
         activeInterfaces.reduce(into: [:]) { result, iface in
             if let ip = iface.ipAddress { result[iface.name] = ip }
         }
     }
 
-    /// Best guess at the primary mac IP: en0 → en1 → first available
     var macLocalIP: String? {
         allLocalIPs["en0"] ?? allLocalIPs["en1"] ?? allLocalIPs.values.first
     }
 
-    /// Subnet mask for the primary interface (en0 → en1 → first)
     var macSubnetMask: String? {
         guard let primary = activeInterfaces.first(where: { $0.name == "en0" })
                          ?? activeInterfaces.first(where: { $0.name == "en1" })
                          ?? activeInterfaces.first,
               let ip = primary.ipAddress else { return nil }
-        // return last-octet-zeroed mask heuristic (255.255.255.0)
         let parts = ip.split(separator: ".").prefix(3).map { String($0) }
         return parts.count == 3 ? parts.joined(separator: ".") + ".0" : nil
     }
 
-    /// Network prefix for subnet comparison (uses primary IP)
     var macNetworkPrefix: String? {
         guard let ip = macLocalIP else { return nil }
-        // Use /24 heuristic — compare first 3 octets
         let parts = ip.split(separator: ".").prefix(3)
         return parts.joined(separator: ".")
     }
 
-    /// Per-interface network prefix map
     var allNetworkPrefixes: [String: String] {
         allLocalIPs.compactMapValues { ip in
             let parts = ip.split(separator: ".").prefix(3)
@@ -361,14 +515,18 @@ final class ConnectionManager {
         }
     }
 
-    // MARK: - Heartbeat Monitor
+    // MARK: - Heartbeat Monitor + shared UI clock
 
     private func startHeartbeatMonitor() {
         guard heartbeatTimer == nil else { return }
-        heartbeatTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { [weak self] _ in
-            self?.checkHeartbeats()
+        // Ensure timer is on main run loop (UI / AppKit lifecycle)
+        let timer = Timer(timeInterval: 5.0, repeats: true) { [weak self] _ in
+            self?.tick()
         }
-        heartbeatTimer?.tolerance = 1.0
+        timer.tolerance = 1.0
+        RunLoop.main.add(timer, forMode: .common)
+        heartbeatTimer = timer
+        uiNow = Date()
     }
 
     private func stopHeartbeatMonitor() {
@@ -376,43 +534,94 @@ final class ConnectionManager {
         heartbeatTimer = nil
     }
 
-    private func checkHeartbeats() {
-        let timeout: TimeInterval = 15
-        for (_, session) in sessions where session.connectionState == .connected {
-            let elapsed = Date().timeIntervalSince(session.lastHeartbeat)
-            if elapsed > timeout {
-                print("[TTBDebug] ⚠️ Heartbeat timeout: \(session.displayName) (\(Int(elapsed))s ago) — force-closing connection")
-                // Cancel the NWConnection so TCP keep-alive fires and the remote
-                // OS stack is notified. Also clears the session's connection reference.
-                session.connection?.cancel()
-                session.connection = nil
-                session.connectionState = .disconnected
-                // Auto-pivot selected device
-                if selectedDeviceId == session.id {
-                    selectedDeviceId = onlineDevices.first(where: { $0.id != session.id })?.id
-                }
+    private func tick() {
+        uiNow = Date()
+        checkHeartbeats()
+        pruneStaleSessions()
+        // Keep isServerRunning honest if ports drained without a state event
+        if isLifecycleActive {
+            let snapshot = advertiser.portSnapshot
+            if serverPorts != snapshot {
+                serverPorts = snapshot
+            }
+            let advertising = !snapshot.isEmpty
+            if isServerRunning != advertising {
+                isServerRunning = advertising
+            }
+            // Auto-recover if lifecycle is active but all listeners are gone
+            // (interface flap without wake). Cooldown prevents thrash.
+            if !advertising, !activeInterfaces.isEmpty {
+                recoverAdvertising(reason: "tick-no-ports", force: false)
             }
         }
+    }
+
+    /// Hard path only cancels the NWConnection. Session state is written solely by
+    /// WebSocketServer disconnect/connect callbacks (avoids double-writer races).
+    private func checkHeartbeats() {
+        for (_, session) in sessions where session.connectionState == .connected {
+            let elapsed = uiNow.timeIntervalSince(session.lastHeartbeat)
+            if elapsed > hardHeartbeatTimeout {
+                print("[TTBDebug] ⚠️ Heartbeat hard-timeout: \(session.displayName) (\(Int(elapsed))s ago) — cancelling connection")
+                // Cancel only; handleDeviceDisconnected will update state via WS callback
+                session.connection?.cancel()
+            }
+        }
+    }
+
+    /// Remove long-offline sessions to bound memory (logs can be large).
+    private func pruneStaleSessions() {
+        let cutoff = offlineSessionRetention
+        let staleIds = sessions.compactMap { id, session -> String? in
+            guard session.connectionState == .disconnected || session.connectionState == .failed else {
+                return nil
+            }
+            guard uiNow.timeIntervalSince(session.lastHeartbeat) > cutoff else { return nil }
+            return id
+        }
+        guard !staleIds.isEmpty else { return }
+
+        for id in staleIds {
+            if let session = sessions.removeValue(forKey: id) {
+                totalAPILogs = max(0, totalAPILogs - session.apiLogs.count)
+                totalConsoleLogs = max(0, totalConsoleLogs - session.consoleLogs.count)
+            }
+            if selectedDeviceId == id {
+                selectedDeviceId = onlineDevices.first?.id ?? connectedDevices.first?.id
+            }
+        }
+        _cachedAPILogs = nil
+        _cachedConsoleLogs = nil
+        print("[TTBDebug] 🧹 Pruned \(staleIds.count) stale offline session(s)")
     }
 
     // MARK: - Actions
 
     func clearAllLogs() {
+        clearAPILogs()
+        clearConsoleLogs()
+    }
+
+    /// Clear only network/API capture data (does not touch console).
+    func clearAPILogs() {
         for session in sessions.values {
-            totalAPILogs     -= session.apiLogs.count
-            totalConsoleLogs -= session.consoleLogs.count
+            totalAPILogs -= session.apiLogs.count
             session.apiLogs.removeAll()
+        }
+        totalAPILogs = max(0, totalAPILogs)
+        _cachedAPILogs = nil
+    }
+
+    /// Clear only console logs (does not touch network capture).
+    func clearConsoleLogs() {
+        for session in sessions.values {
+            totalConsoleLogs -= session.consoleLogs.count
             session.consoleLogs.removeAll()
         }
-        // Clamp to 0 to avoid negatives from any counter drift
-        totalAPILogs     = max(0, totalAPILogs)
         totalConsoleLogs = max(0, totalConsoleLogs)
-        // Bust cache
-        _cachedAPILogs    = nil
         _cachedConsoleLogs = nil
     }
 
-    /// Clear logs for a single session only, keeping other sessions' counters accurate.
     func clearLogs(for sessionId: String) {
         guard let session = sessions[sessionId] else { return }
         totalAPILogs     = max(0, totalAPILogs     - session.apiLogs.count)
@@ -420,6 +629,20 @@ final class ConnectionManager {
         session.apiLogs.removeAll()
         session.consoleLogs.removeAll()
         _cachedAPILogs    = nil
+        _cachedConsoleLogs = nil
+    }
+
+    func clearAPILogs(for sessionId: String) {
+        guard let session = sessions[sessionId] else { return }
+        totalAPILogs = max(0, totalAPILogs - session.apiLogs.count)
+        session.apiLogs.removeAll()
+        _cachedAPILogs = nil
+    }
+
+    func clearConsoleLogs(for sessionId: String) {
+        guard let session = sessions[sessionId] else { return }
+        totalConsoleLogs = max(0, totalConsoleLogs - session.consoleLogs.count)
+        session.consoleLogs.removeAll()
         _cachedConsoleLogs = nil
     }
 

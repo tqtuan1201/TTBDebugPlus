@@ -13,21 +13,33 @@ struct StatusBarView: View {
     @Environment(ConnectionManager.self) var connectionManager
     
     private var hasDevice: Bool {
-        connectionManager.selectedDevice?.isOnline == true
+        connectionManager.selectedDevice?.isOnline(relativeTo: connectionManager.uiNow) == true
+    }
+
+    private var serverStatusColor: Color {
+        if connectionManager.isServerRunning { return .ttSuccess }
+        if connectionManager.isLifecycleActive { return .ttWarning }
+        return .ttError
+    }
+
+    private var serverStatusText: String {
+        if connectionManager.isServerRunning { return "ONLINE" }
+        if connectionManager.isLifecycleActive { return "STARTING" }
+        return "OFFLINE"
     }
     
     var body: some View {
         HStack(spacing: 0) {
             // Left side: Server status + device metrics
             HStack(spacing: 16) {
-                // Server status
+                // Server status (lifecycle + advertise honesty)
                 HStack(spacing: 6) {
                     Circle()
-                        .fill(connectionManager.isServerRunning ? Color.ttSuccess : Color.ttError)
+                        .fill(serverStatusColor)
                         .frame(width: 6, height: 6)
-                    Text(connectionManager.isServerRunning ? "ONLINE" : "OFFLINE")
+                    Text(serverStatusText)
                         .font(TTFont.statusBar)
-                        .foregroundColor(connectionManager.isServerRunning ? .ttSuccess : .ttError)
+                        .foregroundColor(serverStatusColor)
                 }
                 
                 // Only show metrics when a device is connected (no more "--" values)
@@ -75,7 +87,8 @@ struct StatusBarView: View {
                         .frame(width: 1, height: 14)
                 }
                 
-                if let device = connectionManager.selectedDevice, device.isOnline {
+                if let device = connectionManager.selectedDevice,
+                   device.isOnline(relativeTo: connectionManager.uiNow) {
                     HStack(spacing: 6) {
                         ConnectionIndicator(isConnected: true)
                         Text(device.displayName)

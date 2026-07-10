@@ -110,6 +110,7 @@ final class PerformanceViewModel {
         currentFPS = nil
         diskUsed = nil
         lastMetricsTimestamp = nil
+        resetAPIAnalytics()
     }
 
     private func resetAPIAnalytics() {

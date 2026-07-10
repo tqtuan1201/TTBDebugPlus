@@ -58,8 +58,9 @@ struct DeviceSessionMenuButton: View {
 
 struct DeviceSessionMenuView: View {
     @Environment(ConnectionManager.self) var connectionManager
-    @State private var heartbeatNow = Date()
-    @State private var heartbeatTimer: Timer?
+
+    /// Shared connection clock from ConnectionManager (no private Timer).
+    private var heartbeatNow: Date { connectionManager.uiNow }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -148,11 +149,6 @@ struct DeviceSessionMenuView: View {
         }
         .frame(width: 360)
         .background(Color.ttSurface)
-        .onAppear { updateHeartbeatTimer() }
-        .onDisappear { stopHeartbeatTimer() }
-        .onChange(of: connectionManager.connectedDevices.count) {
-            updateHeartbeatTimer()
-        }
     }
 
     // MARK: - Empty State
@@ -176,28 +172,6 @@ struct DeviceSessionMenuView: View {
         .frame(maxWidth: .infinity)
         .padding(24)
     }
-
-    private func updateHeartbeatTimer() {
-        if connectionManager.connectedDevices.isEmpty {
-            stopHeartbeatTimer()
-        } else {
-            startHeartbeatTimerIfNeeded()
-        }
-    }
-
-    private func startHeartbeatTimerIfNeeded() {
-        guard heartbeatTimer == nil else { return }
-        let timer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { _ in
-            heartbeatNow = Date()
-        }
-        timer.tolerance = 1.0
-        heartbeatTimer = timer
-    }
-
-    private func stopHeartbeatTimer() {
-        heartbeatTimer?.invalidate()
-        heartbeatTimer = nil
-    }
 }
 
 // MARK: - Session Row
@@ -217,9 +191,9 @@ struct SessionRow: View {
     }
 
     private var heartbeatColor: Color {
-        let s = Int(now.timeIntervalSince(session.lastHeartbeat))
-        if s < 8  { return .ttSuccess }
-        if s < 15 { return .ttWarning }
+        if session.isOnline(relativeTo: now) {
+            return session.isHeartbeatWarning(relativeTo: now) ? .ttWarning : .ttSuccess
+        }
         return .ttError
     }
 
@@ -233,11 +207,15 @@ struct SessionRow: View {
                 ZStack(alignment: .bottomTrailing) {
                     Image(systemName: session.isSimulator ? AppIcon.simulator : AppIcon.device)
                         .font(.system(size: 20, weight: .light))
-                        .foregroundColor(session.isOnline ? .ttTextPrimary : .ttTextTertiary)
+                        .foregroundColor(session.isOnline(relativeTo: now) ? .ttTextPrimary : .ttTextTertiary)
                         .frame(width: 28)
 
                     Circle()
-                        .fill(session.isOnline ? Color.ttSuccess : Color.ttTextMuted)
+                        .fill(
+                            session.isOnline(relativeTo: now)
+                                ? (session.isHeartbeatWarning(relativeTo: now) ? Color.ttWarning : Color.ttSuccess)
+                                : Color.ttTextMuted
+                        )
                         .frame(width: 8, height: 8)
                         .overlay(Circle().stroke(Color.ttSurface, lineWidth: 1.5))
                         .offset(x: 2, y: 2)
@@ -248,10 +226,10 @@ struct SessionRow: View {
                     HStack(spacing: 6) {
                         Text(session.displayName)
                             .font(TTFont.labelLarge)
-                            .foregroundColor(session.isOnline ? .ttTextPrimary : .ttTextTertiary)
+                            .foregroundColor(session.isOnline(relativeTo: now) ? .ttTextPrimary : .ttTextTertiary)
                             .lineLimit(1)
 
-                        if session.isOnline {
+                        if session.isOnline(relativeTo: now) {
                             // Selected indicator
                             if connectionManager.selectedDeviceId == session.id {
                                 Text("ACTIVE")
@@ -321,7 +299,7 @@ struct SessionRow: View {
                     Spacer()
 
                     // Select as active
-                    if session.isOnline {
+                    if session.isOnline(relativeTo: now) {
                         SessionActionButton(
                             title: "Set Active",
                             icon: "checkmark.circle",
@@ -341,7 +319,7 @@ struct SessionRow: View {
                     }
 
                     // Screenshot
-                    if session.isOnline {
+                    if session.isOnline(relativeTo: now) {
                         SessionActionButton(
                             title: "Screenshot",
                             icon: "camera",

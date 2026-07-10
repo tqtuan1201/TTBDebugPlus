@@ -4,6 +4,7 @@
 //
 //  Created by TuanTruong on 2026-04-09.
 //  Persists per-interface enabled/disabled state to UserDefaults.
+//  Hardened 2026-07-10: in-memory cache + write-through.
 //
 
 import Foundation
@@ -17,40 +18,42 @@ final class InterfacePreferences {
     static let shared = InterfacePreferences()
 
     private let defaultsKey = "ttbdebug.disabledInterfaces"
+    private let lock = NSLock()
+    private var cachedDisabled: Set<String>
 
-    // MARK: - Private State
-
-    private var disabledNames: Set<String> {
-        get {
-            let arr = UserDefaults.standard.stringArray(forKey: defaultsKey) ?? []
-            return Set(arr)
-        }
-        set {
-            UserDefaults.standard.set(Array(newValue), forKey: defaultsKey)
-        }
+    private init() {
+        let arr = UserDefaults.standard.stringArray(forKey: defaultsKey) ?? []
+        cachedDisabled = Set(arr)
     }
 
     // MARK: - API
 
     /// Returns true if the interface with this name is enabled (default: true).
     func isEnabled(_ name: String) -> Bool {
-        !disabledNames.contains(name)
+        lock.lock()
+        defer { lock.unlock() }
+        return !cachedDisabled.contains(name)
     }
 
     /// Enable or disable a specific interface by name. Persisted immediately.
     func setEnabled(_ name: String, _ enabled: Bool) {
-        var current = disabledNames
+        lock.lock()
         if enabled {
-            current.remove(name)
+            cachedDisabled.remove(name)
         } else {
-            current.insert(name)
+            cachedDisabled.insert(name)
         }
-        disabledNames = current
+        let snapshot = Array(cachedDisabled)
+        lock.unlock()
+
+        UserDefaults.standard.set(snapshot, forKey: defaultsKey)
         print("[TTBDebug] Interface '\(name)' \(enabled ? "enabled" : "disabled")")
     }
 
     /// Returns all interface names the user has explicitly disabled.
-    var allDisabled: Set<String> { disabledNames }
-
-    private init() {}
+    var allDisabled: Set<String> {
+        lock.lock()
+        defer { lock.unlock() }
+        return cachedDisabled
+    }
 }

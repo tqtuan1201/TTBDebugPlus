@@ -191,14 +191,14 @@ struct MenuBarView: View {
             Spacer(minLength: 8)
             
             Button(action: toggleServer) {
-                Text(connectionManager.isServerRunning ? "Stop" : "Start")
+                Text(connectionManager.isLifecycleActive ? "Stop" : "Start")
                     .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(connectionManager.isServerRunning ? .ttError : .ttSuccess)
+                    .foregroundColor(connectionManager.isLifecycleActive ? .ttError : .ttSuccess)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 7)
                     .background {
                         RoundedRectangle(cornerRadius: 7)
-                            .fill(connectionManager.isServerRunning ? Color.ttError.opacity(0.14) : Color.ttSuccess.opacity(0.14))
+                            .fill(connectionManager.isLifecycleActive ? Color.ttError.opacity(0.14) : Color.ttSuccess.opacity(0.14))
                     }
             }
             .buttonStyle(.plain)
@@ -442,11 +442,7 @@ struct MenuBarView: View {
     // MARK: - Navigation
     
     private func toggleServer() {
-        if connectionManager.isServerRunning {
-            connectionManager.stopServer()
-        } else {
-            connectionManager.startServer()
-        }
+        connectionManager.toggleServer()
     }
     
     private func openDevTool(_ tool: DevTool) {

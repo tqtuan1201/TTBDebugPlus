@@ -9,16 +9,20 @@
 import SwiftUI
 
 struct MenuBarDeviceRow: View {
+    @Environment(ConnectionManager.self) private var connectionManager
     let session: DeviceSession
     
     @State private var isHovered = false
+
+    private var online: Bool { session.isOnline(relativeTo: connectionManager.uiNow) }
+    private var warning: Bool { session.isHeartbeatWarning(relativeTo: connectionManager.uiNow) }
     
     var body: some View {
         HStack(spacing: 8) {
             // Device icon
             Image(systemName: session.isSimulator ? AppIcon.simulator : AppIcon.device)
                 .font(.system(size: 11))
-                .foregroundColor(session.isOnline ? .ttSuccess : .secondary)
+                .foregroundColor(online ? .ttSuccess : .secondary)
                 .frame(width: 16)
             
             // Device info
@@ -34,9 +38,9 @@ struct MenuBarDeviceRow: View {
             
             Spacer()
             
-            // Status dot
+            // Status dot: green / amber / offline
             Circle()
-                .fill(session.isOnline ? Color.ttSuccess : Color.secondary.opacity(0.5))
+                .fill(online ? (warning ? Color.ttWarning : Color.ttSuccess) : Color.secondary.opacity(0.5))
                 .frame(width: 6, height: 6)
         }
         .padding(.horizontal, 12)

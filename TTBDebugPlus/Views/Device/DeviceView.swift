@@ -44,7 +44,8 @@ struct DeviceView: View {
     
     var body: some View {
         Group {
-            if let device = connectionManager.selectedDevice, device.isOnline {
+            if let device = connectionManager.selectedDevice,
+               device.isOnline(relativeTo: connectionManager.uiNow) {
                 connectedContent(device: device)
             } else {
                 ConnectionHealthView()
@@ -55,6 +56,23 @@ struct DeviceView: View {
             if let _ = newVal, let screenshot = connectionManager.selectedDevice?.latestScreenshot {
                 captureVM.handleScreenshotReceived(screenshot)
             }
+        }
+        .onChange(of: connectionManager.selectedDeviceId) { _, _ in
+            // Device switch / disconnect — stop recording and avoid cross-device frames
+            captureVM.handleDeviceContextLost()
+            quickAnnotations.removeAll()
+            quickRedoStack.removeAll()
+            quickDragPoints.removeAll()
+        }
+        .onChange(of: connectionManager.uiNow) { _, _ in
+            // Soft offline: stop recording when selected device ages out
+            if captureVM.isRecording,
+               connectionManager.selectedDevice?.isOnline(relativeTo: connectionManager.uiNow) != true {
+                captureVM.handleDeviceContextLost()
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .captureScreenshot)) { _ in
+            captureVM.requestCapture(from: connectionManager)
         }
         // Clear ALL annotations when switching screenshots so they never leak
         // onto a different image on copy/save/share.
@@ -171,7 +189,7 @@ struct DeviceView: View {
     private func compactHeader(device: DeviceSession) -> some View {
         HStack(spacing: 8) {
             // Connection status
-            ConnectionIndicator(isConnected: device.isOnline)
+            ConnectionIndicator(isConnected: device.isOnline(relativeTo: connectionManager.uiNow))
             Text(device.displayName)
                 .font(TTFont.labelMedium)
                 .foregroundColor(.ttTextPrimary)
