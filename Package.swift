@@ -9,25 +9,22 @@ let package = Package(
         .macOS(.v14)
     ],
     products: [
-        .executable(
-            name: "TTBDebugPlus",
-            targets: ["TTBDebugPlus"]
+        // App is built via TTBDebugPlus.xcodeproj.
+        // This package exposes pure JSON tools for unit tests (`swift test`).
+        .library(
+            name: "JSONTools",
+            targets: ["JSONTools"]
         )
     ],
     targets: [
-        .executableTarget(
-            name: "TTBDebugPlus",
-            path: "TTBDebugPlus",
-            exclude: [
-                "Info.plist",
-                "TTBDebugPlus.entitlements",
-                "TTBDebugPlusRelease.entitlements",
-                "Resources/Assets.xcassets"
-            ],
-            resources: [
-                .process("Assets.xcassets"),
-                .process("Resources/WebEditor")
-            ]
+        .target(
+            name: "JSONTools",
+            path: "TTBDebugPlus/Services/JSON"
+        ),
+        .testTarget(
+            name: "JSONToolsTests",
+            dependencies: ["JSONTools"],
+            path: "Tests/JSONToolsTests"
         )
     ]
 )
