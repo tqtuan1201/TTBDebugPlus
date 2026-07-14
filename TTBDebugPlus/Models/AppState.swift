@@ -37,12 +37,21 @@ class AppState {
     var requestedDevTool: DevTool? = nil
     var devToolsMenuRequestID = UUID()
     var devToolsToolRequestID = UUID()
+
+    /// Short-lived banner when user taps a tab that needs the debug server while it is stopped.
+    var serverRequiredHint: String? = nil
     
     /// Navigate to the Dev Tools menu screen.
     func openDevToolsMenu() {
         requestedDevTool = nil
         devToolsMenuRequestID = UUID()
         selectedTab = .devtools
+    }
+
+    /// Prefer Dev Tools when the debug server is not running (tool-first product default).
+    func preferDevToolsWhenServerStopped(serverActive: Bool) {
+        guard !serverActive, selectedTab.requiresLiveServer else { return }
+        openDevToolsMenu()
     }
     
     /// Navigate directly to a specific Dev Tool.
@@ -106,6 +115,17 @@ enum AppTab: String, CaseIterable, Identifiable {
         case .guide:             return AppIcon.guide
         }
     }
+
+    /// Tabs that need the debug bridge server (device logs / network / connection).
+    /// Dev Tools and Guide stay fully available while the server is stopped.
+    var requiresLiveServer: Bool {
+        switch self {
+        case .devtools, .guide:
+            return false
+        case .console, .network, .device, .performance, .feedback, .connectionHealth:
+            return true
+        }
+    }
     
     /// Tabs shown in the main tab bar (excludes guide and connectionHealth — sidebar-only)
     static var tabBarCases: [AppTab] {
@@ -132,6 +152,16 @@ enum SidebarSection: String, CaseIterable, Identifiable {
         case .performance:      return AppTab.performance.icon
         case .devtools:         return AppTab.devtools.icon
         case .connectionHealth: return AppTab.connectionHealth.icon
+        }
+    }
+
+    /// Sidebar rows that need the live debug bridge server.
+    var requiresLiveServer: Bool {
+        switch self {
+        case .devtools:
+            return false
+        case .devices, .logs, .network, .performance, .connectionHealth:
+            return true
         }
     }
 }

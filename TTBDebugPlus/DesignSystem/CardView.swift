@@ -50,10 +50,12 @@ struct CardView<Content: View>: View {
 struct StatusBadge: View {
     let text: String
     var color: Color = .ttSuccess
+    /// Preferred: high-contrast soft surfaces via `TTBannerKind` (Light/Dark safe).
+    var kind: TTBannerKind? = nil
     var style: BadgeStyle = .filled
     
     enum BadgeStyle {
-        case filled, outlined, dot
+        case filled, outlined, soft, dot
     }
     
     var body: some View {
@@ -61,28 +63,35 @@ struct StatusBadge: View {
         case .filled:
             Text(text)
                 .font(TTFont.badge)
-                .foregroundColor(.white)
+                .foregroundColor(.ttTextOnAccent)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)
                 .background(
-                    Capsule().fill(color)
+                    Capsule().fill(kind?.border ?? color)
                 )
             
         case .outlined:
+            // Soft fill + strong fg (never bare accent stroke alone on canvas)
             Text(text)
                 .font(TTFont.badge)
-                .foregroundColor(color)
+                .foregroundColor(kind?.foreground ?? color)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)
                 .background(
                     Capsule()
-                        .stroke(color, lineWidth: 1)
+                        .fill(kind?.background ?? color.opacity(0.14))
+                        .overlay(
+                            Capsule().stroke(kind?.border ?? color, lineWidth: 1)
+                        )
                 )
+
+        case .soft:
+            TTStatusPill(text: text, kind: kind ?? .info)
             
         case .dot:
             HStack(spacing: 6) {
                 Circle()
-                    .fill(color)
+                    .fill(kind?.border ?? color)
                     .frame(width: 6, height: 6)
                 Text(text)
                     .font(TTFont.labelSmall)
@@ -99,7 +108,7 @@ struct HTTPMethodBadge: View {
     var body: some View {
         Text(method.uppercased())
             .font(TTFont.badge)
-            .foregroundColor(.white)
+            .foregroundColor(.ttTextOnAccent)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
             .background(
@@ -114,10 +123,18 @@ struct StatusCodeBadge: View {
     let code: Int
     
     var body: some View {
+        let kind = TTBannerKind.fromStatusCode(code)
         Text("\(code)")
             .font(TTFont.badge)
-            .foregroundColor(Color.forStatusCode(code))
             .fontWeight(.bold)
+            .foregroundColor(kind.foreground)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(
+                Capsule()
+                    .fill(kind.background)
+                    .overlay(Capsule().stroke(kind.border.opacity(0.55), lineWidth: 1))
+            )
     }
 }
 
@@ -135,10 +152,15 @@ struct LogLevelBadge: View {
         }
     }
     
+    private var kind: TTBannerKind {
+        TTBannerKind.fromLogLevel(level)
+    }
+    
     var body: some View {
         Image(systemName: iconName)
-            .font(.system(size: 12))
-            .foregroundColor(Color.forLogLevel(level))
+            .font(.system(size: 12, weight: .semibold))
+            .foregroundColor(level.lowercased() == "debug" ? .ttTextTertiary : kind.foreground)
+            .accessibilityLabel(level)
     }
 }
 

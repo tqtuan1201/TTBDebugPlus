@@ -23,9 +23,8 @@ struct TTBDebugPlusApp: App {
     /// Default follows macOS System Settings (user can force light/dark in app Settings).
     /// Key `appAppearance` supersedes legacy `appearance` (which defaulted to forced dark).
     @AppStorage("appAppearance") private var appearance: String = "system"
-    /// On by default (2026-07-13) — previously the server never auto-started, which was
-    /// easy to mistake for a connection bug ("iPhone won't connect") when it was really
-    /// just "server was never running". Toggle lives in Settings → Connection.
+    /// On by default — start the debug bridge when the app launches so devices can
+    /// connect immediately. Toggle lives in Settings → Connection.
     @AppStorage("autoStartServer") private var autoStartServer: Bool = true
     // Relay Server (Phase 4) — no separate enable toggle; starts automatically with the main
     // Server above. Only its port is a standalone setting, restored on launch.
@@ -163,7 +162,7 @@ struct TTBDebugPlusApp: App {
                 ? "TTBDebugPlus Server Running"
                 : (connectionManager.isLifecycleActive
                    ? "TTBDebugPlus Server Starting"
-                   : "TTBDebugPlus Dev Tools Mode"),
+                   : "TTBDebugPlus · Tools ready · Server stopped"),
             systemImage: connectionManager.isServerRunning
                 ? AppIcon.connectionHealth
                 : (connectionManager.isLifecycleActive ? AppIcon.reconnect : AppIcon.devToolsMode)

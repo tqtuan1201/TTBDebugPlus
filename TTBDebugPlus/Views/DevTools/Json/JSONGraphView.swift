@@ -167,11 +167,11 @@ struct JSONGraphView: View {
                 // Type badge
                 Text(node.valueType.badge)
                     .font(.system(size: max(9, 10 * nodeScale), weight: .bold, design: .monospaced))
-                    .foregroundColor(.white)
+                    .foregroundColor(.ttTextOnAccent)
                 
                 Text(node.label)
                     .font(.system(size: max(9, 11 * nodeScale), weight: .semibold))
-                    .foregroundColor(.white)
+                    .foregroundColor(.ttTextOnAccent)
                     .lineLimit(1)
                 
                 Spacer()
@@ -180,10 +180,10 @@ struct JSONGraphView: View {
                     HStack(spacing: 2) {
                         Text("\(node.childIds.count)")
                             .font(.system(size: max(7, 8 * nodeScale), weight: .bold, design: .monospaced))
-                            .foregroundColor(.white.opacity(0.7))
+                            .foregroundColor(.ttTextOnAccent.opacity(0.85))
                         Image(systemName: collapsedNodeIds.contains(node.id) ? "chevron.right" : "chevron.down")
                             .font(.system(size: max(7, 8 * nodeScale), weight: .bold))
-                            .foregroundColor(.white.opacity(0.7))
+                            .foregroundColor(.ttTextOnAccent.opacity(0.85))
                     }
                 }
             }

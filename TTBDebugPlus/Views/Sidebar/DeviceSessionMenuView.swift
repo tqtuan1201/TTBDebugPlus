@@ -19,34 +19,24 @@ struct DeviceSessionMenuButton: View {
 
     var body: some View {
         Button(action: { showPopover.toggle() }) {
-            HStack(spacing: 4) {
-                Image(systemName: AppIcon.deviceSessions)
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(onlineCount > 0 ? .ttSuccess : .ttTextTertiary)
-
-                if totalCount > 0 {
-                    Text("\(onlineCount)/\(totalCount)")
-                        .font(TTFont.codeSmall)
-                        .foregroundColor(onlineCount > 0 ? .ttSuccess : .ttTextTertiary)
-                } else {
-                    Text("0")
-                        .font(TTFont.codeSmall)
-                        .foregroundColor(.ttTextMuted)
-                }
-            }
-            .padding(.horizontal, 6)
-            .padding(.vertical, 3)
-            .background(
-                RoundedRectangle(cornerRadius: 5)
-                    .fill(Color.ttSurface.opacity(showPopover ? 0.8 : 0.4))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 5)
-                            .stroke(Color.ttBorder.opacity(0.6), lineWidth: 1)
-                    )
-            )
+            Image(systemName: AppIcon.deviceSessions)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(onlineCount > 0 ? .ttSuccess : .ttTextTertiary)
+                .frame(width: 28, height: 28)
+                .background(
+                    RoundedRectangle(cornerRadius: TTRadius.sm)
+                        .fill(Color.ttSurface.opacity(showPopover ? 0.9 : 1.0))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: TTRadius.sm)
+                                .stroke(Color.ttBorder.opacity(0.5), lineWidth: 1)
+                        )
+                )
         }
         .buttonStyle(.plain)
-        .help("Manage Device Sessions")
+        .frame(width: 28, height: 28)
+        .help(totalCount > 0 ? "Device Sessions (\(onlineCount)/\(totalCount))" : "Manage Device Sessions")
+        .accessibilityLabel("Device Sessions")
+        .accessibilityValue("\(onlineCount) online of \(totalCount)")
         .popover(isPresented: $showPopover, arrowEdge: .bottom) {
             DeviceSessionMenuView()
                 .environment(connectionManager)

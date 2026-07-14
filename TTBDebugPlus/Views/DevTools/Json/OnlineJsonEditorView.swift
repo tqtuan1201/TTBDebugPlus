@@ -340,64 +340,50 @@ struct OnlineJsonEditorView: View {
     // MARK: - Banners
 
     private func statusBannerView(_ text: String) -> some View {
-        HStack(spacing: 8) {
-            Image(systemName: bannerIcon)
-                .foregroundColor(bannerColor)
-            Text(text)
-                .font(TTFont.labelSmall)
-                .foregroundColor(bannerColor)
-            Spacer()
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
-        .background(bannerColor.opacity(0.1))
+        TTBanner(kind: statusBannerKind, message: text)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
     }
 
-    private var bannerIcon: String {
+    private var statusBannerKind: TTBannerKind {
         switch viewModel.statusKind {
-        case .success: return "checkmark.circle.fill"
-        case .error: return "xmark.circle.fill"
-        case .working: return "hourglass"
-        case .neutral: return "info.circle.fill"
-        }
-    }
-
-    private var bannerColor: Color {
-        switch viewModel.statusKind {
-        case .success: return .ttSuccess
-        case .error: return .ttError
-        case .working: return .ttWarning
-        case .neutral: return .ttPrimary
+        case .success: return .success
+        case .error: return .error
+        case .working: return .warning
+        case .neutral: return .info
         }
     }
 
     private func errorBannerView(_ err: JSONValidationError) -> some View {
-        HStack(spacing: 8) {
-            Image(systemName: err.severity.icon)
-                .foregroundColor(err.severity.color)
-            Text("Line \(err.line), col \(err.column) — \(err.message)")
-                .font(TTFont.labelSmall)
-                .foregroundColor(err.severity.color)
-                .lineLimit(2)
-            Spacer()
-            Button("Auto Fix") {
-                syncEditorThen { live in viewModel.prepareAutoFix(source: live) }
-            }
-            .buttonStyle(.ttSecondary)
-            .controlSize(.small)
+        TTBanner(
+            kind: errorBannerKind(err),
+            message: "Line \(err.line), col \(err.column) — \(err.message)",
+            trailing: AnyView(
+                Button("Auto Fix") {
+                    syncEditorThen { live in viewModel.prepareAutoFix(source: live) }
+                }
+                .buttonStyle(.ttSecondary)
+                .controlSize(.small)
+            )
+        )
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+    }
+
+    private func errorBannerKind(_ err: JSONValidationError) -> TTBannerKind {
+        switch err.severity {
+        case .error: return .error
+        case .warning: return .warning
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
-        .background(err.severity.color.opacity(0.1))
     }
 
     private var emptyHintBar: some View {
         HStack(spacing: 8) {
             Image(systemName: "curlybraces")
-                .foregroundColor(.ttTextMuted)
+                .foregroundColor(.ttTextSecondary)
             Text("Paste JSON, open a file, or load sample data to get started.")
                 .font(TTFont.labelSmall)
-                .foregroundColor(.ttTextTertiary)
+                .foregroundColor(.ttTextSecondary)
             Spacer()
             Button("Sample") { viewModel.loadSample() }
                 .buttonStyle(.ttGhost)
@@ -406,7 +392,7 @@ struct OnlineJsonEditorView: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
-        .background(Color.ttSurface.opacity(0.15))
+        .background(Color.ttSurface.opacity(0.35))
     }
 
     // MARK: - Status Bar

@@ -510,22 +510,12 @@ struct NetworkView: View {
                 .buttonStyle(.plain)
             }
             
-            // Live/Pause toggle
+            // Live/Pause toggle — high-contrast soft pill (never status.opacity alone)
             Button(action: { viewModel.toggleLiveStreaming(connectionManager) }) {
-                HStack(spacing: 4) {
-                    Circle()
-                        .fill(viewModel.isLiveStreaming ? Color.ttSuccess : Color.ttWarning)
-                        .frame(width: 6, height: 6)
-                    Text(viewModel.isLiveStreaming ? "LIVE" : "PAUSED")
-                        .font(TTFont.badge)
-                        .foregroundColor(viewModel.isLiveStreaming ? .ttSuccess : .ttWarning)
-                }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(
-                    Capsule()
-                        .fill(viewModel.isLiveStreaming ? Color.ttSuccess.opacity(0.12) : Color.ttWarning.opacity(0.12))
-                        .overlay(Capsule().stroke(viewModel.isLiveStreaming ? Color.ttSuccess.opacity(0.3) : Color.ttWarning.opacity(0.3), lineWidth: 1))
+                TTStatusPill(
+                    text: viewModel.isLiveStreaming ? "LIVE" : "PAUSED",
+                    kind: viewModel.isLiveStreaming ? .success : .warning,
+                    showsDot: true
                 )
             }
             .buttonStyle(.plain)

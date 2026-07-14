@@ -2,20 +2,14 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <!-- App Sandbox -->
-    <key>com.apple.security.app-sandbox</key>
-    <true/>
+    <!--
+      App Sandbox is intentionally OFF for TTBDebugPlus (direct DMG / developer-tool distribution).
 
-    <!-- Network: Incoming connections (Bonjour listener / WebSocket server) -->
-    <key>com.apple.security.network.server</key>
-    <true/>
+      Why: Live Ports needs process inspection (lsof) and optional signals against
+      user-owned listeners. macOS App Sandbox blocks those system-wide capabilities.
 
-    <!-- Network: Outgoing connections -->
-    <key>com.apple.security.network.client</key>
-    <true/>
-
-    <!-- File Access: User-selected files (for NSSavePanel/NSOpenPanel) -->
-    <key>com.apple.security.files.user-selected.read-write</key>
-    <true/>
+      Trade-off: not Mac App Store–eligible without a future privileged-helper design.
+      Network, Bonjour, file panels, and process spawn work under Hardened Runtime alone.
+    -->
 </dict>
 </plist>

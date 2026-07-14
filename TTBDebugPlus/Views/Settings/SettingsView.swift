@@ -106,7 +106,7 @@ struct SettingsView: View {
         Form {
             Section("Startup") {
                 Toggle("Start server automatically when TTBDebugPlus opens", isOn: $autoStartServer)
-                Text("Off by default previously meant the server never started without a manual click — easy to mistake for a connection bug. On by default now.")
+                Text("On by default so the debug bridge is ready when the app launches. Turn off if you only use local Dev Tools and start the server manually.")
                     .font(.caption)
                     .foregroundColor(.ttTextSecondary)
             }

@@ -24,30 +24,28 @@ struct NetworkInterfaceMenuButton: View {
 
     var body: some View {
         Button(action: { showPopover.toggle() }) {
-            HStack(spacing: 4) {
-                Image(systemName: "network.badge.shield.half.filled")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(activeCount > 0 ? .ttPrimary : .ttTextTertiary)
-
-                if connectionManager.activeInterfaces.count > 0 {
-                    Text("\(activeCount)/\(connectionManager.activeInterfaces.count)")
-                        .font(TTFont.codeSmall)
-                        .foregroundColor(activeCount > 0 ? .ttPrimary : .ttTextTertiary)
-                }
-            }
-            .padding(.horizontal, 6)
-            .padding(.vertical, 3)
-            .background(
-                RoundedRectangle(cornerRadius: 5)
-                    .fill(Color.ttSurface.opacity(showPopover ? 0.8 : 0.4))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 5)
-                            .stroke(Color.ttBorder.opacity(0.6), lineWidth: 1)
-                    )
-            )
+            Image(systemName: "network.badge.shield.half.filled")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(activeCount > 0 ? .ttPrimary : .ttTextTertiary)
+                .frame(width: 28, height: 28)
+                .background(
+                    RoundedRectangle(cornerRadius: TTRadius.sm)
+                        .fill(Color.ttSurface.opacity(showPopover ? 0.9 : 1.0))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: TTRadius.sm)
+                                .stroke(Color.ttBorder.opacity(0.5), lineWidth: 1)
+                        )
+                )
         }
         .buttonStyle(.plain)
-        .help("Manage Network Interfaces")
+        .frame(width: 28, height: 28)
+        .help(
+            connectionManager.activeInterfaces.isEmpty
+                ? "Manage Network Interfaces"
+                : "Network Interfaces (\(activeCount)/\(connectionManager.activeInterfaces.count))"
+        )
+        .accessibilityLabel("Network Interfaces")
+        .accessibilityValue("\(activeCount) active")
         .popover(isPresented: $showPopover, arrowEdge: .bottom) {
             NetworkInterfaceMenuView()
                 .environment(connectionManager)
@@ -231,30 +229,26 @@ struct InterfaceMenuRow: View {
 
             Spacer()
 
-            // Bonjour port
+            // Bonjour port — high-contrast soft pills
             if isEnabled {
                 if let port {
-                    VStack(alignment: .trailing, spacing: 2) {
+                    VStack(alignment: .trailing, spacing: 3) {
                         Text(":" + String(port))
                             .font(TTFont.codeSmall)
-                            .foregroundColor(.ttSuccess)
-                        Text("Advertising")
-                            .font(.system(size: 9))
-                            .foregroundColor(.ttSuccess.opacity(0.8))
+                            .foregroundColor(TTBannerKind.success.foreground)
+                        TTStatusPill(text: "Advertising", kind: .success)
                     }
                 } else {
-                    VStack(alignment: .trailing, spacing: 2) {
+                    VStack(alignment: .trailing, spacing: 3) {
                         Image(systemName: "clock")
-                            .font(.system(size: 11))
-                            .foregroundColor(.ttWarning)
-                        Text("Waiting")
-                            .font(.system(size: 9))
-                            .foregroundColor(.ttWarning.opacity(0.8))
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(TTBannerKind.warning.foreground)
+                        TTStatusPill(text: "Waiting", kind: .warning)
                     }
                 }
             } else {
                 Text("Disabled")
-                    .font(.system(size: 10))
+                    .font(TTFont.labelSmall)
                     .foregroundColor(.ttTextMuted)
             }
         }

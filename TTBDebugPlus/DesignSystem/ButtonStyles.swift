@@ -14,20 +14,33 @@ struct TTPrimaryButtonStyle: ButtonStyle {
     @State private var isHovered = false
     
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(isCompact ? TTFont.labelMedium : TTFont.labelLarge)
-            .foregroundColor(.white)
-            .padding(.horizontal, isCompact ? 12 : 20)
-            .padding(.vertical, isCompact ? 6 : 10)
-            .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(Color.ttPrimary)
-                    .opacity(configuration.isPressed ? 0.8 : (isHovered ? 0.9 : 1.0))
-            )
-            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
-            .animation(.easeInOut(duration: 0.15), value: configuration.isPressed)
-            .animation(.easeInOut(duration: 0.15), value: isHovered)
-            .onHover { isHovered = $0 }
+        PrimaryButtonBody(configuration: configuration, isCompact: isCompact, isHovered: $isHovered)
+    }
+
+    private struct PrimaryButtonBody: View {
+        let configuration: ButtonStyleConfiguration
+        let isCompact: Bool
+        @Binding var isHovered: Bool
+        @Environment(\.isEnabled) private var isEnabled
+
+        var body: some View {
+            configuration.label
+                .font(isCompact ? TTFont.labelMedium : TTFont.labelLarge)
+                .foregroundColor(isEnabled ? .ttTextOnAccent : .ttTextOnAccent.opacity(0.55))
+                .padding(.horizontal, isCompact ? 12 : 20)
+                .padding(.vertical, isCompact ? 6 : 10)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.ttPrimary)
+                        .opacity(isEnabled
+                            ? (configuration.isPressed ? 0.8 : (isHovered ? 0.9 : 1.0))
+                            : 0.45)
+                )
+                .scaleEffect(configuration.isPressed && isEnabled ? 0.97 : 1.0)
+                .animation(.easeInOut(duration: 0.15), value: configuration.isPressed)
+                .animation(.easeInOut(duration: 0.15), value: isHovered)
+                .onHover { isHovered = $0 }
+        }
     }
 }
 
@@ -37,24 +50,42 @@ struct TTSecondaryButtonStyle: ButtonStyle {
     @State private var isHovered = false
     
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(isCompact ? TTFont.labelMedium : TTFont.labelLarge)
-            .foregroundColor(.ttTextPrimary)
-            .padding(.horizontal, isCompact ? 12 : 20)
-            .padding(.vertical, isCompact ? 6 : 10)
-            .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(isHovered ? Color.ttSurfaceHover : Color.ttSurface)
-                    .opacity(configuration.isPressed ? 0.7 : 1.0)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(isHovered ? Color.ttPrimary.opacity(0.5) : Color.ttBorder, lineWidth: 1)
-            )
-            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
-            .animation(.easeInOut(duration: 0.15), value: configuration.isPressed)
-            .animation(.easeInOut(duration: 0.15), value: isHovered)
-            .onHover { isHovered = $0 }
+        SecondaryButtonBody(configuration: configuration, isCompact: isCompact, isHovered: $isHovered)
+    }
+
+    private struct SecondaryButtonBody: View {
+        let configuration: ButtonStyleConfiguration
+        let isCompact: Bool
+        @Binding var isHovered: Bool
+        @Environment(\.isEnabled) private var isEnabled
+
+        var body: some View {
+            configuration.label
+                .font(isCompact ? TTFont.labelMedium : TTFont.labelLarge)
+                .foregroundColor(isEnabled ? .ttTextPrimary : .ttTextMuted)
+                .padding(.horizontal, isCompact ? 12 : 20)
+                .padding(.vertical, isCompact ? 6 : 10)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(isEnabled
+                            ? (isHovered ? Color.ttSurfaceHover : Color.ttSurface)
+                            : Color.ttSurface.opacity(0.55))
+                        .opacity(configuration.isPressed && isEnabled ? 0.7 : 1.0)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(
+                            isEnabled
+                                ? (isHovered ? Color.ttPrimary.opacity(0.5) : Color.ttBorder)
+                                : Color.ttBorder.opacity(0.45),
+                            lineWidth: 1
+                        )
+                )
+                .scaleEffect(configuration.isPressed && isEnabled ? 0.97 : 1.0)
+                .animation(.easeInOut(duration: 0.15), value: configuration.isPressed)
+                .animation(.easeInOut(duration: 0.15), value: isHovered)
+                .onHover { isHovered = $0 }
+        }
     }
 }
 
@@ -65,23 +96,37 @@ struct TTOutlinedButtonStyle: ButtonStyle {
     @State private var isHovered = false
     
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(isCompact ? TTFont.labelMedium : TTFont.labelLarge)
-            .foregroundColor(color)
-            .padding(.horizontal, isCompact ? 12 : 20)
-            .padding(.vertical, isCompact ? 6 : 10)
-            .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(color.opacity(configuration.isPressed ? 0.15 : (isHovered ? 0.08 : 0.0)))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(color, lineWidth: 1)
-            )
-            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
-            .animation(.easeInOut(duration: 0.15), value: configuration.isPressed)
-            .animation(.easeInOut(duration: 0.15), value: isHovered)
-            .onHover { isHovered = $0 }
+        OutlinedButtonBody(configuration: configuration, color: color, isCompact: isCompact, isHovered: $isHovered)
+    }
+
+    private struct OutlinedButtonBody: View {
+        let configuration: ButtonStyleConfiguration
+        let color: Color
+        let isCompact: Bool
+        @Binding var isHovered: Bool
+        @Environment(\.isEnabled) private var isEnabled
+
+        var body: some View {
+            configuration.label
+                .font(isCompact ? TTFont.labelMedium : TTFont.labelLarge)
+                .foregroundColor(isEnabled ? color : .ttTextMuted)
+                .padding(.horizontal, isCompact ? 12 : 20)
+                .padding(.vertical, isCompact ? 6 : 10)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(isEnabled
+                            ? color.opacity(configuration.isPressed ? 0.15 : (isHovered ? 0.08 : 0.0))
+                            : Color.clear)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(isEnabled ? color : Color.ttBorder.opacity(0.5), lineWidth: 1)
+                )
+                .scaleEffect(configuration.isPressed && isEnabled ? 0.97 : 1.0)
+                .animation(.easeInOut(duration: 0.15), value: configuration.isPressed)
+                .animation(.easeInOut(duration: 0.15), value: isHovered)
+                .onHover { isHovered = $0 }
+        }
     }
 }
 
@@ -91,20 +136,33 @@ struct TTInvertedButtonStyle: ButtonStyle {
     @State private var isHovered = false
     
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(isCompact ? TTFont.labelMedium : TTFont.labelLarge)
-            .foregroundColor(.ttBackground)
-            .padding(.horizontal, isCompact ? 12 : 20)
-            .padding(.vertical, isCompact ? 6 : 10)
-            .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(Color.ttTextPrimary)
-                    .opacity(configuration.isPressed ? 0.8 : (isHovered ? 0.9 : 1.0))
-            )
-            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
-            .animation(.easeInOut(duration: 0.15), value: configuration.isPressed)
-            .animation(.easeInOut(duration: 0.15), value: isHovered)
-            .onHover { isHovered = $0 }
+        InvertedButtonBody(configuration: configuration, isCompact: isCompact, isHovered: $isHovered)
+    }
+
+    private struct InvertedButtonBody: View {
+        let configuration: ButtonStyleConfiguration
+        let isCompact: Bool
+        @Binding var isHovered: Bool
+        @Environment(\.isEnabled) private var isEnabled
+
+        var body: some View {
+            configuration.label
+                .font(isCompact ? TTFont.labelMedium : TTFont.labelLarge)
+                .foregroundColor(isEnabled ? .ttBackground : .ttTextMuted)
+                .padding(.horizontal, isCompact ? 12 : 20)
+                .padding(.vertical, isCompact ? 6 : 10)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.ttTextPrimary)
+                        .opacity(isEnabled
+                            ? (configuration.isPressed ? 0.8 : (isHovered ? 0.9 : 1.0))
+                            : 0.35)
+                )
+                .scaleEffect(configuration.isPressed && isEnabled ? 0.97 : 1.0)
+                .animation(.easeInOut(duration: 0.15), value: configuration.isPressed)
+                .animation(.easeInOut(duration: 0.15), value: isHovered)
+                .onHover { isHovered = $0 }
+        }
     }
 }
 
@@ -113,17 +171,33 @@ struct TTGhostButtonStyle: ButtonStyle {
     @State private var isHovered = false
     
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(TTFont.labelMedium)
-            .foregroundColor(configuration.isPressed ? .ttTextPrimary : (isHovered ? .ttTextPrimary : .ttTextSecondary))
-            .padding(6)
-            .background(
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(configuration.isPressed ? Color.ttSurfaceHover : (isHovered ? Color.ttSurface : Color.clear))
-            )
-            .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
-            .animation(.easeInOut(duration: 0.1), value: isHovered)
-            .onHover { isHovered = $0 }
+        GhostButtonBody(configuration: configuration, isHovered: $isHovered)
+    }
+
+    private struct GhostButtonBody: View {
+        let configuration: ButtonStyleConfiguration
+        @Binding var isHovered: Bool
+        @Environment(\.isEnabled) private var isEnabled
+
+        var body: some View {
+            configuration.label
+                .font(TTFont.labelMedium)
+                .foregroundColor(
+                    isEnabled
+                        ? (configuration.isPressed ? .ttTextPrimary : (isHovered ? .ttTextPrimary : .ttTextSecondary))
+                        : .ttTextMuted
+                )
+                .padding(6)
+                .background(
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(isEnabled
+                            ? (configuration.isPressed ? Color.ttSurfaceHover : (isHovered ? Color.ttSurface : Color.clear))
+                            : Color.clear)
+                )
+                .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
+                .animation(.easeInOut(duration: 0.1), value: isHovered)
+                .onHover { isHovered = $0 }
+        }
     }
 }
 
@@ -133,23 +207,38 @@ struct TTSidebarItemStyle: ButtonStyle {
     @State private var isHovered = false
     
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(TTFont.sidebarItem)
-            .foregroundColor(isSelected ? .ttPrimary : .ttTextSecondary)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(isSelected
-                        ? Color.ttPrimary.opacity(0.12)
-                        : (configuration.isPressed
-                            ? Color.ttSurfaceHover
-                            : (isHovered ? Color.ttSurface.opacity(0.6) : Color.clear)))
-            )
-            .animation(.easeInOut(duration: 0.15), value: isSelected)
-            .animation(.easeInOut(duration: 0.1), value: isHovered)
-            .onHover { isHovered = $0 }
+        SidebarItemBody(configuration: configuration, isSelected: isSelected, isHovered: $isHovered)
+    }
+
+    private struct SidebarItemBody: View {
+        let configuration: ButtonStyleConfiguration
+        let isSelected: Bool
+        @Binding var isHovered: Bool
+        @Environment(\.isEnabled) private var isEnabled
+
+        var body: some View {
+            configuration.label
+                .font(TTFont.sidebarItem)
+                .foregroundColor(
+                    isEnabled
+                        ? (isSelected ? .ttPrimary : .ttTextSecondary)
+                        : .ttTextMuted
+                )
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(isSelected
+                            ? Color.ttPrimary.opacity(0.12)
+                            : (configuration.isPressed
+                                ? Color.ttSurfaceHover
+                                : (isHovered ? Color.ttSurface.opacity(0.6) : Color.clear)))
+                )
+                .animation(.easeInOut(duration: 0.15), value: isSelected)
+                .animation(.easeInOut(duration: 0.1), value: isHovered)
+                .onHover { isHovered = $0 }
+        }
     }
 }
 

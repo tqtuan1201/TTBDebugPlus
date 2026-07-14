@@ -467,10 +467,10 @@ struct NetworkDetailPaneView: View {
                                         cookieAttr(label: "Path", value: path)
                                     }
                                     if cookie.isSecure {
-                                        cookieFlag(label: "Secure", color: .ttSuccess)
+                                        cookieFlag(label: "Secure", kind: .success)
                                     }
                                     if cookie.isHttpOnly {
-                                        cookieFlag(label: "HttpOnly", color: .ttWarning)
+                                        cookieFlag(label: "HttpOnly", kind: .warning)
                                     }
                                     if let sameSite = cookie.sameSite {
                                         cookieAttr(label: "SameSite", value: sameSite)
@@ -621,14 +621,16 @@ struct NetworkDetailPaneView: View {
         }
     }
     
-    private func cookieFlag(label: String, color: Color) -> some View {
+    private func cookieFlag(label: String, kind: TTBannerKind) -> some View {
         Text(label)
             .font(.ttIcon(TTIcon.xs))
-            .foregroundColor(color)
+            .foregroundColor(kind.foreground)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
             .background(
-                Capsule().fill(color.opacity(0.12))
+                Capsule()
+                    .fill(kind.background)
+                    .overlay(Capsule().stroke(kind.border.opacity(0.55), lineWidth: 1))
             )
     }
 }

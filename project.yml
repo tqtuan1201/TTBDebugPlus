@@ -36,8 +36,10 @@ targets:
         COMBINE_HIDPI_IMAGES: true
         SWIFT_EMIT_LOC_STRINGS: true
         ENABLE_PREVIEWS: true
-        # App Store / notarization-friendly defaults
-        ENABLE_APP_SANDBOX: true
+        # Sandbox OFF: DMG/dev-tool distribution so Live Ports (lsof) and process
+        # control work. Not Mac App Store–ready without a privileged helper.
+        # Hardened Runtime stays ON (line above) for notarization.
+        ENABLE_APP_SANDBOX: false
         SWIFT_STRICT_CONCURRENCY: minimal
       configs:
         Debug:

@@ -200,17 +200,19 @@ struct LibraryDataManagementView: View {
     }
 
     private func statusBanner(_ message: String) -> some View {
-        HStack(spacing: TTSpacing.xs) {
-            Image(systemName: "checkmark.circle.fill").foregroundColor(.ttSuccess)
-            Text(message).font(TTFont.bodySmall).foregroundColor(.ttTextSecondary)
-            Spacer()
-            Button(action: { statusMessage = nil }) {
-                Image(systemName: "xmark").font(.ttIcon(TTIcon.xs))
-            }
-            .buttonStyle(.ttGhost)
-        }
-        .padding(TTSpacing.sm)
-        .background(RoundedRectangle(cornerRadius: TTRadius.sm).fill(Color.ttSuccess.opacity(0.12)))
+        TTBanner(
+            kind: .success,
+            message: message,
+            trailing: AnyView(
+                Button(action: { statusMessage = nil }) {
+                    Image(systemName: "xmark")
+                        .font(.ttIcon(TTIcon.xs))
+                        .foregroundColor(TTBannerKind.success.foreground)
+                }
+                .buttonStyle(.plain)
+                .help("Dismiss")
+            )
+        )
     }
 
     // MARK: - File Actions

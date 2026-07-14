@@ -60,7 +60,8 @@ private final class ChromeHostView: NSView {
 
         window.appearance = NSAppearance(named: prefersDark ? .darkAqua : .aqua)
 
-        if !window.styleMask.contains(.fullSizeContentView) {
+        let insertedFullSize = !window.styleMask.contains(.fullSizeContentView)
+        if insertedFullSize {
             window.styleMask.insert(.fullSizeContentView)
         }
         window.titlebarAppearsTransparent = true
@@ -80,7 +81,23 @@ private final class ChromeHostView: NSView {
             : NSColor(srgbRed: 241 / 255, green: 245 / 255, blue: 249 / 255, alpha: 1)
         window.isOpaque = true
         window.isMovableByWindowBackground = false
+
+        // fullSizeContentView changes safe-area / column metrics. Without a follow-up
+        // layout pass, the sidebar can keep a cold-start measurement (server-stopped
+        // chrome missing until Start→Stop). Invalidate AppKit + notify SwiftUI.
+        window.contentView?.needsLayout = true
+        window.contentView?.layoutSubtreeIfNeeded()
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(name: .ttbWindowChromeDidApply, object: window)
+        }
     }
+}
+
+// MARK: - Notifications
+
+extension Notification.Name {
+    /// Posted after `AppWindowChrome` applies `fullSizeContentView` / titlebar settings.
+    static let ttbWindowChromeDidApply = Notification.Name("ttbWindowChromeDidApply")
 }
 
 // MARK: - View modifier

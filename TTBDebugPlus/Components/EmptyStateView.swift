@@ -26,7 +26,7 @@ struct EmptyStateView: View {
                 
                 Image(systemName: icon)
                     .font(.system(size: 32, weight: .light))
-                    .foregroundColor(.ttTextTertiary)
+                    .foregroundColor(.ttTextSecondary)
             }
             
             // Text
@@ -37,7 +37,7 @@ struct EmptyStateView: View {
                 
                 Text(subtitle)
                     .font(TTFont.bodyMedium)
-                    .foregroundColor(.ttTextTertiary)
+                    .foregroundColor(.ttTextSecondary)
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: 400)
             }

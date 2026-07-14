@@ -116,7 +116,7 @@ struct ConsoleView: View {
                             }
                         }
                         .font(TTFont.labelMedium)
-                        .foregroundColor(viewModel.selectedFilter == filter ? .white : .ttTextSecondary)
+                        .foregroundColor(viewModel.selectedFilter == filter ? .ttTextOnAccent : .ttTextSecondary)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 5)
                         .background(

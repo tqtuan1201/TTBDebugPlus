@@ -10,48 +10,76 @@ import SwiftUI
 struct SidebarView: View {
     @Environment(AppState.self) var appState
     @Environment(ConnectionManager.self) var connectionManager
+    @State private var pulseActive = false
+    /// One-shot flag after window chrome settles (does not remount the view).
+    @State private var chromeLayoutSettled = false
+
+    /// Unified-compact titlebar + traffic lights sit over the sidebar when
+    /// `fullSizeContentView` is on. Real layout child (not padding) so first
+    /// NavigationSplitView pass cannot collapse clearance to zero.
+    private static let titlebarClearance: CGFloat = 52
     
     var body: some View {
+        // No GeometryReader: first-pass size is often 0×0 in NavigationSplitView while
+        // server is still stopped, which collapsed branding + Start Server until a
+        // lifecycle toggle forced remeasure.
         VStack(spacing: 0) {
-            // MARK: - Branding Header
-            brandingHeader
-            
-            Divider()
-                .overlay(Color.ttBorder)
-            
-            // MARK: - Server Status
-            serverStatusBar
-            
-            Divider()
-                .overlay(Color.ttBorder)
-            
-            // MARK: - Content
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    // Connected Devices
-                    connectedDevicesSection
-                    
-                    // Navigation Items
-                    navigationSection
+            Color.clear
+                .frame(height: Self.titlebarClearance)
+                .accessibilityHidden(true)
+
+            ScrollView(.vertical, showsIndicators: true) {
+                VStack(spacing: 0) {
+                    brandingHeader
+                    Divider().overlay(Color.ttBorder)
+                    serverStatusBar
+                    Divider().overlay(Color.ttBorder)
+
+                    VStack(alignment: .leading, spacing: 12) {
+                        connectedDevicesSection
+                        navigationSection
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.top, 10)
+                    .padding(.bottom, 8)
+
+                    bottomActions
                 }
-                .padding(.horizontal, 12)
-                .padding(.top, 12)
+                .frame(maxWidth: .infinity, alignment: .topLeading)
             }
-            
-            Spacer()
-            
-            // MARK: - Bottom Actions
-            bottomActions
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
-        // Solid design-system canvas — matches main content `ttBackground`
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(Color.ttBackground)
+        // Harmless dependency so a post-chrome settle triggers one extra layout pass
+        // without destroying @State (unlike .id remount).
+        .opacity(chromeLayoutSettled ? 1.0 : 0.999)
+        .onAppear {
+            scheduleChromeSettleLayoutPass()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .ttbWindowChromeDidApply)) { _ in
+            scheduleChromeSettleLayoutPass()
+        }
+        .onChange(of: connectionManager.isLifecycleActive) { _, _ in
+            if !connectionManager.isServerRunning {
+                pulseActive = false
+            }
+        }
+    }
+
+    /// After `fullSizeContentView` is applied asynchronously, force one SwiftUI layout pass.
+    private func scheduleChromeSettleLayoutPass() {
+        guard !chromeLayoutSettled else { return }
+        DispatchQueue.main.async {
+            chromeLayoutSettled = true
+        }
     }
     
-    // MARK: - Branding
+    // MARK: - Branding (compact — secondary to server controls)
     private var brandingHeader: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 10) {
             ZStack {
-                RoundedRectangle(cornerRadius: 10)
+                RoundedRectangle(cornerRadius: 8)
                     .fill(
                         LinearGradient(
                             colors: [Color.ttPrimary, Color.ttPrimaryDark],
@@ -59,24 +87,18 @@ struct SidebarView: View {
                             endPoint: .bottomTrailing
                         )
                     )
-                    .frame(width: 40, height: 40)
+                    .frame(width: 32, height: 32)
                 
                 Image(systemName: AppIcon.app)
                     .font(.ttIcon(TTIcon.xxl))
                     .foregroundColor(.ttTextOnAccent)
             }
             
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text(AppBrand.name)
-                    .font(TTFont.heading3)
+                    .font(TTFont.labelLarge)
                     .foregroundColor(.ttTextPrimary)
                     .lineLimit(1)
-
-                Text(AppBrand.tagline)
-                    .font(TTFont.labelSmall)
-                    .foregroundColor(.ttTextSecondary)
-                    .lineLimit(2)
-                    .fixedSize(horizontal: false, vertical: true)
 
                 Text(AppBrand.versionLabel)
                     .font(TTFont.codeSmall)
@@ -84,77 +106,130 @@ struct SidebarView: View {
                     .tracking(0.3)
             }
             
-            Spacer()
+            Spacer(minLength: 0)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 16)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 8)
     }
     
-    @State private var pulseActive = false
-    
-    // MARK: - Server Status
+    // MARK: - Server Status (Start / Stop — reserved height for both styles)
     private var serverStatusBar: some View {
-        HStack(spacing: 8) {
-            ZStack {
-                // Pulse glow behind the dot when server is active
-                if connectionManager.isServerRunning {
+        let lifecycleOn = connectionManager.isLifecycleActive
+
+        return VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                ZStack {
+                    if connectionManager.isServerRunning {
+                        Circle()
+                            .fill(Color.ttSuccess.opacity(0.4))
+                            .frame(width: 14, height: 14)
+                            .opacity(pulseActive ? 0.0 : 0.6)
+                            .animation(
+                                .easeInOut(duration: 1.5).repeatForever(autoreverses: true),
+                                value: pulseActive
+                            )
+                            .onAppear { pulseActive = true }
+                            .onDisappear { pulseActive = false }
+                    }
                     Circle()
-                        .fill(Color.ttSuccess.opacity(0.4))
-                        .frame(width: 14, height: 14)
-                        .opacity(pulseActive ? 0.0 : 0.6)
-                        .animation(
-                            .easeInOut(duration: 1.5).repeatForever(autoreverses: true),
-                            value: pulseActive
-                        )
-                        .onAppear { pulseActive = true }
-                        .onDisappear { pulseActive = false }
+                        .fill(connectionManager.isServerRunning ? Color.ttSuccess : Color.ttError)
+                        .frame(width: 8, height: 8)
                 }
-                Circle()
-                    .fill(connectionManager.isServerRunning ? Color.ttSuccess : Color.ttError)
-                    .frame(width: 8, height: 8)
+                .frame(width: 14, height: 14)
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(serverStatusTitle)
+                        .font(TTFont.labelMedium)
+                        .foregroundColor(.ttTextPrimary)
+                        .lineLimit(1)
+                    Text(serverStatusSubtitle)
+                        .font(TTFont.codeSmall)
+                        .foregroundColor(.ttTextSecondary)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .truncationMode(.tail)
+                }
+                
+                Spacer(minLength: 4)
             }
             
-            Text(
-                connectionManager.isServerRunning
-                    ? "Server Active"
-                    : (connectionManager.isLifecycleActive ? "Server Starting…" : "Server Offline")
-            )
-                .font(TTFont.labelSmall)
-                .foregroundColor(.ttTextSecondary)
-            
-            Spacer()
-
-            // Session management menu
-            DeviceSessionMenuButton()
-
-            // Network interface management menu button
-            NetworkInterfaceMenuButton()
-
-            // Force reconnect (restart Bonjour only, keep logs)
-            Button(action: { connectionManager.forceReconnect() }) {
-                Image(systemName: AppIcon.reconnect)
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(connectionManager.isLifecycleActive ? .ttWarning : .ttTextMuted)
+            // Reserved height so Primary vs Outlined style swap cannot collapse chrome.
+            Group {
+                if lifecycleOn {
+                    Button(action: { connectionManager.toggleServer() }) {
+                        Label("Stop Server", systemImage: AppIcon.stopServer)
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.ttOutlined)
+                    .accessibilityLabel("Stop Server")
+                    .help("Stop the debug bridge server")
+                } else {
+                    Button(action: { connectionManager.toggleServer() }) {
+                        Label("Start Server", systemImage: AppIcon.startServer)
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.ttPrimary)
+                    .accessibilityLabel("Start Server")
+                    .help("Start the debug bridge when you need a device connection")
+                }
             }
-            .buttonStyle(.plain)
-            .disabled(!connectionManager.isLifecycleActive)
-            .help("Force Reconnect (restart Bonjour, keep logs)")
-            .accessibilityLabel("Force Reconnect")
+            .frame(maxWidth: .infinity, minHeight: 36, alignment: .center)
             
-            // Toggle server lifecycle (not just port-bound advertise state)
-            Button(action: {
-                connectionManager.toggleServer()
-            }) {
-                Image(systemName: connectionManager.isLifecycleActive ? AppIcon.stopServer : AppIcon.startServer)
-                    .font(.ttIcon(TTIcon.xl))
-                    .foregroundColor(connectionManager.isLifecycleActive ? .ttError : .ttSuccess)
+            // Secondary server tools — fixed 28pt row (never half-clipped)
+            HStack(spacing: 6) {
+                DeviceSessionMenuButton()
+                NetworkInterfaceMenuButton()
+                
+                Button(action: { connectionManager.forceReconnect() }) {
+                    Image(systemName: AppIcon.reconnect)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(lifecycleOn ? .ttWarning : .ttTextMuted)
+                        .frame(width: 28, height: 28)
+                        .background(
+                            RoundedRectangle(cornerRadius: TTRadius.sm)
+                                .fill(Color.ttSurface)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: TTRadius.sm)
+                                        .stroke(Color.ttBorder.opacity(0.5), lineWidth: 1)
+                                )
+                        )
+                }
+                .buttonStyle(.plain)
+                .disabled(!lifecycleOn)
+                .help("Force Reconnect (restart Bonjour, keep logs)")
+                .accessibilityLabel("Force Reconnect")
+                
+                Spacer(minLength: 0)
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel(connectionManager.isLifecycleActive ? "Stop Server" : "Start Server")
+            .frame(minHeight: 28, alignment: .center)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
-        // No strip fill — keep sidebar flat; dividers separate sections
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(Color.ttSurface.opacity(0.45))
+    }
+
+    private var serverStatusTitle: String {
+        if connectionManager.isServerRunning {
+            return "Server Active"
+        }
+        if connectionManager.isLifecycleActive {
+            return "Server Starting…"
+        }
+        return "Server Stopped"
+    }
+
+    private var serverStatusSubtitle: String {
+        if connectionManager.isServerRunning {
+            let ports = connectionManager.serverPorts.values.sorted()
+            if ports.isEmpty {
+                return "Waiting for network interface"
+            }
+            return ports.map { ":\($0)" }.joined(separator: "  ")
+        }
+        if connectionManager.isLifecycleActive {
+            return "Binding ports…"
+        }
+        return "Tools ready · start when you need a device"
     }
     
     // MARK: - Connected Devices
@@ -233,12 +308,20 @@ struct SidebarView: View {
     private var navigationSection: some View {
         VStack(spacing: 4) {
             ForEach(SidebarSection.allCases) { section in
+                let gated = section.requiresLiveServer && !connectionManager.isLifecycleActive
                 SidebarItemView(
                     section: section,
                     isSelected: appState.selectedSidebarItem == section,
-                    badge: badgeCount(for: section)
+                    badge: badgeCount(for: section),
+                    isGated: gated
                 ) {
                     withAnimation(.easeInOut(duration: 0.2)) {
+                        if gated {
+                            appState.serverRequiredHint =
+                                "Start Server to use \(section.rawValue.capitalized). Dev Tools stay available without the server."
+                            return
+                        }
+                        appState.serverRequiredHint = nil
                         appState.selectedSidebarItem = section
                         switch section {
                         case .devices:          appState.selectedTab = .device
@@ -367,23 +450,34 @@ struct SidebarItemView: View {
     let section: SidebarSection
     let isSelected: Bool
     var badge: Int? = nil
+    var isGated: Bool = false
     let action: () -> Void
+
+    private var iconColor: Color {
+        if isGated { return .ttTextMuted }
+        return isSelected ? .ttPrimary : .ttTextTertiary
+    }
+
+    private var titleColor: Color {
+        if isGated { return .ttTextMuted }
+        return isSelected ? .ttPrimary : .ttTextSecondary
+    }
     
     var body: some View {
         Button(action: action) {
             HStack(spacing: 10) {
                 Image(systemName: section.icon)
                     .font(.ttIcon(TTIcon.xl))
-                    .foregroundColor(isSelected ? .ttPrimary : .ttTextTertiary)
+                    .foregroundColor(iconColor)
                     .frame(width: 20)
                 
                 Text(section.rawValue)
                     .font(TTFont.sidebarItem)
-                    .foregroundColor(isSelected ? .ttPrimary : .ttTextSecondary)
+                    .foregroundColor(titleColor)
                 
                 Spacer()
                 
-                if let badge = badge {
+                if let badge = badge, !isGated {
                     Text("\(badge)")
                         .font(TTFont.badge)
                         .foregroundColor(.ttTextTertiary)
@@ -395,15 +489,25 @@ struct SidebarItemView: View {
                         )
                 }
             }
+            .opacity(isGated ? 0.55 : 1)
         }
-        .buttonStyle(TTSidebarItemStyle(isSelected: isSelected))
+        .buttonStyle(TTSidebarItemStyle(isSelected: isSelected && !isGated))
+        .help(isGated ? "Start Server to use this section" : section.rawValue)
     }
 }
 
-#Preview {
+#Preview("Sidebar · tall") {
     SidebarView()
         .environment(AppState())
         .environment(ConnectionManager())
-        .frame(width: 230, height: 800)
+        .frame(width: 240, height: 800)
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Sidebar · short · server stopped") {
+    SidebarView()
+        .environment(AppState())
+        .environment(ConnectionManager())
+        .frame(width: 240, height: 520)
         .preferredColorScheme(.dark)
 }

@@ -80,12 +80,27 @@ extension View {
     }
     
     func ttLabel() -> some View {
-        // Labels use tertiary (chrome) — AA-compliant after token recalibration
-        modifier(TTTextStyle(font: TTFont.labelMedium, color: .ttTextTertiary))
+        // Field / form labels — secondary for AA on both schemes
+        modifier(TTTextStyle(font: TTFont.labelMedium, color: .ttTextSecondary))
     }
     
     func ttLabelSmall() -> some View {
-        modifier(TTTextStyle(font: TTFont.labelSmall, color: .ttTextTertiary))
+        modifier(TTTextStyle(font: TTFont.labelSmall, color: .ttTextSecondary))
+    }
+
+    /// Disabled control caption — muted only
+    func ttDisabled() -> some View {
+        modifier(TTTextStyle(font: TTFont.bodyMedium, color: .ttTextMuted))
+    }
+
+    /// Selected / active control text
+    func ttSelected() -> some View {
+        modifier(TTTextStyle(font: TTFont.labelMedium, color: .ttPrimary))
+    }
+
+    /// Text on solid brand/status fills
+    func ttOnAccent() -> some View {
+        modifier(TTTextStyle(font: TTFont.labelMedium, color: .ttTextOnAccent))
     }
     
     func ttCodeSmall() -> some View {

@@ -41,28 +41,38 @@ struct MenuBarView: View {
     }
     
     private var serverStatusDetail: String {
-        guard connectionManager.isServerRunning else {
-            return "Server offline - local dev tools are available"
+        if connectionManager.isServerRunning {
+            let ports = connectionManager.serverPorts.values.sorted()
+            guard !ports.isEmpty else {
+                return "Waiting for network interface"
+            }
+            return ports.map { ":\($0)" }.joined(separator: "  ")
         }
-        
-        let ports = connectionManager.serverPorts.values.sorted()
-        guard !ports.isEmpty else {
-            return "Waiting for network interface"
+        if connectionManager.isLifecycleActive {
+            return "Binding ports…"
         }
-        
-        return ports.map { ":\($0)" }.joined(separator: "  ")
-    }
-    
-    private var serverModeIcon: String {
-        connectionManager.isServerRunning ? AppIcon.connectionHealth : AppIcon.devToolsMode
+        // Match main sidebar copy — tools-first default
+        return "Tools ready · start when you need a device"
     }
     
     private var serverModeTitle: String {
-        connectionManager.isServerRunning ? "Server Running" : "Dev Tools Mode"
+        if connectionManager.isServerRunning {
+            return "Server Active"
+        }
+        if connectionManager.isLifecycleActive {
+            return "Server Starting…"
+        }
+        return "Server Stopped"
     }
     
     private var serverModeColor: Color {
-        connectionManager.isServerRunning ? .ttSuccess : .ttPrimary
+        if connectionManager.isServerRunning {
+            return .ttSuccess
+        }
+        if connectionManager.isLifecycleActive {
+            return .ttWarning
+        }
+        return .ttError
     }
     
     var body: some View {
@@ -70,10 +80,7 @@ struct MenuBarView: View {
             // MARK: - Header
             headerSection
             
-            Divider()
-                .padding(.vertical, 4)
-            
-            // MARK: - Server Status
+            // MARK: - Server Status (primary control — full-width Start/Stop + tools)
             serverStatusSection
             
             Divider()
@@ -100,8 +107,9 @@ struct MenuBarView: View {
             // MARK: - App Actions
             appActionsSection
         }
-        .padding(.vertical, 8)
-        .frame(width: 340)
+        .padding(.top, 10)
+        .padding(.bottom, 12)
+        .frame(width: 300)
         // Match app canvas — solid design token (no system/primary wash)
         .background(Color.ttBackground)
         .popover(isPresented: $isToolPopoverPresented, arrowEdge: .trailing) {
@@ -142,17 +150,19 @@ struct MenuBarView: View {
                     .foregroundColor(.ttTextOnAccent)
             }
             
-            VStack(alignment: .leading, spacing: 1) {
-                Text("TTBDebugPlus")
+            VStack(alignment: .leading, spacing: 2) {
+                Text(AppBrand.name)
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundColor(.ttTextPrimary)
+                    .lineLimit(1)
                 
-                Text("v\(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0")")
-                    .font(.system(size: 10))
-                    .foregroundColor(.ttTextSecondary)
+                Text(AppBrand.versionLabel)
+                    .font(.system(size: 10, design: .monospaced))
+                    .foregroundColor(.ttTextTertiary)
+                    .lineLimit(1)
             }
             
-            Spacer()
+            Spacer(minLength: 0)
             
             // Connection count badge
             if connectionManager.onlineDevices.count > 0 {
@@ -164,56 +174,90 @@ struct MenuBarView: View {
                     .background(Capsule().fill(Color.ttSuccess))
             }
         }
-        .padding(.horizontal, 12)
+        .padding(.horizontal, 14)
+        .padding(.bottom, 10)
     }
     
     // MARK: - Server Status
+    // Vertical stack matching main-window sidebar + attached design:
+    // title → status line → full-width Start/Stop → icon tool row (never clipped).
     
     private var serverStatusSection: some View {
-        HStack(spacing: 12) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(serverModeColor.opacity(0.16))
-                    .frame(width: 28, height: 28)
-                
-                Image(systemName: serverModeIcon)
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(serverModeColor)
-            }
-            
-            VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(serverModeTitle)
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(.ttTextPrimary)
-                
-                Text(serverStatusDetail)
-                    .font(.system(size: 10))
-                    .foregroundColor(.ttTextSecondary)
-                    .lineLimit(1)
-            }
-            
-            Spacer(minLength: 8)
-            
-            Button(action: toggleServer) {
-                let kind: TTBannerKind = connectionManager.isLifecycleActive ? .error : .success
-                Text(connectionManager.isLifecycleActive ? "Stop" : "Start")
                     .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(kind.foreground)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 7)
-                    .background {
-                        RoundedRectangle(cornerRadius: 7)
-                            .fill(kind.background)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 7)
-                                    .stroke(kind.border.opacity(0.55), lineWidth: 1)
-                            )
-                    }
+                    .foregroundColor(.ttTextPrimary)
+                    .lineLimit(1)
+                
+                HStack(alignment: .top, spacing: 6) {
+                    Circle()
+                        .fill(serverModeColor)
+                        .frame(width: 8, height: 8)
+                        .padding(.top, 3)
+                    
+                    Text(serverStatusDetail)
+                        .font(.system(size: 11))
+                        .foregroundColor(.ttTextSecondary)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
             }
-            .buttonStyle(.plain)
+            
+            // Primary Start / Stop — reserved height for both styles (stable cold start)
+            Group {
+                if connectionManager.isLifecycleActive {
+                    Button(action: toggleServer) {
+                        Label("Stop Server", systemImage: AppIcon.stopServer)
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.ttOutlined)
+                    .accessibilityLabel("Stop Server")
+                    .help("Stop the debug bridge server")
+                } else {
+                    Button(action: toggleServer) {
+                        Label("Start Server", systemImage: AppIcon.startServer)
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.ttPrimary)
+                    .accessibilityLabel("Start Server")
+                    .help("Start the debug bridge when you need a device connection")
+                }
+            }
+            .frame(maxWidth: .infinity, minHeight: 36, alignment: .center)
+            
+            // Secondary server tools — fixed min height so icons never clip at panel edge
+            HStack(spacing: 6) {
+                DeviceSessionMenuButton()
+                NetworkInterfaceMenuButton()
+                
+                Button(action: { connectionManager.forceReconnect() }) {
+                    Image(systemName: AppIcon.reconnect)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(connectionManager.isLifecycleActive ? .ttWarning : .ttTextMuted)
+                        .frame(width: 28, height: 28)
+                        .background(
+                            RoundedRectangle(cornerRadius: TTRadius.sm)
+                                .fill(Color.ttSurface)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: TTRadius.sm)
+                                        .stroke(Color.ttBorder.opacity(0.5), lineWidth: 1)
+                                )
+                        )
+                }
+                .buttonStyle(.plain)
+                .disabled(!connectionManager.isLifecycleActive)
+                .help("Force Reconnect (restart Bonjour, keep logs)")
+                .accessibilityLabel("Force Reconnect")
+                
+                Spacer(minLength: 0)
+            }
+            .frame(minHeight: 28, alignment: .center)
         }
         .padding(.horizontal, 12)
-        .padding(.vertical, 4)
+        .padding(.vertical, 10)
+        .background(Color.ttSurface.opacity(0.45))
     }
     
     // MARK: - Devices
@@ -393,10 +437,10 @@ struct MenuBarView: View {
         VStack(spacing: 2) {
             MenuBarActionButton(
                 icon: AppIcon.mainWindow,
-                title: "Open Main Window",
+                title: "Open Full App",
                 shortcut: ""
             ) {
-                activateMainWindow()
+                activateMainWindow(preferDevToolsIfServerStopped: true)
             }
             
             Divider()
@@ -460,7 +504,7 @@ struct MenuBarView: View {
     
     private func openDevTool(_ tool: DevTool) {
         appState.openDevTool(tool)
-        activateMainWindow()
+        activateMainWindow(preferDevToolsIfServerStopped: false)
     }
     
     private func openDevToolPopover(_ tool: DevTool) {
@@ -477,10 +521,14 @@ struct MenuBarView: View {
     
     private func openDevToolsMenu() {
         appState.openDevToolsMenu()
-        activateMainWindow()
+        activateMainWindow(preferDevToolsIfServerStopped: false)
     }
     
-    private func activateMainWindow() {
+    /// Opens the main window. When the server is stopped, optionally land on Dev Tools.
+    private func activateMainWindow(preferDevToolsIfServerStopped: Bool) {
+        if preferDevToolsIfServerStopped {
+            appState.preferDevToolsWhenServerStopped(serverActive: connectionManager.isLifecycleActive)
+        }
         NSApplication.shared.activate(ignoringOtherApps: true)
         openWindow(id: "main-window")
     }

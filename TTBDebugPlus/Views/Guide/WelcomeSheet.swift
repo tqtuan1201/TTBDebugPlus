@@ -222,23 +222,23 @@ struct WelcomeSheet: View {
             }
             .padding(.horizontal, 60)
             
-            // Tip
+            // Tip — high-contrast warning surface
             HStack(spacing: 10) {
                 Image(systemName: "lightbulb.fill")
-                    .foregroundColor(.ttWarning)
+                    .foregroundColor(TTBannerKind.warning.foreground)
                     .font(.ttIcon(TTIcon.xl))
                 Text("Check the **Integration Guide** tab for detailed code snippets")
                     .font(TTFont.bodySmall)
-                    .foregroundColor(.ttTextSecondary)
+                    .foregroundColor(TTBannerKind.warning.foreground)
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 12)
             .background(
                 RoundedRectangle(cornerRadius: 10)
-                    .fill(Color.ttWarning.opacity(0.08))
+                    .fill(TTBannerKind.warning.background)
                     .overlay(
                         RoundedRectangle(cornerRadius: 10)
-                            .stroke(Color.ttWarning.opacity(0.2), lineWidth: 1)
+                            .stroke(TTBannerKind.warning.border.opacity(0.55), lineWidth: 1)
                     )
             )
             
@@ -255,7 +255,7 @@ struct WelcomeSheet: View {
                     .frame(width: 32, height: 32)
                 Text("\(number)")
                     .font(TTFont.codeLarge)
-                    .foregroundColor(.ttTextPrimary)
+                    .foregroundColor(.ttTextOnAccent)
             }
             
             VStack(alignment: .leading, spacing: 4) {

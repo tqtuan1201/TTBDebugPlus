@@ -87,18 +87,22 @@ enum JSONTool: String, CaseIterable, Identifiable {
 }
 
 // MARK: - Dev Tools Category
+/// Display order = `allCases` order (Dev Tools grid + Menu Bar).
+/// Tier A (available, usage-first) then Tier B (coming soon).
 enum DevTool: String, CaseIterable, Identifiable {
+    // Tier A — available, frequent → supporting
     case json = "JSON"
+    case jwt = "JWT"
+    case localhostServers = "Localhost"
+    case colorPicker = "Color Picker"
     case templateLibrary = "Library"
     case qrCode = "QR Code"
     case caseConverter = "Case Converter"
-    case jwt = "JWT"
-    case localhostServers = "Localhost"
+    // Tier B — coming soon
     case base64 = "Base64"
     case urlEncode = "URL Encode"
     case hashGenerator = "Hash"
     case timestamp = "Timestamp"
-    case colorPicker = "Color Picker"
 
     var id: String { rawValue }
 

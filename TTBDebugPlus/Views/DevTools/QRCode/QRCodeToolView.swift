@@ -517,31 +517,42 @@ struct QRCodeToolView: View {
     }
     
     private func statusChip(icon: String, text: String, color: Color) -> some View {
-        HStack(spacing: 5) {
+        let kind = qrBannerKind(for: color)
+        return HStack(spacing: 5) {
             Image(systemName: icon)
                 .font(.system(size: 10, weight: .semibold))
             Text(text)
                 .font(TTFont.badge)
         }
-        .foregroundColor(color)
+        .foregroundColor(kind.foreground)
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
         .background(
             Capsule()
-                .fill(color.opacity(0.12))
+                .fill(kind.background)
+                .overlay(Capsule().stroke(kind.border.opacity(0.55), lineWidth: 1))
         )
     }
     
     private func stateMessage(icon: String, text: String, color: Color) -> some View {
-        HStack(alignment: .top, spacing: 8) {
+        let isNeutral = (color == Color.ttTextMuted || color == Color.ttTextSecondary || color == Color.ttTextTertiary)
+        return HStack(alignment: .top, spacing: 8) {
             Image(systemName: icon)
                 .font(.system(size: 13, weight: .semibold))
+                .foregroundColor(isNeutral ? .ttTextSecondary : qrBannerKind(for: color).foreground)
             Text(text)
                 .font(TTFont.bodySmall)
+                .foregroundColor(isNeutral ? .ttTextSecondary : .ttTextPrimary)
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .foregroundColor(color)
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func qrBannerKind(for color: Color) -> TTBannerKind {
+        if color == Color.ttError { return .error }
+        if color == Color.ttWarning { return .warning }
+        if color == Color.ttSuccess { return .success }
+        return .info
     }
     
     // MARK: - Actions

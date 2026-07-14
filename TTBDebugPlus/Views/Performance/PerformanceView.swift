@@ -147,8 +147,12 @@ struct PerformanceView: View {
             HStack(spacing: 12) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(color.opacity(0.12))
+                        .fill(alert ? color.opacity(0.2) : color.opacity(0.12))
                         .frame(width: 44, height: 44)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(alert ? color.opacity(0.45) : Color.clear, lineWidth: 1)
+                        )
                     Image(systemName: icon)
                         .font(.ttIcon(TTIcon.xxxl))
                         .foregroundColor(color)
@@ -157,11 +161,12 @@ struct PerformanceView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(value)
                         .font(TTFont.heading2)
-                        .foregroundColor(alert ? color : .ttTextPrimary)
+                        // Body value stays primary; alert is signaled via icon chrome
+                        .foregroundColor(.ttTextPrimary)
                     if let subtitle = subtitle {
                         Text(subtitle)
                             .font(TTFont.labelSmall)
-                            .foregroundColor(.ttTextTertiary)
+                            .foregroundColor(.ttTextSecondary)
                     }
                 }
             }

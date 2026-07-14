@@ -198,25 +198,27 @@ struct DeviceView: View {
             
             Spacer()
             
-            // Recording indicator
+            // Recording indicator — error banner tokens for AA contrast
             if captureVM.isRecording {
                 HStack(spacing: 5) {
-                    Circle().fill(Color.ttError).frame(width: 7, height: 7)
+                    Circle()
+                        .fill(TTBannerKind.error.border)
+                        .frame(width: 7, height: 7)
                         .modifier(PulsingAnimation())
                     Text("REC \(captureVM.formattedRecordingTime)")
                         .font(TTFont.badge)
-                        .foregroundColor(.ttError)
+                        .foregroundColor(TTBannerKind.error.foreground)
                         .monospacedDigit()
                     Text("• \(captureVM.recordingSession.frameCount)f")
                         .font(TTFont.codeSmall)
-                        .foregroundColor(.ttError.opacity(0.7))
+                        .foregroundColor(TTBannerKind.error.foreground.opacity(0.85))
                 }
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)
                 .background(
                     Capsule()
-                        .fill(Color.ttError.opacity(0.1))
-                        .overlay(Capsule().stroke(Color.ttError.opacity(0.3), lineWidth: 1))
+                        .fill(TTBannerKind.error.background)
+                        .overlay(Capsule().stroke(TTBannerKind.error.border.opacity(0.65), lineWidth: 1))
                 )
             }
             
