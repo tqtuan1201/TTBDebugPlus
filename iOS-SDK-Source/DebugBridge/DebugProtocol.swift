@@ -1,86 +1,78 @@
 //
-//  DebugMessage.swift
-//  TTBDebugPlus
+//  DebugProtocol.swift
+//  TTBaseUIKit
 //
 //  Created by TuanTruong on 2026-03-27.
-//  Shared protocol models for iOS ↔ macOS communication
+//  Shared protocol models for iOS ↔ macOS debug communication
+//  NOTE: These models must stay in sync with TTBDebugPlus/Services/Protocol/DebugMessage.swift
 //
 
 import Foundation
 
 // MARK: - Message Envelope
-/// Top-level message wrapper for all communications between iOS SDK and macOS app.
-/// Every message is wrapped in this envelope with a `type` discriminator and a JSON `payload`.
 struct DebugMessage: Codable {
     /// Wire protocol version. Bump when the envelope or a payload shape changes
     /// in a way older peers can't safely ignore.
     static let currentProtocolVersion = 1
 
     let type: MessageType
-    let payload: Data // Raw JSON payload — decoded based on `type`
+    let payload: Data
     let timestamp: TimeInterval
     /// `nil` means the peer predates this field (pre-2026-07-13 SDK/app) — treat as version 0.
     let protocolVersion: Int?
-    /// Stamped by a Relay Server (never by iOS, never for direct local connections) when
-    /// forwarding a producer's frame to viewers — see Phase 3 relay design doc. A single
-    /// Relay-Client↔Relay-Server connection multiplexes messages from potentially many iOS
-    /// devices, unlike local mode where each device has its own dedicated `NWConnection`
-    /// and attribution is implicit. `nil` everywhere else. `var` so the relay can stamp it
-    /// on an already-decoded message before re-forwarding.
+    /// Stamped by a macOS Relay Server when forwarding a producer's frame to viewers — never
+    /// set or read by iOS itself. Kept here only for envelope parity with the macOS copy (see
+    /// Phase 3 relay design doc); this SDK never needs to inspect it.
     var sourceDeviceId: String?
 
     init(type: MessageType, payload: Data) {
         self.type = type
         self.payload = payload
-        self.timestamp = Date().timeIntervalSince1970 * 1000 // milliseconds
+        self.timestamp = Date().timeIntervalSince1970 * 1000
         self.protocolVersion = DebugMessage.currentProtocolVersion
         self.sourceDeviceId = nil
     }
     
-    /// Convenience: create a message from any Encodable payload
     static func create<T: Encodable>(type: MessageType, payload: T) -> DebugMessage? {
         do {
             let data = try JSONEncoder().encode(payload)
             return DebugMessage(type: type, payload: data)
         } catch {
-            print("[TTBDebug] ⚠️ Failed to encode \(type.rawValue) payload: \(error)")
+            TTBaseFunc.shared.printLog(object: "[TTDebugBridge] ⚠️ Failed to encode \(type.rawValue) payload: \(error)")
             return nil
         }
     }
 
-    /// Decode the payload into a specific type
     func decodePayload<T: Decodable>(_ type: T.Type) -> T? {
         do {
             return try JSONDecoder().decode(type, from: payload)
         } catch {
-            print("[TTBDebug] ⚠️ decodePayload(\(type)) failed for \(self.type.rawValue): \(error)")
+            TTBaseFunc.shared.printLog(object: "[TTDebugBridge] ⚠️ decodePayload(\(type)) failed for \(self.type.rawValue): \(error)")
             return nil
         }
     }
 
-    /// Serialize entire message to Data for transmission
     func toData() -> Data? {
         do {
             return try JSONEncoder().encode(self)
         } catch {
-            print("[TTBDebug] ⚠️ Failed to encode DebugMessage envelope (\(type.rawValue)): \(error)")
+            TTBaseFunc.shared.printLog(object: "[TTDebugBridge] ⚠️ Failed to encode DebugMessage envelope (\(type.rawValue)): \(error)")
             return nil
         }
     }
 
-    /// Deserialize from received Data
     static func from(data: Data) -> DebugMessage? {
         do {
             return try JSONDecoder().decode(DebugMessage.self, from: data)
         } catch {
-            print("[TTBDebug] ⚠️ DebugMessage envelope decode failed (\(data.count) bytes): \(error)")
+            TTBaseFunc.shared.printLog(object: "[TTDebugBridge] ⚠️ DebugMessage envelope decode failed (\(data.count) bytes): \(error)")
             return nil
         }
     }
 }
 
 // MARK: - Message Type
-enum MessageType: String, Codable, CaseIterable {
+enum MessageType: String, Codable {
     case deviceInfo = "device_info"
     case apiLog = "api_log"
     case consoleLog = "console_log"
@@ -88,9 +80,8 @@ enum MessageType: String, Codable, CaseIterable {
     case screenshotResponse = "screenshot_response"
     case heartbeat = "heartbeat"
     case heartbeatAck = "heartbeat_ack"
-    /// Sent by a macOS Relay Client to a Relay Server as its first message — the relay-mode
-    /// counterpart to iOS's `device_info`, telling the relay "classify this connection as a
-    /// viewer, not a producer." See Phase 3 relay design doc.
+    /// macOS-internal (Relay Client → Relay Server handshake) — this SDK never sends or
+    /// receives it. Present only for envelope/enum parity with the macOS copy.
     case relayClientHello = "relay_client_hello"
     case appCommand = "app_command"
     case performanceMetrics = "performance_metrics"
@@ -98,11 +89,10 @@ enum MessageType: String, Codable, CaseIterable {
     case connectionDiagnostics = "connection_diagnostics"
 }
 
-// MARK: - Device Info Payload
+// MARK: - Payloads
 struct DeviceInfoPayload: Codable {
     let deviceId: String
     let deviceName: String
-    let deviceModel: String?
     let osVersion: String
     let appName: String
     let appVersion: String
@@ -114,7 +104,6 @@ struct DeviceInfoPayload: Codable {
     enum CodingKeys: String, CodingKey {
         case deviceId = "device_id"
         case deviceName = "device_name"
-        case deviceModel = "device_model"
         case osVersion = "os_version"
         case appName = "app_name"
         case appVersion = "app_version"
@@ -125,7 +114,6 @@ struct DeviceInfoPayload: Codable {
     }
 }
 
-// MARK: - API Log Payload
 struct APILogPayload: Codable {
     let id: String
     let timestamp: TimeInterval
@@ -151,43 +139,24 @@ struct APILogPayload: Codable {
     }
 }
 
-// MARK: - Console Log Payload
 struct ConsoleLogPayload: Codable {
     let id: String
     let timestamp: TimeInterval
-    let level: String // "error", "warning", "info", "debug"
+    let level: String
     let subsystem: String
     let message: String
-    let payload: String? // Optional JSON payload attached to the log
     let sourceFile: String?
     let sourceLine: Int?
     let threadId: String?
     
     enum CodingKeys: String, CodingKey {
-        case id, timestamp, level, subsystem, message, payload
+        case id, timestamp, level, subsystem, message
         case sourceFile = "source_file"
         case sourceLine = "source_line"
         case threadId = "thread_id"
     }
 }
 
-// MARK: - Relay Client Hello Payload (macOS Relay Client → Relay Server)
-struct RelayClientHelloPayload: Codable {
-    let viewerName: String
-
-    enum CodingKeys: String, CodingKey {
-        case viewerName = "viewer_name"
-    }
-}
-
-// MARK: - Relay Disconnect Payload
-/// Synthesized by the Relay Server (never sent by iOS or macOS directly) when a producer's
-/// connection drops, so Relay Clients can drop that device instead of it silently going stale.
-struct RelayDisconnectPayload: Codable {
-    let reason: String
-}
-
-// MARK: - Heartbeat Payload
 struct HeartbeatPayload: Codable {
     let timestamp: TimeInterval
     let uptimeSeconds: Double?
@@ -203,50 +172,29 @@ struct HeartbeatPayload: Codable {
     }
 }
 
-// MARK: - Screenshot Request Payload (macOS → iOS)
 struct ScreenshotRequestPayload: Codable {
     let quality: Double
     let maxWidth: Int?
-    
-    enum CodingKeys: String, CodingKey {
-        case quality
-        case maxWidth = "max_width"
-    }
-    
-    init(quality: Double = 0.7, maxWidth: Int? = 1170) {
-        self.quality = quality
-        self.maxWidth = maxWidth
-    }
+    enum CodingKeys: String, CodingKey { case quality; case maxWidth = "max_width" }
+    init(quality: Double = 0.7, maxWidth: Int? = 1170) { self.quality = quality; self.maxWidth = maxWidth }
 }
 
-// MARK: - Screenshot Response Payload (iOS → macOS)
 struct ScreenshotResponsePayload: Codable {
-    let imageData: String // Base64 encoded JPEG
+    let imageData: String
     let timestamp: TimeInterval
     let screenWidth: Double
     let screenHeight: Double
     let orientation: String
-    
     enum CodingKeys: String, CodingKey {
-        case imageData = "image_data"
-        case timestamp
-        case screenWidth = "screen_width"
-        case screenHeight = "screen_height"
-        case orientation
+        case imageData = "image_data"; case timestamp
+        case screenWidth = "screen_width"; case screenHeight = "screen_height"; case orientation
     }
 }
 
-// MARK: - App Command Payload (macOS → iOS)
 struct AppCommandPayload: Codable {
     let action: String
-    // Supported actions:
-    // "dark_mode_on", "dark_mode_off"
-    // "touch_points_on", "touch_points_off"
-    // "reduced_motion_on", "reduced_motion_off"
-    // "reset_sandbox"
 }
 
-// MARK: - Performance Metrics Payload (iOS → macOS)
 struct PerformanceMetricsPayload: Codable {
     let cpuUsage: Double
     let memoryUsedMB: Double
@@ -269,7 +217,6 @@ struct PerformanceMetricsPayload: Codable {
     }
 }
 
-// MARK: - Connection Diagnostics Payload (iOS → macOS)
 struct ConnectionDiagnosticsPayload: Codable {
     let localIP: String?
     let subnetMask: String?

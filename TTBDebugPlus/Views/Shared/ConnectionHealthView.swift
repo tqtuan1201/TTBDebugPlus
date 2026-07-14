@@ -13,6 +13,11 @@ import SwiftUI
 /// troubleshooting checklist, and connected device diagnostics (if available).
 struct ConnectionHealthView: View {
     @Environment(ConnectionManager.self) var connectionManager
+    /// Same UserDefaults key as `SettingsView` — Relay Client's "enabled" flag lives in
+    /// `@AppStorage` only (RelayClientStatus itself has no `isEnabled`, just
+    /// `isConnected`/`lastError`), so this is the only way to tell "off" apart from
+    /// "on but still connecting" (Phase 9).
+    @AppStorage("relayClientEnabled") private var relayClientEnabled: Bool = false
 
     /// Derived from shared ConnectionManager clock — no private Timer.
     private var refreshTick: Int {
@@ -34,8 +39,9 @@ struct ConnectionHealthView: View {
                     }
                     .frame(maxWidth: .infinity)
                     
-                    // Right: Troubleshooting + Device diagnostics
+                    // Right: Relay status + Troubleshooting + Device diagnostics
                     VStack(spacing: 16) {
+                        relayStatusCard
                         troubleshootingCard
                         if let device = connectionManager.selectedDevice,
                            let diag = device.latestDiagnostics {
@@ -46,9 +52,12 @@ struct ConnectionHealthView: View {
                 }
                 .frame(maxWidth: 800)
                 
-                // Quick start code
-                quickStartCard
-                    .frame(maxWidth: 800)
+                // Quick start code + QR pairing
+                HStack(alignment: .top, spacing: 16) {
+                    quickStartCard
+                    qrPairingCard
+                }
+                .frame(maxWidth: 800)
                 
                 // ── NEW: Multi-Interface Sections ─────────────────────────
                 VStack(spacing: 16) {
@@ -254,8 +263,74 @@ struct ConnectionHealthView: View {
         }
     }
     
+    // MARK: - Relay Status Card (Phase 9)
+
+    /// Connection Health previously showed ZERO relay information (Bonjour/local-network only)
+    /// even though Relay Server/Client is a full second connection path (Phase 3/4/7) — this
+    /// mirrors `connectionManager.relayServer.status` / `.relayClient.status` (already computed
+    /// elsewhere, no new plumbing) as a health-check card: icon + color + plain-language
+    /// explanation + what to do next, instead of raw settings controls.
+    private var relayStatusCard: some View {
+        CardView(title: "RELAY STATUS") {
+            VStack(alignment: .leading, spacing: 10) {
+                relayServerBanner
+                relayClientBanner
+            }
+        }
+    }
+
+    private var relayServerBanner: some View {
+        let status = connectionManager.relayServer.status
+        let kind: TTBannerKind
+        let title: String
+        let message: String
+        if let error = status.lastError {
+            kind = .error
+            title = "Relay Server — Error"
+            message = error
+        } else if !connectionManager.isLifecycleActive {
+            kind = .info
+            title = "Relay Server — Off"
+            message = "Off because the main Server is off (Relay shares the Server On/Off switch — there's no separate toggle). Start the Server above to enable it."
+        } else if status.isRunning {
+            kind = .success
+            title = "Relay Server — Listening"
+            message = "\(status.producerCount) iOS device(s) via relay · \(status.viewerCount) remote viewer(s) watching this Mac."
+        } else {
+            kind = .warning
+            title = "Relay Server — Starting…"
+            message = "Server is on; the relay listener is still coming up. Give it a moment."
+        }
+        return TTBanner(kind: kind, message: message, title: title)
+    }
+
+    private var relayClientBanner: some View {
+        let status = connectionManager.relayClient.status
+        let kind: TTBannerKind
+        let title: String
+        let message: String
+        if !relayClientEnabled {
+            kind = .info
+            title = "Relay Client — Off"
+            message = "Not watching another Mac's relay. Turn this on in Settings → Relay to view devices connected to a different Mac (e.g. a teammate's, or yours over a different network)."
+        } else if let error = status.lastError {
+            kind = .error
+            title = "Relay Client — Error"
+            message = error
+        } else if status.isConnected {
+            kind = .success
+            title = "Relay Client — Connected"
+            message = "Watching a remote relay. Its devices appear in the sidebar exactly like local ones."
+        } else {
+            kind = .warning
+            title = "Relay Client — Connecting…"
+            message = "Attempting to reach the configured relay host. Check the host/port in Settings → Relay if this doesn't resolve."
+        }
+        return TTBanner(kind: kind, message: message, title: title)
+    }
+
     // MARK: - Troubleshooting Card
-    
+
     private var troubleshootingCard: some View {
         CardView(title: "TROUBLESHOOTING CHECKLIST") {
             VStack(alignment: .leading, spacing: 8) {
@@ -356,9 +431,6 @@ struct ConnectionHealthView: View {
                 #if DEBUG
                 TTDebugBridge.shared.start()
                 LogInterceptor.shared.install()
-                
-                // Optional: Show floating diagnostic pill
-                TTDebugBridge.shared.showDiagnosticOverlay()
                 #endif
                 """)
                 
@@ -372,8 +444,57 @@ struct ConnectionHealthView: View {
         }
     }
     
+    // MARK: - QR Pairing Card
+
+    /// Renders a scannable `ttbdebug://<ip>:<port>` code (reuses the Dev Tools QR
+    /// generator) — the fastest path for the iOS "Scan QR" fallback to auto-fill
+    /// manual-connect fields when Bonjour/mDNS discovery fails or is just slow.
+    private var qrPairingCard: some View {
+        CardView(title: "PAIR BY QR CODE") {
+            VStack(spacing: 10) {
+                if let ip = connectionManager.macLocalIP, let port = connectionManager.serverPort {
+                    let pairingString = "ttbdebug://\(ip):\(port)"
+                    if let qrImage = QRCodeEngine.generate(
+                        payload: pairingString,
+                        correction: .medium,
+                        foreground: .black,
+                        background: .white,
+                        size: 240
+                    ) {
+                        Image(nsImage: qrImage)
+                            .resizable()
+                            .interpolation(.none)
+                            .frame(width: 150, height: 150)
+                            .padding(8)
+                            .background(RoundedRectangle(cornerRadius: 8).fill(Color.white))
+                    }
+                    Text("iOS → Debug Bridge panel → Scan QR")
+                        .font(TTFont.bodySmall)
+                        .foregroundColor(.ttTextTertiary)
+                        .multilineTextAlignment(.center)
+                    // Shows which Mac this code belongs to — matters once a team has more
+                    // than one Mac advertising on the same LAN (each has a unique Bonjour
+                    // name since Phase 4; this reuses that exact same string).
+                    Text(BonjourAdvertiser.advertiseName)
+                        .font(TTFont.labelSmall)
+                        .foregroundColor(.ttTextSecondary)
+                    Text(pairingString)
+                        .font(TTFont.codeSmall)
+                        .foregroundColor(.ttTextSecondary)
+                        .textSelection(.enabled)
+                } else {
+                    Text("Start the server to generate a pairing code")
+                        .font(TTFont.bodySmall)
+                        .foregroundColor(.ttTextTertiary)
+                        .frame(maxWidth: .infinity, minHeight: 150)
+                }
+            }
+            .frame(maxWidth: .infinity)
+        }
+    }
+
     // MARK: - Reusable Components
-    
+
     private func statusRow(icon: String, iconColor: Color, label: String, value: String) -> some View {
         HStack(spacing: 10) {
             Image(systemName: icon)
@@ -524,20 +645,18 @@ extension ConnectionHealthView {
                     .filter { connectionManager.isInterfaceEnabled($0.name) }
 
                 if enabledIfaces.isEmpty {
-                    HStack {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundColor(.ttWarning)
-                        Text("All interfaces disabled — enable at least one above")
-                            .font(TTFont.bodySmall)
-                            .foregroundColor(.ttWarning)
-                    }
+                    TTBanner(
+                        kind: .warning,
+                        message: "All interfaces disabled — enable at least one above"
+                    )
                 } else {
                     ForEach(enabledIfaces) { iface in
                         HStack(spacing: 12) {
                             let port = connectionManager.serverPorts[iface.name]
+                            let kind: TTBannerKind = port != nil ? .success : .warning
                             Image(systemName: port != nil ? "checkmark.circle.fill" : "clock.fill")
-                                .font(.system(size: 13))
-                                .foregroundColor(port != nil ? .ttSuccess : .ttWarning)
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(kind.foreground)
 
                             Text(iface.name)
                                 .font(TTFont.codeMedium)
@@ -551,12 +670,10 @@ extension ConnectionHealthView {
 
                             Spacer()
 
-                            Text(port != nil ? "Advertising" : "Waiting...")
-                                .font(TTFont.labelSmall)
-                                .foregroundColor(port != nil ? .ttSuccess : .ttWarning)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 3)
-                                .background(Capsule().fill((port != nil ? Color.ttSuccess : Color.ttWarning).opacity(0.12)))
+                            TTStatusPill(
+                                text: port != nil ? "Advertising" : "Waiting…",
+                                kind: kind
+                            )
                         }
                         .padding(.vertical, 4)
                     }
@@ -575,10 +692,13 @@ extension ConnectionHealthView {
                         HStack(spacing: 10) {
                             Image(systemName: session.isSimulator ? AppIcon.simulator : AppIcon.device)
                                 .font(.system(size: 14))
-                                .foregroundColor(session.isOnline ? .ttSuccess : .ttTextTertiary)
+                                .foregroundColor(session.isOnline(relativeTo: connectionManager.uiNow) ? .ttSuccess : .ttTextTertiary)
                             Text(session.displayName)
                                 .font(TTFont.labelLarge)
                                 .foregroundColor(.ttTextPrimary)
+                            // Same chip as Sidebar (Phase 9) — same device must read the same
+                            // channel wherever it's shown.
+                            ChannelChip(channel: session.connectionChannel, style: .full)
                             Spacer()
                             let elapsed = Int(session.heartbeatAge(relativeTo: connectionManager.uiNow))
                             Text("♥ \(elapsed)s ago")
@@ -624,12 +744,12 @@ extension ConnectionHealthView {
     // MARK: Interface Kind Badge
 
     func ifaceBadge(_ kind: InterfaceKind) -> some View {
-        let color: Color
+        let bannerKind: TTBannerKind
         switch kind {
-        case .wifi:     color = .ttSuccess
-        case .ethernet: color = .ttInfo
-        case .vpn:      color = Color(hex: "#A855F7")
-        case .other:    color = .ttTextTertiary
+        case .wifi:     bannerKind = .success
+        case .ethernet: bannerKind = .info
+        case .vpn:      bannerKind = .info
+        case .other:    bannerKind = .info
         }
         return HStack(spacing: 4) {
             Image(systemName: kind.icon)
@@ -637,10 +757,14 @@ extension ConnectionHealthView {
             Text(kind.rawValue.uppercased())
                 .font(TTFont.badge)
         }
-        .foregroundColor(color)
+        .foregroundColor(bannerKind.foreground)
         .padding(.horizontal, 7)
         .padding(.vertical, 3)
-        .background(Capsule().fill(color.opacity(0.15)))
+        .background(
+            Capsule()
+                .fill(bannerKind.background)
+                .overlay(Capsule().stroke(bannerKind.border.opacity(0.55), lineWidth: 1))
+        )
     }
 }
 

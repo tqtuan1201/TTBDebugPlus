@@ -9,7 +9,9 @@
 import SwiftUI
 
 struct GuideContainerView: View {
-    @State private var selectedGuideTab: GuideTab = .integration
+    // Tutorial is the default (Phase 9) — a first-time user opening Guide should land on the
+    // beginner-friendly connection walkthrough, not the code-integration steps.
+    @State private var selectedGuideTab: GuideTab = .tutorial
     
     var body: some View {
         VStack(spacing: 0) {
@@ -50,6 +52,8 @@ struct GuideContainerView: View {
             
             // Content
             switch selectedGuideTab {
+            case .tutorial:
+                TutorialGuideView()
             case .integration:
                 IntegrationGuideView()
             case .usage:
@@ -60,11 +64,14 @@ struct GuideContainerView: View {
 }
 
 enum GuideTab: String, CaseIterable {
+    // Order here IS tab order — Tutorial first ("above" Integration Guide per Phase 9).
+    case tutorial = "Tutorial"
     case integration = "iOS SDK Setup"
     case usage = "How to Use"
-    
+
     var icon: String {
         switch self {
+        case .tutorial: return "hand.wave.fill"
         case .integration: return AppIcon.devTools
         case .usage: return AppIcon.guide
         }

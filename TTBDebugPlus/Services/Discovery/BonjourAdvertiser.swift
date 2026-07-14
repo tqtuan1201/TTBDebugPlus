@@ -20,6 +20,27 @@ final class BonjourAdvertiser {
     static let serviceType   = "_ttbdebug._tcp"
     static let serviceDomain = "local"
 
+    /// Unique per-machine advertise name (Phase 4). Previously hardcoded `"TTBDebugPlus"` on
+    /// every Mac — when 2+ Macs on the same LAN advertised the identical name, mDNS's
+    /// identical-name conflict resolution (RFC 6762 §9) had to auto-rename one of them, which
+    /// works but is a timing-dependent race with no UI to tell instances apart afterward.
+    /// Naming each instance uniquely up front avoids the collision entirely.
+    /// Not `private` — the QR/manual-pairing UI (Phase 7) reads this to show which Mac a
+    /// pairing code belongs to, since a team with multiple Macs on the same LAN will see
+    /// this exact string in each other's Bonjour listings too.
+    static let advertiseName: String = {
+        let machine = Host.current().localizedName ?? "Mac"
+        let truncated = machine.count > 40 ? String(machine.prefix(40)) : machine
+        return "TTBDebugPlus – \(truncated)"
+    }()
+
+    /// Preferred fixed port for the LAN listener (Phase 7). Previously always ephemeral
+    /// (`.any`), which changed every launch — that's fine for QR/Bonjour discovery, but made
+    /// Manual Connect and corporate-firewall allow-listing rely on a value the user had to
+    /// look up fresh every time. Not guaranteed: if unavailable, falls back to `.any` exactly
+    /// as before (see `startListenerOnQueue`'s `useFixedPort` fallback).
+    private static let preferredPort = NWEndpoint.Port(rawValue: 51821)!
+
     // MARK: - Fingerprint
 
     /// Material interface properties that require a listener restart when they change.
@@ -41,7 +62,10 @@ final class BonjourAdvertiser {
     /// Bumped on every full stop so late state callbacks from cancelled listeners are ignored.
     private var generation: UInt64 = 0
 
-    // MARK: - Callbacks (invoked on main thread)
+    // MARK: - Callbacks
+    // onStateChange is hopped to main by this class. onNewConnection is invoked
+    // directly on `queue` (the advertiser's private queue) — the caller is
+    // responsible for hopping to main before touching any @Observable state.
 
     var onNewConnection: ((NWConnection) -> Void)?
     var onStateChange:   ((String, NWListener.State) -> Void)?
@@ -84,14 +108,46 @@ final class BonjourAdvertiser {
                 continue
             }
 
-            if listeners[iface.name] != nil {
+            let hadExistingListener = listeners[iface.name] != nil
+            if hadExistingListener {
                 cancelListener(named: iface.name, reason: "fingerprint changed")
             }
 
-            do {
-                try startListenerOnQueue(for: iface, fingerprint: fp)
-            } catch {
-                print("[TTBDebug] ❌ Failed to start listener for \(iface.name): \(error)")
+            if hadExistingListener {
+                // Give the just-cancelled NWListener a moment to release its socket
+                // before rebinding — starting synchronously in the same queue hop
+                // races the old socket's teardown (matches the yield already used
+                // by ConnectionManager.recoverAdvertising for full-stack rebinds).
+                let ifName = iface.name
+                queue.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+                    guard let self, self.listeners[ifName] == nil else { return }
+                    self.startListenerRetrying(for: iface, fingerprint: fp)
+                }
+            } else {
+                startListenerRetrying(for: iface, fingerprint: fp)
+            }
+        }
+    }
+
+    /// Starts a listener, retrying with backoff if construction itself fails
+    /// (e.g. transient "address in use"). Bounded — after 3 attempts it logs and
+    /// gives up, relying on the next interface-change event to try again.
+    private func startListenerRetrying(for interface: NetworkInterface,
+                                       fingerprint: InterfaceFingerprint,
+                                       attempt: Int = 1,
+                                       useFixedPort: Bool = true) {
+        do {
+            try startListenerOnQueue(for: interface, fingerprint: fingerprint, useFixedPort: useFixedPort)
+        } catch {
+            let ifName = interface.name
+            guard attempt < 3 else {
+                print("[TTBDebug] ❌ Giving up on \(ifName) after \(attempt) attempts: \(error) — will retry on next interface change")
+                return
+            }
+            print("[TTBDebug] ❌ Failed to start listener for \(ifName) (attempt \(attempt)): \(error) — retrying in 2s")
+            queue.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+                guard let self, self.listeners[ifName] == nil else { return }
+                self.startListenerRetrying(for: interface, fingerprint: fingerprint, attempt: attempt + 1, useFixedPort: useFixedPort)
             }
         }
     }
@@ -99,7 +155,8 @@ final class BonjourAdvertiser {
     // MARK: - Start Single Listener (must be called on `queue`)
 
     private func startListenerOnQueue(for interface: NetworkInterface,
-                                      fingerprint: InterfaceFingerprint) throws {
+                                      fingerprint: InterfaceFingerprint,
+                                      useFixedPort: Bool = true) throws {
         // TCP keepalive on LISTENER params is inherited by accepted connections.
         let tcpOptions = NWProtocolTCP.Options()
         tcpOptions.enableKeepalive    = true
@@ -118,11 +175,16 @@ final class BonjourAdvertiser {
         params.includePeerToPeer = true
         params.allowLocalEndpointReuse = true
 
-        let newListener = try NWListener(using: params, on: .any)
+        let bindPort: NWEndpoint.Port = useFixedPort ? Self.preferredPort : .any
+        let newListener = try NWListener(using: params, on: bindPort)
+        // Set from inside stateUpdateHandler once .ready fires; read from .failed to decide
+        // whether a fixed-port attempt should fall back to an ephemeral one.
+        var didBecomeReady = false
 
-        // Uniform service name — iOS SDK browses by type only.
+        // Unique per-machine name — iOS SDK browses by type, so this is purely for
+        // disambiguating multiple simultaneous Macs (see `advertiseName` doc above).
         newListener.service = NWListener.Service(
-            name: "TTBDebugPlus",
+            name: Self.advertiseName,
             type: Self.serviceType,
             domain: Self.serviceDomain
         )
@@ -142,6 +204,7 @@ final class BonjourAdvertiser {
 
                 switch state {
                 case .ready:
+                    didBecomeReady = true
                     if let port = newListener?.port {
                         self.ports[ifName] = port.rawValue
                         let bound = fingerprint.hasNWInterface ? "bound" : "unrestricted"
@@ -154,6 +217,10 @@ final class BonjourAdvertiser {
                     }
                     self.ports.removeValue(forKey: ifName)
                     print("[TTBDebug] ❌ Listener failed on \(ifName): \(error)")
+                    if useFixedPort, !didBecomeReady {
+                        print("[TTBDebug] ⚠️ Preferred port \(Self.preferredPort.rawValue) unavailable on \(ifName) — falling back to a system-assigned port")
+                        self.startListenerRetrying(for: interface, fingerprint: fingerprint, useFixedPort: false)
+                    }
                 case .cancelled:
                     if self.listeners[ifName] === newListener {
                         self.listeners.removeValue(forKey: ifName)
@@ -164,6 +231,11 @@ final class BonjourAdvertiser {
                     }
                     print("[TTBDebug] ⏹ Listener cancelled on \(ifName)")
                 case .waiting(let error):
+                    // Listener isn't currently bound/accepting — clear the port entry so
+                    // portSnapshot/isAdvertising honestly reflect "not serving right now".
+                    // The listener object itself is left running; NWListener resumes to
+                    // .ready on its own once the condition clears (no manual restart needed).
+                    self.ports.removeValue(forKey: ifName)
                     print("[TTBDebug] ⏳ Listener waiting on \(ifName): \(error)")
                 default:
                     break

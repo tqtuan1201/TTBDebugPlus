@@ -20,7 +20,19 @@ struct TTBDebugPlusApp: App {
     @State private var libraryStore = LibraryStore()
     @State private var tokenStore = TokenStore()
     @AppStorage("hasSeenWelcome") private var hasSeenWelcome: Bool = false
-    @AppStorage("appearance") private var appearance: String = "dark"
+    /// Default follows macOS System Settings (user can force light/dark in app Settings).
+    /// Key `appAppearance` supersedes legacy `appearance` (which defaulted to forced dark).
+    @AppStorage("appAppearance") private var appearance: String = "system"
+    /// On by default (2026-07-13) — previously the server never auto-started, which was
+    /// easy to mistake for a connection bug ("iPhone won't connect") when it was really
+    /// just "server was never running". Toggle lives in Settings → Connection.
+    @AppStorage("autoStartServer") private var autoStartServer: Bool = true
+    // Relay Server (Phase 4) — no separate enable toggle; starts automatically with the main
+    // Server above. Only its port is a standalone setting, restored on launch.
+    @AppStorage("relayServerPort") private var relayServerPort: Int = 51820
+    @AppStorage("relayClientEnabled") private var relayClientEnabled: Bool = false
+    @AppStorage("relayClientHost") private var relayClientHost: String = ""
+    @AppStorage("relayClientPort") private var relayClientPort: Int = 51820
     @State private var showWelcome: Bool = false
     @State private var appErrorMessage: String?
     @State private var didRegisterTerminateObserver = false
@@ -43,6 +55,15 @@ struct TTBDebugPlusApp: App {
                         showWelcome = true
                     }
                     registerAppTerminateHandlerIfNeeded()
+                    // Set before startServer() so the very first relay listener binds to the
+                    // persisted port instead of the in-memory default.
+                    connectionManager.relayServerPort = UInt16(clamping: relayServerPort)
+                    if autoStartServer && !connectionManager.isLifecycleActive {
+                        connectionManager.startServer()
+                    }
+                    if relayClientEnabled, !relayClientHost.isEmpty {
+                        connectionManager.setRelayClientEnabled(true, host: relayClientHost, port: UInt16(clamping: relayClientPort))
+                    }
                 }
                 .sheet(isPresented: $showWelcome) {
                     hasSeenWelcome = true
@@ -166,8 +187,9 @@ struct TTBDebugPlusApp: App {
     private var preferredScheme: ColorScheme? {
         switch appearance {
         case "light": return .light
-        case "system": return nil
-        default: return .dark
+        case "dark": return .dark
+        case "system": return nil // follow macOS appearance
+        default: return nil // unknown → system (safe default)
         }
     }
 
@@ -184,6 +206,8 @@ struct TTBDebugPlusApp: App {
             if connectionManager.isLifecycleActive {
                 connectionManager.stopServer()
             }
+            connectionManager.relayServer.stop()
+            connectionManager.relayClient.stop()
         }
     }
 

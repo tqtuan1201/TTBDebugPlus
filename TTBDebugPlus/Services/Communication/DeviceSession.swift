@@ -19,9 +19,22 @@ final class DeviceSession: Identifiable, Hashable {
     let id: String // deviceId from handshake
     var deviceInfo: DeviceInfoPayload?
     var connection: NWConnection?
+    /// Set instead of `connection` when this device was discovered via Relay mode (Phase 3) —
+    /// routes outbound messages through the shared RelayClient connection instead of a
+    /// per-device socket. At most one of `connection` / `relaySend` is non-nil for a live
+    /// session; `send()` below picks whichever is set.
+    var relaySend: ((DebugMessage) -> Void)?
     var connectionState: ConnectionState = .connecting
+    /// Which transport this session is currently reachable through (Phase 8) — set
+    /// unconditionally on every `handleDeviceConnected` call (including reconnects), so it
+    /// tracks a device that hops from Bonjour to Relay (or vice versa) without extra plumbing.
+    /// Not reset on disconnect — keeps showing the last-known channel while offline, which
+    /// pairs with `connectionState`'s own online/warning/offline signal for the full picture.
+    var connectionChannel: ConnectionChannel = .bonjour
     var lastHeartbeat: Date = Date()
     var connectedAt: Date = Date()
+    /// Reason the last disconnect happened (from WebSocketServer), for diagnostics/UI.
+    var lastDisconnectReason: String?
 
     // Accumulated data
     var apiLogs: [APILogPayload] = []
@@ -104,6 +117,10 @@ final class DeviceSession: Identifiable, Hashable {
 
     // MARK: - Send message to this device
     func send(_ message: DebugMessage) {
+        if let relaySend {
+            relaySend(message)
+            return
+        }
         guard let data = message.toData(), let connection = connection else { return }
 
         // Length-prefixed framing: 4-byte big-endian length + payload
@@ -111,9 +128,13 @@ final class DeviceSession: Identifiable, Hashable {
         var frame = Data(bytes: &length, count: 4)
         frame.append(data)
 
+        // Capture the label now (on the caller's thread) rather than reading `self`
+        // inside the completion — that closure runs on WebSocketServer's private
+        // background queue, while `deviceInfo`/`displayName` are written on main.
+        let label = displayName
         connection.send(content: frame, completion: .contentProcessed { error in
             if let error = error {
-                print("[TTBDebug] Send error to \(self.displayName): \(error)")
+                print("[TTBDebug] Send error to \(label): \(error)")
             }
         })
     }
@@ -144,5 +165,42 @@ enum ConnectionState: String {
 
     var isActive: Bool {
         self == .connecting || self == .connected
+    }
+}
+
+// MARK: - Connection Channel (Phase 8)
+
+/// Which of the 3 producer-facing paths a device is reachable through — mirrors the 3 call
+/// sites of `ConnectionManager.handleDeviceConnected`: local `WebSocketServer` (Bonjour), this
+/// Mac's own `RelayServer`, or this Mac's `RelayClient` viewing a device actually connected to
+/// a DIFFERENT Mac's relay.
+enum ConnectionChannel: Equatable {
+    case bonjour
+    case relay(isRemoteView: Bool)
+
+    var badgeLabel: String {
+        switch self {
+        case .bonjour: return "Bonjour"
+        case .relay(let isRemoteView): return isRemoteView ? "Relay Remote" : "Relay"
+        }
+    }
+
+    /// Full sentence used where there's room to explain, not just label (Connection Health,
+    /// tooltips) — Phase 9. Sidebar rows stay on `badgeLabel` alone; cramming this into a
+    /// ~200pt-wide list row would wrap/clip instead of clarifying anything.
+    var fullDescription: String {
+        switch self {
+        case .bonjour: return "Bonjour (Mạng nội bộ)"
+        case .relay(let isRemoteView): return isRemoteView ? "Relay Remote (Relay qua Internet)" : "Relay (Relay nội bộ)"
+        }
+    }
+
+    /// `globe` for remote-viewed relay — distinct from the local relay icon so the two are
+    /// distinguishable at a glance, not just by opacity (Phase 9).
+    var badgeIcon: String {
+        switch self {
+        case .bonjour: return "antenna.radiowaves.left.and.right"
+        case .relay(let isRemoteView): return isRemoteView ? "globe" : "arrow.triangle.2.circlepath"
+        }
     }
 }

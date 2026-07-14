@@ -63,7 +63,7 @@ struct SidebarView: View {
                 
                 Image(systemName: AppIcon.app)
                     .font(.ttIcon(TTIcon.xxl))
-                    .foregroundColor(.ttTextPrimary)
+                    .foregroundColor(.ttTextOnAccent)
             }
             
             VStack(alignment: .leading, spacing: 3) {
@@ -271,20 +271,19 @@ struct SidebarView: View {
             Divider()
                 .overlay(Color.ttBorder)
             
+            // Use SettingsLink / openSettings — private showSettingsWindow: is unreliable
             HStack(spacing: 0) {
-                Button(action: {
-                    #if os(macOS)
-                    NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-                    #endif
-                }) {
+                SettingsLink {
                     Label("SETTINGS", systemImage: AppIcon.settings)
                         .font(TTFont.sidebarItem)
                         .foregroundColor(.ttTextSecondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+                .help("Open Settings (⌘,)")
                 .padding(.horizontal, 16)
                 .padding(.vertical, 6)
-                Spacer()
             }
             
             HStack(spacing: 0) {
@@ -294,11 +293,12 @@ struct SidebarView: View {
                     Label("INTEGRATION GUIDE", systemImage: AppTab.guide.icon)
                         .font(TTFont.sidebarItem)
                         .foregroundColor(appState.selectedTab == .guide ? .ttPrimary : .ttTextSecondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 6)
-                Spacer()
             }
         }
         .padding(.bottom, 12)
@@ -340,7 +340,13 @@ struct DeviceRowView: View {
             }
             
             Spacer()
-            
+
+            // Connection channel (Phase 9) — Bonjour vs Relay, kept even while offline so the
+            // last-known channel stays visible alongside the status dot below. Hover for the
+            // full "Bonjour (Mạng nội bộ)"-style explanation (ChannelChip's `.help()`).
+            ChannelChip(channel: session.connectionChannel, style: .compact)
+                .opacity(online ? 1.0 : 0.45)
+
             // Status: green / amber / offline
             Circle()
                 .fill(online ? (warning ? Color.ttWarning : Color.ttSuccess) : Color.ttTextTertiary)

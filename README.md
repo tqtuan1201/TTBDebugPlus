@@ -75,6 +75,13 @@ TTBDebugPlus uses **Bonjour (mDNS)** for zero-configuration discovery and **WebS
 - Professional JSON Editor with Code, Tree, Graph, and Split views
 - Syntax highlighting, search, format, minify, and diff
 
+### 🖥 Dev Tools — Localhost Servers
+- Discover TCP listeners on your Mac (port, PID, process name)
+- Save project servers (command + working directory + preferred port)
+- Start / stop / restart with live log tail
+- Soft-stop or force-kill with confirmation; protect TTBDebugPlus debug ports
+- Port conflict sheet when a preferred port is already in use
+
 ---
 
 ## Installation (macOS App)
@@ -95,6 +102,10 @@ TTBDebugPlus uses **Bonjour (mDNS)** for zero-configuration discovery and **WebS
 ---
 
 ## iOS SDK Integration
+
+<!-- NOTE: This section mirrors the 6-step in-app guide in
+     TTBDebugPlus/source/TTBDebugPlus/Views/Guide/IntegrationGuideView.swift's `steps` array
+     (same content, shown inside the macOS app too). Keep both in sync when editing either one. -->
 
 The iOS SDK is included in the **TTBaseUIKit** package via the `DebugBridge` module. Connect your iOS app to TTBDebugPlus in minutes.
 
@@ -131,6 +142,10 @@ iOS 14+ requires local network access declarations. Missing this causes **"NoAut
 <array>
     <string>_ttbdebug._tcp</string>
 </array>
+
+<!-- Only needed if you use the built-in QR pairing scanner (DebugBridgeStatusView) -->
+<key>NSCameraUsageDescription</key>
+<string>Used to scan the TTBDebugPlus pairing QR code.</string>
 ```
 
 ### Step 3 — Start the Debug Bridge

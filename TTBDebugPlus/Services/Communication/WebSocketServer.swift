@@ -21,12 +21,15 @@ final class WebSocketServer {
     private let queue = DispatchQueue(label: "com.ttbdebug.websocket", qos: .utility)
 
     /// Unidentified TCP sockets must complete device_info handshake within this window.
-    private let handshakeTimeout: TimeInterval = 10
+    /// Widened from 10s → 20s (2026-07-13): 10s could kill a socket before a slow-starting
+    /// iOS app (breakpoint hit during launch, cold-start on an old device) finishes sending
+    /// device_info, forcing a needless reconnect cycle.
+    private let handshakeTimeout: TimeInterval = 20
 
     // MARK: - Callbacks (always called on main thread)
 
     var onDeviceConnected:       ((String, NWConnection, DeviceInfoPayload) -> Void)?
-    var onDeviceDisconnected:    ((String) -> Void)?
+    var onDeviceDisconnected:    ((String, String) -> Void)?  // (deviceId, reason)
     var onAPILog:                ((String, APILogPayload) -> Void)?
     var onConsoleLog:            ((String, ConsoleLogPayload) -> Void)?
     var onHeartbeat:             ((String) -> Void)?
@@ -301,43 +304,108 @@ final class WebSocketServer {
             DispatchQueue.main.async { self.onDeviceConnected?(deviceId, connection, info) }
 
         case .apiLog:
-            guard let log = message.decodePayload(APILogPayload.self),
-                  let deviceId = identifiedConnections[endpointId] else { return }
+            guard let log = message.decodePayload(APILogPayload.self) else {
+                print("[TTBDebug] ⚠️ [\(connNum)] Failed to decode APILogPayload from \(endpointId) (\(data.count) bytes)")
+                return
+            }
+            guard let deviceId = identifiedConnections[endpointId] else {
+                print("[TTBDebug] ⚠️ [\(connNum)] Dropping api_log — \(endpointId) not yet identified")
+                return
+            }
             DispatchQueue.main.async { self.onAPILog?(deviceId, log) }
 
         case .consoleLog:
-            guard let log = message.decodePayload(ConsoleLogPayload.self),
-                  let deviceId = identifiedConnections[endpointId] else { return }
+            guard let log = message.decodePayload(ConsoleLogPayload.self) else {
+                print("[TTBDebug] ⚠️ [\(connNum)] Failed to decode ConsoleLogPayload from \(endpointId) (\(data.count) bytes)")
+                return
+            }
+            guard let deviceId = identifiedConnections[endpointId] else {
+                print("[TTBDebug] ⚠️ [\(connNum)] Dropping console_log — \(endpointId) not yet identified")
+                return
+            }
             DispatchQueue.main.async { self.onConsoleLog?(deviceId, log) }
 
         case .heartbeat:
-            guard let deviceId = identifiedConnections[endpointId] else { return }
+            guard let deviceId = identifiedConnections[endpointId] else {
+                print("[TTBDebug] ⚠️ [\(connNum)] Dropping heartbeat — \(endpointId) not yet identified")
+                return
+            }
             // Ignore heartbeats from non-live endpoints (stale dual-connect race)
-            guard liveEndpoint[deviceId] == endpointId else { return }
+            guard liveEndpoint[deviceId] == endpointId else {
+                print("[TTBDebug] 🔕 [\(connNum)] Dropping heartbeat from stale endpoint for \(deviceId)")
+                return
+            }
+            sendHeartbeatAck(on: connection, connNum: connNum, endpointId: endpointId)
             DispatchQueue.main.async { self.onHeartbeat?(deviceId) }
 
         case .screenshotResponse:
-            guard let screenshot = message.decodePayload(ScreenshotResponsePayload.self),
-                  let deviceId = identifiedConnections[endpointId] else { return }
-            guard liveEndpoint[deviceId] == endpointId else { return }
+            guard let screenshot = message.decodePayload(ScreenshotResponsePayload.self) else {
+                print("[TTBDebug] ⚠️ [\(connNum)] Failed to decode ScreenshotResponsePayload from \(endpointId) (\(data.count) bytes)")
+                return
+            }
+            guard let deviceId = identifiedConnections[endpointId] else {
+                print("[TTBDebug] ⚠️ [\(connNum)] Dropping screenshot_response — \(endpointId) not yet identified")
+                return
+            }
+            guard liveEndpoint[deviceId] == endpointId else {
+                print("[TTBDebug] 🔕 [\(connNum)] Dropping screenshot_response from stale endpoint for \(deviceId)")
+                return
+            }
             DispatchQueue.main.async { self.onScreenshot?(deviceId, screenshot) }
 
         case .performanceMetrics:
-            guard let metrics = message.decodePayload(PerformanceMetricsPayload.self),
-                  let deviceId = identifiedConnections[endpointId] else { return }
-            guard liveEndpoint[deviceId] == endpointId else { return }
+            guard let metrics = message.decodePayload(PerformanceMetricsPayload.self) else {
+                print("[TTBDebug] ⚠️ [\(connNum)] Failed to decode PerformanceMetricsPayload from \(endpointId) (\(data.count) bytes)")
+                return
+            }
+            guard let deviceId = identifiedConnections[endpointId] else {
+                print("[TTBDebug] ⚠️ [\(connNum)] Dropping performance_metrics — \(endpointId) not yet identified")
+                return
+            }
+            guard liveEndpoint[deviceId] == endpointId else {
+                print("[TTBDebug] 🔕 [\(connNum)] Dropping performance_metrics from stale endpoint for \(deviceId)")
+                return
+            }
             DispatchQueue.main.async { self.onPerformanceMetrics?(deviceId, metrics) }
 
         case .connectionDiagnostics:
-            guard let diag = message.decodePayload(ConnectionDiagnosticsPayload.self),
-                  let deviceId = identifiedConnections[endpointId] else { return }
-            guard liveEndpoint[deviceId] == endpointId else { return }
+            guard let diag = message.decodePayload(ConnectionDiagnosticsPayload.self) else {
+                print("[TTBDebug] ⚠️ [\(connNum)] Failed to decode ConnectionDiagnosticsPayload from \(endpointId) (\(data.count) bytes)")
+                return
+            }
+            guard let deviceId = identifiedConnections[endpointId] else {
+                print("[TTBDebug] ⚠️ [\(connNum)] Dropping connection_diagnostics — \(endpointId) not yet identified")
+                return
+            }
+            guard liveEndpoint[deviceId] == endpointId else {
+                print("[TTBDebug] 🔕 [\(connNum)] Dropping connection_diagnostics from stale endpoint for \(deviceId)")
+                return
+            }
             print("[TTBDebug] 📋 [\(connNum)] Diagnostics from \(deviceId): IP=\(diag.localIP ?? "N/A")")
             DispatchQueue.main.async { self.onConnectionDiagnostics?(deviceId, diag) }
 
         default:
             print("[TTBDebug] ⚠️ [\(connNum)] Unhandled message type: \(message.type.rawValue) from \(endpointId)")
         }
+    }
+
+    // MARK: - Heartbeat ACK (runs on `queue`)
+
+    /// Replies to a heartbeat with a `heartbeat_ack` so the iOS side has a true round-trip
+    /// liveness signal instead of trusting TCP `.ready` alone (closes the "fire-and-forget"
+    /// gap — see `TTDebugBridge._checkAckStaleness`). Pre-2026-07-13 iOS SDKs simply ignore
+    /// this message type, so this is safe to send unconditionally.
+    private func sendHeartbeatAck(on connection: NWConnection, connNum: Int, endpointId: String) {
+        guard let message = DebugMessage.create(type: .heartbeatAck, payload: HeartbeatPayload()),
+              let data = message.toData() else { return }
+        var length = UInt32(data.count).bigEndian
+        var frame = Data(bytes: &length, count: 4)
+        frame.append(data)
+        connection.send(content: frame, completion: .contentProcessed { error in
+            if let error {
+                print("[TTBDebug] ⚠️ [\(connNum)] heartbeat_ack send error to \(endpointId): \(error.localizedDescription)")
+            }
+        })
     }
 
     // MARK: - Handle Disconnection (runs on `queue`)
@@ -366,7 +434,7 @@ final class WebSocketServer {
 
         liveEndpoint.removeValue(forKey: deviceId)
         print("[TTBDebug] 📱 Device disconnected: \(deviceId) — reason: \(reason)")
-        DispatchQueue.main.async { self.onDeviceDisconnected?(deviceId) }
+        DispatchQueue.main.async { self.onDeviceDisconnected?(deviceId, reason) }
     }
 
     // MARK: - Diagnostics

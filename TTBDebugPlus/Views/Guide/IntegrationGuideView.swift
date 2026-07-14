@@ -109,23 +109,30 @@ struct IntegrationGuideView: View {
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill((serverRunning && hasDevices) ? Color.ttSuccess.opacity(0.06) : Color.ttWarning.opacity(0.06))
+                .fill((serverRunning && hasDevices)
+                      ? TTBannerKind.success.background
+                      : TTBannerKind.warning.background)
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
-                        .stroke((serverRunning && hasDevices) ? Color.ttSuccess.opacity(0.2) : Color.ttWarning.opacity(0.2), lineWidth: 1)
+                        .stroke((serverRunning && hasDevices)
+                                ? TTBannerKind.success.border.opacity(0.55)
+                                : TTBannerKind.warning.border.opacity(0.55),
+                                lineWidth: 1)
                 )
         )
     }
     
     private func statusItem(icon: String, title: String, isOk: Bool, okText: String, failText: String) -> some View {
-        HStack(spacing: 10) {
+        let kind: TTBannerKind = isOk ? .success : .warning
+        return HStack(spacing: 10) {
             ZStack {
                 Circle()
-                    .fill(isOk ? Color.ttSuccess.opacity(0.15) : Color.ttWarning.opacity(0.15))
+                    .fill(kind.background)
                     .frame(width: 36, height: 36)
+                    .overlay(Circle().stroke(kind.border.opacity(0.55), lineWidth: 1))
                 Image(systemName: icon)
                     .font(.ttIcon(TTIcon.xxl))
-                    .foregroundColor(isOk ? .ttSuccess : .ttWarning)
+                    .foregroundColor(kind.foreground)
             }
             
             VStack(alignment: .leading, spacing: 2) {
@@ -135,16 +142,18 @@ struct IntegrationGuideView: View {
                         .foregroundColor(.ttTextPrimary)
                     Image(systemName: isOk ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
                         .font(.ttIcon(TTIcon.lg))
-                        .foregroundColor(isOk ? .ttSuccess : .ttWarning)
+                        .foregroundColor(kind.foreground)
                 }
                 Text(isOk ? okText : failText)
                     .font(TTFont.labelSmall)
-                    .foregroundColor(.ttTextTertiary)
+                    .foregroundColor(kind.foreground)
             }
         }
     }
     
     // MARK: - Steps Data
+    // NOTE: These 6 steps mirror TTBDebugPlus/source/README.md's "iOS SDK Integration"
+    // section (same content, shown in-app here). Keep both in sync when editing either one.
     private var steps: [IntegrationStep] {
         [
             IntegrationStep(
@@ -160,10 +169,13 @@ struct IntegrationGuideView: View {
                     )
                 ]
                 
-                // Or copy these 3 files manually:
-                // • TTDebugBridge.swift
-                // • DebugProtocol.swift
-                // • LogInterceptor.swift
+                // Or copy these files manually (all in TTBaseUIKit/Support/DebugBridge/):
+                // • TTDebugBridge.swift        (required)
+                // • DebugProtocol.swift         (required)
+                // • ConnectionDiagnostics.swift (required)
+                // • NetworkDiagnosticUtils.swift (required)
+                // • LogInterceptor.swift        (optional — TTBPrint()/console hooking)
+                // • DebugBridgeStatusView.swift + QRScannerView.swift (optional — pairing UI)
                 """,
                 language: "swift",
                 note: "The DebugBridge files are in TTBaseUIKit/Support/DebugBridge/"
@@ -184,6 +196,10 @@ struct IntegrationGuideView: View {
                 <array>
                     <string>_ttbdebug._tcp</string>
                 </array>
+
+                <!-- Only needed if you use the built-in QR pairing scanner -->
+                <key>NSCameraUsageDescription</key>
+                <string>Used to scan the TTBDebugPlus pairing QR code.</string>
                 """,
                 language: "xml",
                 note: "⚠️ IMPORTANT: Without these 2 keys, iOS will block NWBrowser with a NoAuth error. After adding them, delete the app from the device and Build & Run again so iOS shows the permission prompt."
@@ -246,11 +262,15 @@ struct IntegrationGuideView: View {
                     sourceLine: #line
                 )
                 
-                // Or use LogInterceptor for automatic forwarding:
-                LogInterceptor.shared.startIntercepting()
+                // Or use LogInterceptor to forward without changing every call site:
+                LogInterceptor.shared.interceptConsoleLog(
+                    message: "Something happened",
+                    level: "warning",
+                    subsystem: "Analytics"
+                )
                 """,
                 language: "swift",
-                note: "LogInterceptor hooks into existing XPrint/LogViewHelper calls automatically."
+                note: "LogInterceptor doesn't auto-hook anything — call interceptConsoleLog/interceptAPILog from your existing log call sites, or replace print() with TTBPrint()."
             ),
             IntegrationStep(
                 number: 6,
@@ -276,69 +296,22 @@ struct IntegrationGuideView: View {
     }
     
     // MARK: - Troubleshooting
+
+    /// Scoped to CODE/BUILD topics only (Phase 9) — connection-mechanics issues (NoAuth,
+    /// device not appearing, permission denied, connection drops...) moved to the Tutorial
+    /// Guide tab, which explains them with a beginner-friendly walkthrough instead of a raw
+    /// error-log card. Keeping both here too would just be the duplication Phase 7 already
+    /// spent effort removing elsewhere.
     private var troubleshootingSection: some View {
-        CardView(title: "TROUBLESHOOTING") {
+        CardView(title: "TROUBLESHOOTING (CODE & BUILD)") {
             VStack(alignment: .leading, spacing: 20) {
-                // Error -65555 NoAuth
-                troubleItem(
-                    errorLog: "[TTDebugBridge] Browser failed: -65555: NoAuth",
-                    icon: "exclamationmark.shield.fill",
-                    iconColor: .ttError,
-                    title: "NoAuth (-65555) — Missing Local Network Permission",
-                    explanation: "iOS 14+ requires NSLocalNetworkUsageDescription and NSBonjourServices in Info.plist. Without them, the system blocks NWBrowser immediately with error code -65555.",
-                    solution: "1. Open Info.plist → Add NSLocalNetworkUsageDescription (describe reason)\n2. Add NSBonjourServices → array containing \"_ttbdebug._tcp\"\n3. Delete the app from device → Build & Run again\n4. When the popup appears → tap \"Allow\""
+                TTBanner(
+                    kind: .info,
+                    message: "Having trouble actually connecting (device not appearing, permission errors, etc.)? See the Tutorial Guide tab — this section only covers code/build topics."
                 )
-                
+
                 Divider().background(Color.ttBorder.opacity(0.2))
-                
-                // posixError 57
-                troubleItem(
-                    errorLog: "[TTDebugBridge] Connection failed: posixError(57)",
-                    icon: "wifi.exclamationmark",
-                    iconColor: .ttWarning,
-                    title: "posixError(57) — Socket Connection Failed",
-                    explanation: "Error 57 (ENOTCONN) occurs when iOS discovers the macOS service via Bonjour but cannot establish a TCP/WebSocket connection. Causes: different subnet, firewall blocking, or macOS app not listening.",
-                    solution: "1. Ensure both devices are on the same Wi-Fi network (same SSID, same subnet)\n2. Disable VPN if active\n3. Check macOS Firewall: System Settings → Network → Firewall → allow TTBDebugPlus\n4. Restart the macOS app and verify the log shows \"Bonjour advertiser ready\""
-                )
-                
-                Divider().background(Color.ttBorder.opacity(0.2))
-                
-                // No device found
-                troubleItem(
-                    errorLog: "macOS: \"Waiting for iOS devices...\" — No device found",
-                    icon: AppIcon.deviceUnavailable,
-                    iconColor: .ttWarning,
-                    title: "iOS app not appearing in macOS sidebar",
-                    explanation: "macOS is advertising _ttbdebug._tcp but iOS cannot find it. Common causes: different Wi-Fi networks, iOS hasn't called start(), or Local Network permission was previously denied.",
-                    solution: "1. Verify both devices are on the same Wi-Fi network\n2. Confirm TTDebugBridge.shared.start() has been called\n3. If permission was denied: Settings → Privacy → Local Network → re-enable for your app\n4. Try restarting both the iOS app and macOS app"
-                )
-                
-                Divider().background(Color.ttBorder.opacity(0.2))
-                
-                // Connection drops
-                troubleItem(
-                    errorLog: "[TTDebugBridge] ❌ Connection failed / ⏳ Reconnecting...",
-                    icon: "arrow.triangle.2.circlepath",
-                    iconColor: .ttPrimary,
-                    title: "Connection keeps dropping",
-                    explanation: "The bridge auto-reconnects with exponential backoff (2s → 4s → 8s → 16s → 30s max). If it keeps reconnecting, the network is unstable or the macOS app was closed.",
-                    solution: "1. Check that the network connection is stable\n2. Reduce heartbeatInterval in Config (default is 5s)\n3. Ensure the macOS app is open and the server is running\n4. Check macOS logs to confirm \"Bonjour advertiser ready\""
-                )
-                
-                Divider().background(Color.ttBorder.opacity(0.2))
-                
-                // Logs stop
-                troubleItem(
-                    errorLog: "Logs stop appearing after a while",
-                    icon: "moon.fill",
-                    iconColor: .ttTextTertiary,
-                    title: "App entered background — Bridge paused",
-                    explanation: "When the iOS app enters background, the system suspends network connections. The bridge will automatically resume when the app returns to foreground.",
-                    solution: "1. Bring the iOS app to the foreground to resume\n2. Screenshot capture only works when the app is in the foreground\n3. Messages are buffered (max 200) and flushed on reconnect"
-                )
-                
-                Divider().background(Color.ttBorder.opacity(0.2))
-                
+
                 // Production safety
                 troubleItem(
                     errorLog: "How to exclude from production builds?",
@@ -354,24 +327,24 @@ struct IntegrationGuideView: View {
     
     private func troubleItem(errorLog: String, icon: String, iconColor: Color, title: String, explanation: String, solution: String) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            // Error log preview
+            // Error log preview — high-contrast error surface
             HStack(spacing: 6) {
                 Image(systemName: "terminal.fill")
                     .font(.ttIcon(TTIcon.sm))
-                    .foregroundColor(.ttTextTertiary)
+                    .foregroundColor(TTBannerKind.error.foreground)
                 Text(errorLog)
                     .font(TTFont.codeMedium)
-                    .foregroundColor(.ttError.opacity(0.9))
+                    .foregroundColor(TTBannerKind.error.foreground)
                     .lineLimit(1)
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
             .background(
                 RoundedRectangle(cornerRadius: 6)
-                    .fill(Color.ttError.opacity(0.06))
+                    .fill(TTBannerKind.error.background)
                     .overlay(
                         RoundedRectangle(cornerRadius: 6)
-                            .stroke(Color.ttError.opacity(0.12), lineWidth: 1)
+                            .stroke(TTBannerKind.error.border.opacity(0.55), lineWidth: 1)
                     )
             )
             
@@ -401,24 +374,24 @@ struct IntegrationGuideView: View {
             HStack(alignment: .top, spacing: 8) {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.ttIcon(TTIcon.md))
-                    .foregroundColor(.ttSuccess)
+                    .foregroundColor(TTBannerKind.success.foreground)
                     .padding(.top, 2)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Solution:")
                         .font(TTFont.labelSmall)
-                        .foregroundColor(.ttSuccess)
+                        .foregroundColor(TTBannerKind.success.foreground)
                     Text(solution)
                         .font(TTFont.bodySmall)
-                        .foregroundColor(.ttTextTertiary)
+                        .foregroundColor(.ttTextSecondary)
                 }
             }
             .padding(10)
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(Color.ttSuccess.opacity(0.04))
+                    .fill(TTBannerKind.success.background)
                     .overlay(
                         RoundedRectangle(cornerRadius: 8)
-                            .stroke(Color.ttSuccess.opacity(0.12), lineWidth: 1)
+                            .stroke(TTBannerKind.success.border.opacity(0.55), lineWidth: 1)
                     )
             )
             .padding(.leading, 4)
