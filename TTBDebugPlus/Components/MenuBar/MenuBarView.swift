@@ -108,8 +108,11 @@ struct MenuBarView: View {
             appActionsSection
         }
         .padding(.top, 10)
-        .padding(.bottom, 12)
+        .padding(.bottom, 14)
         .frame(width: 300)
+        // Force the VStack to claim its full natural height so macOS
+        // MenuBarExtra .window style doesn't clip the bottom on first open.
+        .fixedSize(horizontal: false, vertical: true)
         // Match app canvas — solid design token (no system/primary wash)
         .background(Color.ttBackground)
         .popover(isPresented: $isToolPopoverPresented, arrowEdge: .trailing) {
@@ -253,7 +256,7 @@ struct MenuBarView: View {
                 
                 Spacer(minLength: 0)
             }
-            .frame(minHeight: 28, alignment: .center)
+            .frame(height: 28, alignment: .center)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)

@@ -17,7 +17,7 @@ struct SidebarView: View {
     /// Unified-compact titlebar + traffic lights sit over the sidebar when
     /// `fullSizeContentView` is on. Real layout child (not padding) so first
     /// NavigationSplitView pass cannot collapse clearance to zero.
-    private static let titlebarClearance: CGFloat = 52
+    private static let titlebarClearance: CGFloat = 38
     
     var body: some View {
         // No GeometryReader: first-pass size is often 0×0 in NavigationSplitView while
@@ -28,13 +28,18 @@ struct SidebarView: View {
                 .frame(height: Self.titlebarClearance)
                 .accessibilityHidden(true)
 
+            // Fixed chrome — always visible, never collapses.
+            // Pulled out of ScrollView because NavigationSplitView's
+            // first layout pass can propose zero height to ScrollView
+            // before fullSizeContentView is applied by AppWindowChrome.
+            brandingHeader
+            Divider().overlay(Color.ttBorder)
+            serverStatusBar
+            Divider().overlay(Color.ttBorder)
+
+            // Scrollable section — devices, navigation, bottom actions
             ScrollView(.vertical, showsIndicators: true) {
                 VStack(spacing: 0) {
-                    brandingHeader
-                    Divider().overlay(Color.ttBorder)
-                    serverStatusBar
-                    Divider().overlay(Color.ttBorder)
-
                     VStack(alignment: .leading, spacing: 12) {
                         connectedDevicesSection
                         navigationSection
@@ -67,7 +72,8 @@ struct SidebarView: View {
         }
     }
 
-    /// After `fullSizeContentView` is applied asynchronously, force one SwiftUI layout pass.
+    /// After `fullSizeContentView` is applied asynchronously, force SwiftUI layout passes.
+    /// Two passes: immediate (catches most cases) + 200ms delayed (catches late window chrome).
     private func scheduleChromeSettleLayoutPass() {
         guard !chromeLayoutSettled else { return }
         DispatchQueue.main.async {
@@ -201,7 +207,7 @@ struct SidebarView: View {
                 
                 Spacer(minLength: 0)
             }
-            .frame(minHeight: 28, alignment: .center)
+            .frame(height: 28, alignment: .center)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
