@@ -119,6 +119,32 @@ struct UsageGuideView: View {
                             "NSSharingServicePicker — system share sheet"
                         ]
                     )
+
+                    featureGuideCard(
+                        icon: AppIcon.localhostServers,
+                        title: "Localhost Servers",
+                        color: .ttPrimary,
+                        features: [
+                            "Dev Tools → Localhost: list TCP listeners (port, PID, process)",
+                            "Save project servers with command, folder, and preferred port",
+                            "Start / stop / restart with live log tail",
+                            "Soft-stop or force-kill with confirmation (system ports protected)",
+                            "Conflict sheet when a preferred port is already in use"
+                        ]
+                    )
+
+                    featureGuideCard(
+                        icon: AppIcon.colorPicker,
+                        title: "Color Picker",
+                        color: .ttInfo,
+                        features: [
+                            "Dev Tools → Color Picker: sample any on-screen pixel",
+                            "Copy Hex, RGB, HSL, SwiftUI, UIColor, NSColor, and CSS",
+                            "Session palette for today’s debug colors (export JSON)",
+                            "WCAG contrast check for foreground vs background",
+                            "Match picked colors to design tokens (e.g. .ttPrimary)"
+                        ]
+                    )
                 }
                 
                 // Keyboard Shortcuts
@@ -152,6 +178,20 @@ struct UsageGuideView: View {
                         color: .ttPrimary
                     )
                     
+                    tipCard(
+                        icon: AppIcon.localhostServers,
+                        title: "Free a stuck port without Terminal",
+                        description: "Open Dev Tools → Localhost → Live Ports, select the process on :3000 (or any port), Soft Stop first, then Force Kill only if needed. Protected TTBDebugPlus ports cannot be killed here.",
+                        color: .ttWarning
+                    )
+
+                    tipCard(
+                        icon: AppIcon.colorPicker,
+                        title: "Copy Swift colors without leaving the app",
+                        description: "Open Dev Tools → Color Picker, use Pick Screen on a UI bug, then Copy UIColor or SwiftUI. Set Foreground and Background to check WCAG AA/AAA before you ship.",
+                        color: .ttInfo
+                    )
+
                     tipCard(
                         icon: "doc.badge.arrow.up.fill",
                         title: "HAR Export for Team Sharing",

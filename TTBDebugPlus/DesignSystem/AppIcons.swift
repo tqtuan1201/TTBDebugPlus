@@ -39,6 +39,8 @@ enum AppIcon {
     static let hash = "number.square"
     static let timestamp = "clock"
     static let jwt = "key.horizontal"
+    static let localhostServers = "server.rack"
+    static let colorPicker = "eyedropper"
 
     static let settings = "gearshape"
     static let permissions = "lock.shield"

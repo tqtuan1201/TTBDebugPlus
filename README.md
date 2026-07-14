@@ -82,6 +82,13 @@ TTBDebugPlus uses **Bonjour (mDNS)** for zero-configuration discovery and **WebS
 - Soft-stop or force-kill with confirmation; protect TTBDebugPlus debug ports
 - Port conflict sheet when a preferred port is already in use
 
+### 🎨 Dev Tools — Color Picker
+- Sample any on-screen pixel with the system eyedropper (`NSColorSampler`)
+- Export developer-ready formats: Hex, RGB, HSL, SwiftUI, UIColor, NSColor, CSS
+- Session palette (today’s colors) with export as JSON
+- WCAG contrast checker (foreground / background → AA / AAA)
+- Design token match against TTBDebugPlus semantic colors (e.g. `.ttPrimary`)
+
 ---
 
 ## Installation (macOS App)

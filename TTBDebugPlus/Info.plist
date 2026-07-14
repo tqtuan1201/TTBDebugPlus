@@ -26,6 +26,10 @@
     <key>NSLocalNetworkUsageDescription</key>
     <string>TTBDebugPlus discovers iOS devices on your local network for real-time debugging.</string>
 
+    <!-- Privacy - Screen capture / color sampling (NSColorSampler) -->
+    <key>NSScreenCaptureUsageDescription</key>
+    <string>TTBDebugPlus samples on-screen pixel colors in the Color Picker Dev Tool so you can export accurate Hex and Swift color code while debugging UI.</string>
+
     <!-- Bonjour Services -->
     <key>NSBonjourServices</key>
     <array>

@@ -47,6 +47,12 @@ struct DevToolsView: View {
                 case .jwt:
                     JWTToolView()
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
+                case .localhostServers:
+                    LocalhostServersView()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                case .colorPicker:
+                    ColorPickerToolView()
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                 default:
                     comingSoonView(selectedTool)
                 }
@@ -150,15 +156,10 @@ struct DevToolsView: View {
                             .foregroundColor(tool.isAvailable ? .ttTextPrimary : .ttTextMuted)
                             .lineLimit(1)
                         
-                        Text(tool.statusText)
-                            .font(TTFont.badge)
-                            .foregroundColor(tool.isAvailable ? .ttSuccess : .ttWarning)
-                            .padding(.horizontal, 7)
-                            .padding(.vertical, 3)
-                            .background(
-                                Capsule()
-                                    .fill((tool.isAvailable ? Color.ttSuccess : Color.ttWarning).opacity(0.12))
-                            )
+                        TTStatusPill(
+                            text: tool.statusText,
+                            kind: tool.isAvailable ? .success : .warning
+                        )
                     }
                     
                     Spacer(minLength: 0)

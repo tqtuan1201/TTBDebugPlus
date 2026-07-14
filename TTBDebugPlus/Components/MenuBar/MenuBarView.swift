@@ -13,6 +13,7 @@ struct MenuBarView: View {
     @Environment(AppState.self) var appState
     @Environment(ConnectionManager.self) var connectionManager
     @Environment(\.openWindow) private var openWindow
+    @Environment(\.openSettings) private var openSettings
     @State private var toolSearchText = ""
     @State private var selectedPopoverTool: DevTool?
     @State private var isToolPopoverPresented = false
@@ -138,12 +139,13 @@ struct MenuBarView: View {
                 
                 Image(systemName: AppIcon.app)
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(.white)
+                    .foregroundColor(.ttTextOnAccent)
             }
             
             VStack(alignment: .leading, spacing: 1) {
                 Text("TTBDebugPlus")
                     .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(.ttTextPrimary)
                 
                 Text("v\(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0")")
                     .font(.system(size: 10))
@@ -156,7 +158,7 @@ struct MenuBarView: View {
             if connectionManager.onlineDevices.count > 0 {
                 Text("\(connectionManager.onlineDevices.count)")
                     .font(.system(size: 11, weight: .bold))
-                    .foregroundColor(.white)
+                    .foregroundColor(.ttTextOnAccent)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
                     .background(Capsule().fill(Color.ttSuccess))
@@ -193,14 +195,19 @@ struct MenuBarView: View {
             Spacer(minLength: 8)
             
             Button(action: toggleServer) {
+                let kind: TTBannerKind = connectionManager.isLifecycleActive ? .error : .success
                 Text(connectionManager.isLifecycleActive ? "Stop" : "Start")
                     .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(connectionManager.isLifecycleActive ? .ttError : .ttSuccess)
+                    .foregroundColor(kind.foreground)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 7)
                     .background {
                         RoundedRectangle(cornerRadius: 7)
-                            .fill(connectionManager.isLifecycleActive ? Color.ttError.opacity(0.16) : Color.ttSuccess.opacity(0.16))
+                            .fill(kind.background)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 7)
+                                    .stroke(kind.border.opacity(0.55), lineWidth: 1)
+                            )
                     }
             }
             .buttonStyle(.plain)
@@ -405,8 +412,7 @@ struct MenuBarView: View {
                 title: "Preferences...",
                 shortcut: "⌘,"
             ) {
-                NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-                NSApplication.shared.activate(ignoringOtherApps: true)
+                openAppSettings()
             }
             
             Divider()
@@ -477,6 +483,12 @@ struct MenuBarView: View {
     private func activateMainWindow() {
         NSApplication.shared.activate(ignoringOtherApps: true)
         openWindow(id: "main-window")
+    }
+
+    /// Open the SwiftUI `Settings` scene (reliable vs. private `showSettingsWindow:` selector).
+    private func openAppSettings() {
+        NSApplication.shared.activate(ignoringOtherApps: true)
+        openSettings()
     }
     
     private var launchAtLoginBinding: Binding<Bool> {
@@ -579,15 +591,10 @@ struct MenuBarDevToolRow: View {
                             .foregroundColor(tool.isAvailable ? .ttTextPrimary : .ttTextMuted)
                             .lineLimit(1)
                         
-                        Text(tool.statusText.uppercased())
-                            .font(.system(size: 8, weight: .bold))
-                            .foregroundColor(tool.isAvailable ? .ttSuccess : .ttWarning)
-                            .padding(.horizontal, 5)
-                            .padding(.vertical, 2)
-                            .background(
-                                Capsule()
-                                    .fill((tool.isAvailable ? Color.ttSuccess : Color.ttWarning).opacity(0.11))
-                            )
+                        TTStatusPill(
+                            text: tool.statusText.uppercased(),
+                            kind: tool.isAvailable ? .success : .warning
+                        )
                     }
                     
                     Text(tool.menuDescription)
@@ -761,6 +768,10 @@ struct MenuBarToolPopoverContent: View {
             CaseConverterToolView()
         case .jwt:
             JWTToolView()
+        case .localhostServers:
+            LocalhostServersView()
+        case .colorPicker:
+            ColorPickerToolView()
         default:
             MenuBarUnavailableToolView(tool: tool)
         }
@@ -872,6 +883,10 @@ private extension DevTool {
             return CGSize(width: 920, height: 600)
         case .jwt:
             return CGSize(width: 1_020, height: 680)
+        case .localhostServers:
+            return CGSize(width: 1_040, height: 700)
+        case .colorPicker:
+            return CGSize(width: 980, height: 700)
         default:
             return CGSize(width: 520, height: 360)
         }
@@ -886,6 +901,10 @@ private extension DevTool {
         case .caseConverter:
             return CGSize(width: 860, height: 540)
         case .jwt:
+            return CGSize(width: 760, height: 520)
+        case .localhostServers:
+            return CGSize(width: 800, height: 560)
+        case .colorPicker:
             return CGSize(width: 760, height: 520)
         default:
             return CGSize(width: 420, height: 300)

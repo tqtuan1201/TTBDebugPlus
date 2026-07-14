@@ -93,10 +93,12 @@ enum DevTool: String, CaseIterable, Identifiable {
     case qrCode = "QR Code"
     case caseConverter = "Case Converter"
     case jwt = "JWT"
+    case localhostServers = "Localhost"
     case base64 = "Base64"
     case urlEncode = "URL Encode"
     case hashGenerator = "Hash"
     case timestamp = "Timestamp"
+    case colorPicker = "Color Picker"
 
     var id: String { rawValue }
 
@@ -107,16 +109,18 @@ enum DevTool: String, CaseIterable, Identifiable {
         case .qrCode: return AppIcon.qrCode
         case .caseConverter: return AppIcon.caseConverter
         case .jwt: return AppIcon.jwt
+        case .localhostServers: return AppIcon.localhostServers
         case .base64: return AppIcon.base64
         case .urlEncode: return AppIcon.urlEncode
         case .hashGenerator: return AppIcon.hash
         case .timestamp: return AppIcon.timestamp
+        case .colorPicker: return AppIcon.colorPicker
         }
     }
 
     var isAvailable: Bool {
         switch self {
-        case .json, .templateLibrary, .qrCode, .caseConverter, .jwt: return true
+        case .json, .templateLibrary, .qrCode, .caseConverter, .jwt, .localhostServers, .colorPicker: return true
         default: return false
         }
     }
@@ -128,6 +132,8 @@ enum DevTool: String, CaseIterable, Identifiable {
         case .qrCode: return "QR Code"
         case .caseConverter: return "Case Converter"
         case .jwt: return "JWT Debugger"
+        case .localhostServers: return "Localhost Servers"
+        case .colorPicker: return "Color Picker"
         default: return rawValue
         }
     }
@@ -144,6 +150,10 @@ enum DevTool: String, CaseIterable, Identifiable {
             return "Convert text input between title, sentence, upper, lower, alternate, and toggle cases."
         case .jwt:
             return "Decode, verify, generate, compare, and audit JWTs offline with token history."
+        case .localhostServers:
+            return "Discover ports, start and stop local servers, tail logs, and resolve conflicts."
+        case .colorPicker:
+            return "Sample screen colors, export Swift/UIColor formats, check WCAG contrast, and match design tokens."
         case .base64:
             return "Encode and decode Base64 text."
         case .urlEncode:

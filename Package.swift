@@ -10,10 +10,18 @@ let package = Package(
     ],
     products: [
         // App is built via TTBDebugPlus.xcodeproj.
-        // This package exposes pure JSON tools for unit tests (`swift test`).
+        // This package exposes pure engines for unit tests (`swift test`).
         .library(
             name: "JSONTools",
             targets: ["JSONTools"]
+        ),
+        .library(
+            name: "LocalhostTools",
+            targets: ["LocalhostTools"]
+        ),
+        .library(
+            name: "ColorPickerTools",
+            targets: ["ColorPickerTools"]
         )
     ],
     targets: [
@@ -21,10 +29,41 @@ let package = Package(
             name: "JSONTools",
             path: "TTBDebugPlus/Services/JSON"
         ),
+        .target(
+            name: "LocalhostTools",
+            path: "TTBDebugPlus",
+            sources: [
+                "Models/Localhost/LocalhostModels.swift",
+                "Services/DevTools/Engines/Localhost/LocalhostPortScanner.swift",
+                "Services/DevTools/Engines/Localhost/LocalhostProcessClassifier.swift",
+                "Services/DevTools/Engines/Localhost/LocalhostProcessController.swift",
+                "Services/DevTools/Engines/Localhost/LocalhostServerLauncher.swift"
+            ]
+        ),
+        .target(
+            name: "ColorPickerTools",
+            path: "TTBDebugPlus",
+            sources: [
+                "Models/DevTools/ColorPickerModels.swift",
+                "Services/DevTools/Engines/ColorPicker/ColorFormatEngine.swift",
+                "Services/DevTools/Engines/ColorPicker/WCAGContrastEngine.swift",
+                "Services/DevTools/Engines/ColorPicker/DesignTokenMatcher.swift"
+            ]
+        ),
         .testTarget(
             name: "JSONToolsTests",
             dependencies: ["JSONTools"],
             path: "Tests/JSONToolsTests"
+        ),
+        .testTarget(
+            name: "LocalhostToolsTests",
+            dependencies: ["LocalhostTools"],
+            path: "Tests/LocalhostToolsTests"
+        ),
+        .testTarget(
+            name: "ColorPickerToolsTests",
+            dependencies: ["ColorPickerTools"],
+            path: "Tests/ColorPickerToolsTests"
         )
     ]
 )
