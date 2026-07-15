@@ -151,7 +151,7 @@ struct AnnotationEditorView: View {
     // MARK: - Row 1: Tool Row
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     private var toolRow: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: TTSpacing.xs) {
             // Close button
             Button(action: onCancel) {
                 Image(systemName: "xmark")
@@ -168,7 +168,7 @@ struct AnnotationEditorView: View {
             .help("Close (Esc)")
             .keyboardShortcut(.escape, modifiers: [])
             
-            Divider().frame(height: 24).padding(.horizontal, 2)
+            Divider().frame(height: 24).padding(.horizontal, TTSpacing.xxxs)
 
             // Select / move / resize mode
             Button(action: { isSelectMode.toggle(); if !isSelectMode { selectedAnnotationID = nil } }) {
@@ -184,14 +184,14 @@ struct AnnotationEditorView: View {
             .buttonStyle(.plain)
             .help("Select / Move / Resize (V)")
 
-            Divider().frame(height: 24).padding(.horizontal, 2)
+            Divider().frame(height: 24).padding(.horizontal, TTSpacing.xxxs)
 
             // All tools — icon only, compact 30×30
             toolButton(.pen)
             toolButton(.marker)
             toolButton(.highlight)
             
-            Divider().frame(height: 24).padding(.horizontal, 2)
+            Divider().frame(height: 24).padding(.horizontal, TTSpacing.xxxs)
             
             toolButton(.arrow)
             toolButton(.line)
@@ -214,21 +214,21 @@ struct AnnotationEditorView: View {
                 .help("Fill shape")
             }
             
-            Divider().frame(height: 24).padding(.horizontal, 2)
+            Divider().frame(height: 24).padding(.horizontal, TTSpacing.xxxs)
             
             toolButton(.text)
             toolButton(.stepCounter)
             toolButton(.blur)
             toolButton(.spotlight)
             
-            Divider().frame(height: 24).padding(.horizontal, 2)
+            Divider().frame(height: 24).padding(.horizontal, TTSpacing.xxxs)
             
             toolButton(.eraser)
             
             Spacer()
             
             // Undo/Redo/Clear
-            HStack(spacing: 3) {
+            HStack(spacing: TTSpacing.inlineGapSmall) {
                 Button(action: localUndo) {
                     Image(systemName: "arrow.uturn.backward")
                         .font(.ttIcon(TTIcon.lg))
@@ -257,11 +257,11 @@ struct AnnotationEditorView: View {
                 .disabled(annotations.isEmpty)
             }
             
-            Divider().frame(height: 24).padding(.horizontal, 2)
+            Divider().frame(height: 24).padding(.horizontal, TTSpacing.xxxs)
 
             // Copy actions (only when device context is available)
             if onCopyPlain != nil || onCopyWithInfo != nil {
-                HStack(spacing: 3) {
+                HStack(spacing: TTSpacing.inlineGapSmall) {
                     if let onCopyPlain {
                         Button(action: onCopyPlain) {
                             Image(systemName: "doc.on.doc")
@@ -272,7 +272,7 @@ struct AnnotationEditorView: View {
                     }
                     if let onCopyWithInfo {
                         Button(action: onCopyWithInfo) {
-                            HStack(spacing: 4) {
+                            HStack(spacing: TTSpacing.xxs) {
                                 Image(systemName: "doc.on.doc.fill")
                                     .font(TTFont.badge)
                                 Text("Copy + Info")
@@ -284,12 +284,12 @@ struct AnnotationEditorView: View {
                     }
                 }
 
-                Divider().frame(height: 24).padding(.horizontal, 2)
+                Divider().frame(height: 24).padding(.horizontal, TTSpacing.xxxs)
             }
 
             // Done button
             Button(action: onDone) {
-                HStack(spacing: 4) {
+                HStack(spacing: TTSpacing.xxs) {
                     Image(systemName: "checkmark")
                         .font(TTFont.badge)
                     Text("Done")
@@ -299,8 +299,8 @@ struct AnnotationEditorView: View {
             .buttonStyle(.ttPrimaryCompact)
             .keyboardShortcut(.return, modifiers: .command)
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
+        .padding(.horizontal, TTSpacing.inputPaddingH)
+        .padding(.vertical, TTSpacing.xs)
         .background(Color.ttSurface.opacity(0.95))
     }
     
@@ -325,9 +325,9 @@ struct AnnotationEditorView: View {
     // MARK: - Row 2: Properties
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     private var propertyRow: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: TTSpacing.sm) {
             // Color palette
-            HStack(spacing: 4) {
+            HStack(spacing: TTSpacing.xxs) {
                 ForEach(colorPalette, id: \.self) { color in
                     Button(action: { selectedColor = color }) {
                         Circle()
@@ -351,7 +351,7 @@ struct AnnotationEditorView: View {
 
                 // Custom saved colors
                 if !customColors.isEmpty {
-                    Divider().frame(height: 16).padding(.horizontal, 2)
+                    Divider().frame(height: 16).padding(.horizontal, TTSpacing.xxxs)
                     ForEach(Array(customColors.enumerated()), id: \.offset) { _, color in
                         Button(action: { selectedColor = color }) {
                             Circle()
@@ -385,10 +385,10 @@ struct AnnotationEditorView: View {
                 }
             }
 
-            Divider().frame(height: 20).padding(.horizontal, 4)
+            Divider().frame(height: 20).padding(.horizontal, TTSpacing.xxs)
             
             // Line width
-            HStack(spacing: 6) {
+            HStack(spacing: TTSpacing.xs) {
                 Text("Size")
                     .font(TTFont.labelSmall)
                     .foregroundColor(.ttTextTertiary)
@@ -419,7 +419,7 @@ struct AnnotationEditorView: View {
             Spacer()
             
             // Zoom controls
-            HStack(spacing: 4) {
+            HStack(spacing: TTSpacing.xxs) {
                 Button(action: zoomToFit) {
                     Text("Fit").font(TTFont.labelSmall)
                 }
@@ -454,8 +454,8 @@ struct AnnotationEditorView: View {
                     .frame(width: 36)
             }
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 5)
+        .padding(.horizontal, TTSpacing.inputPaddingH)
+        .padding(.vertical, TTSpacing.tight)
         .background(Color.ttSurface.opacity(0.7))
     }
     
@@ -557,7 +557,7 @@ struct AnnotationEditorView: View {
             onCanvasSizeChange?(CGSize(width: fitW, height: fitH))
         }
         // Option+Drag panning (on the outer padding area too)
-        .padding(20)
+        .padding(TTSpacing.xl)
         .contentShape(Rectangle())
         .gesture(panGesture)
     }
@@ -672,13 +672,17 @@ struct AnnotationEditorView: View {
             return r.insetBy(dx: -tol, dy: -tol).contains(point)
         case .text:
             guard let p = annotation.points.first else { return false }
-            let fontSize = max(14, annotation.lineWidth * 4)
+            let fontSize = DesignSystemConfig.shared.annotationFontSize(
+                lineWidth: annotation.lineWidth, multiplier: 4, minimumBase: 14
+            )
             let w = CGFloat(max(4, annotation.text.count)) * fontSize * 0.62
             let h = fontSize * 1.5
             return CGRect(x: p.x, y: p.y, width: w, height: h).insetBy(dx: -tol, dy: -tol).contains(point)
         case .stepCounter:
             guard let p = annotation.points.first else { return false }
-            let r = max(14, annotation.lineWidth * 3)
+            let r = DesignSystemConfig.shared.annotationFontSize(
+                lineWidth: annotation.lineWidth, multiplier: 3, minimumBase: 14
+            )
             return hypot(point.x - p.x, point.y - p.y) <= r + tol
         default: // pen / marker / highlight / line / arrow
             return annotation.points.contains { hypot($0.x - point.x, $0.y - point.y) <= tol }
@@ -750,12 +754,16 @@ struct AnnotationEditorView: View {
         switch annotation.tool {
         case .text:
             guard let p = annotation.points.first else { return nil }
-            let fontSize = max(14, annotation.lineWidth * 4)
+            let fontSize = DesignSystemConfig.shared.annotationFontSize(
+                lineWidth: annotation.lineWidth, multiplier: 4, minimumBase: 14
+            )
             let w = CGFloat(max(4, annotation.text.count)) * fontSize * 0.62
             return CGRect(x: p.x, y: p.y, width: w, height: fontSize * 1.4)
         case .stepCounter:
             guard let p = annotation.points.first else { return nil }
-            let r = max(14, annotation.lineWidth * 3)
+            let r = DesignSystemConfig.shared.annotationFontSize(
+                lineWidth: annotation.lineWidth, multiplier: 3, minimumBase: 14
+            )
             return CGRect(x: p.x - r, y: p.y - r, width: r * 2, height: r * 2)
         default:
             guard let first = annotation.points.first else { return nil }
@@ -851,7 +859,7 @@ struct AnnotationEditorView: View {
                 .ignoresSafeArea()
                 .onTapGesture { dismissTextInput() }
             
-            VStack(spacing: 16) {
+            VStack(spacing: TTSpacing.lg) {
                 HStack {
                     Image(systemName: "textformat")
                         .font(.ttIcon(TTIcon.xl))
@@ -874,7 +882,7 @@ struct AnnotationEditorView: View {
                     .frame(height: 36)
                 
                 HStack {
-                    HStack(spacing: 6) {
+                    HStack(spacing: TTSpacing.xs) {
                         Circle().fill(selectedColor).frame(width: 14, height: 14)
                         Text("Color").font(TTFont.labelSmall).foregroundColor(.ttTextTertiary)
                     }
@@ -889,7 +897,7 @@ struct AnnotationEditorView: View {
                         .disabled(textInput.isEmpty && editingTextID == nil)
                 }
             }
-            .padding(20)
+            .padding(TTSpacing.xl)
             .frame(width: 380)
             .background(
                 RoundedRectangle(cornerRadius: 14)
@@ -952,7 +960,7 @@ struct AnnotationEditorView: View {
             if isSelectMode, let sel = selectedAnnotation {
                 if sel.tool == .text {
                     Button(action: beginTextEdit) {
-                        HStack(spacing: 3) {
+                        HStack(spacing: TTSpacing.inlineGapSmall) {
                             Image(systemName: "pencil").font(TTFont.badge)
                             Text("Edit Text").font(TTFont.labelSmall)
                         }
@@ -960,7 +968,7 @@ struct AnnotationEditorView: View {
                     .buttonStyle(.ttGhost)
                 }
                 Button(action: deleteSelection) {
-                    HStack(spacing: 3) {
+                    HStack(spacing: TTSpacing.inlineGapSmall) {
                         Image(systemName: "trash").font(TTFont.badge)
                         Text("Delete").font(TTFont.labelSmall)
                     }
@@ -994,8 +1002,8 @@ struct AnnotationEditorView: View {
                 .font(TTFont.codeSmall)
                 .foregroundColor(.ttTextTertiary)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
+        .padding(.horizontal, TTSpacing.md)
+        .padding(.vertical, TTSpacing.xs)
         .background(Color.ttSurface.opacity(0.9))
     }
     

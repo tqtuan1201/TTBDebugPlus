@@ -89,36 +89,36 @@ struct ConsoleView: View {
     
     // MARK: - Filter Bar
     private var consoleFilterBar: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: TTSpacing.md) {
             // Filter pills
-            HStack(spacing: 2) {
+            HStack(spacing: TTSpacing.xxxs) {
                 ForEach([LogFilter.all, .errors, .warnings, .debug], id: \.self) { filter in
                     Button(action: {
                         withAnimation(.easeInOut(duration: 0.15)) {
                             viewModel.selectedFilter = filter
                         }
                     }) {
-                        HStack(spacing: 4) {
+                        HStack(spacing: TTSpacing.xxs) {
                             Text(filter.rawValue)
                             if filter == .all && viewModel.totalCount > 0 {
                                 Text("\(viewModel.totalCount)")
                                     .font(TTFont.badge)
-                                    .padding(.horizontal, 5)
-                                    .padding(.vertical, 1)
+                                    .padding(.horizontal, TTSpacing.tight)
+                                    .padding(.vertical, TTSpacing.hairline)
                                     .background(Capsule().fill(Color.ttPrimary.opacity(0.3)))
                             }
                             if filter == .errors && viewModel.errorCount > 0 {
                                 Text("\(viewModel.errorCount)")
                                     .font(TTFont.badge)
-                                    .padding(.horizontal, 5)
-                                    .padding(.vertical, 1)
+                                    .padding(.horizontal, TTSpacing.tight)
+                                    .padding(.vertical, TTSpacing.hairline)
                                     .background(Capsule().fill(Color.ttError.opacity(0.3)))
                             }
                         }
                         .font(TTFont.labelMedium)
                         .foregroundColor(viewModel.selectedFilter == filter ? .ttTextOnAccent : .ttTextSecondary)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 5)
+                        .padding(.horizontal, TTSpacing.md)
+                        .padding(.vertical, TTSpacing.tight)
                         .background(
                             Capsule()
                                 .fill(viewModel.selectedFilter == filter ? Color.ttPrimary : Color.clear)
@@ -129,7 +129,7 @@ struct ConsoleView: View {
             }
             
             // Search field
-            HStack(spacing: 8) {
+            HStack(spacing: TTSpacing.sm) {
                 Image(systemName: "magnifyingglass")
                     .font(.ttIcon(TTIcon.lg))
                     .foregroundColor(.ttTextTertiary)
@@ -148,8 +148,8 @@ struct ConsoleView: View {
                     .buttonStyle(.plain)
                 }
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
+            .padding(.horizontal, TTSpacing.md)
+            .padding(.vertical, TTSpacing.xs)
             .background(
                 RoundedRectangle(cornerRadius: 8)
                     .fill(Color.ttSurface)
@@ -182,7 +182,7 @@ struct ConsoleView: View {
                 viewModel.clearAll()
                 connectionManager.clearConsoleLogs()
             }) {
-                HStack(spacing: 4) {
+                HStack(spacing: TTSpacing.xxs) {
                     Image(systemName: "trash")
                         .font(.ttIcon(TTIcon.md))
                     Text("Clear")
@@ -192,8 +192,8 @@ struct ConsoleView: View {
             }
             .buttonStyle(.plain)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
+        .padding(.horizontal, TTSpacing.lg)
+        .padding(.vertical, TTSpacing.inputPaddingH)
         .background(Color.ttBackground)
         .overlay(
             Rectangle().fill(Color.ttBorder.opacity(0.3)).frame(height: 1),
@@ -216,8 +216,8 @@ struct ConsoleView: View {
         .font(TTFont.sidebarHeader)
         .foregroundColor(.ttTextTertiary)
         .tracking(0.8)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
+        .padding(.horizontal, TTSpacing.lg)
+        .padding(.vertical, TTSpacing.sm)
         .background(Color.ttSurface.opacity(0.3))
         .overlay(
             Rectangle().fill(Color.ttBorder.opacity(0.3)).frame(height: 1),
@@ -325,8 +325,8 @@ struct ConsoleEntryRowView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .lineLimit(2)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
+        .padding(.horizontal, TTSpacing.lg)
+        .padding(.vertical, TTSpacing.sm)
         .background(rowBackground)
         .overlay(
             Rectangle().fill(Color.ttBorder.opacity(0.15)).frame(height: 1),
@@ -398,7 +398,7 @@ struct EntryDetailPanel: View {
     
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: TTSpacing.xl) {
                 // Header
                 HStack {
                     Text("Entry Details")
@@ -423,7 +423,7 @@ struct EntryDetailPanel: View {
                 
                 // Metadata
                 CardView(title: "METADATA") {
-                    VStack(spacing: 10) {
+                    VStack(spacing: TTSpacing.inputPaddingH) {
                         metadataRow(label: "SUBSYSTEM", value: entry.subsystem)
                         metadataRow(label: "THREAD ID", value: entry.threadId)
                         metadataRow(label: "TIMESTAMP", value: entry.formattedTime)
@@ -440,7 +440,7 @@ struct EntryDetailPanel: View {
                 
                 // Payload JSON
                 if let payload = entry.payload, !payload.isEmpty {
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: TTSpacing.sm) {
                         HStack {
                             Text("PAYLOAD CONTENT")
                                 .font(TTFont.sidebarHeader)
@@ -467,8 +467,8 @@ struct EntryDetailPanel: View {
                 // Origin Source
                 if let sourceFile = entry.sourceFile {
                     CardView(title: "ORIGIN SOURCE") {
-                        VStack(alignment: .leading, spacing: 6) {
-                            HStack(spacing: 6) {
+                        VStack(alignment: .leading, spacing: TTSpacing.xs) {
+                            HStack(spacing: TTSpacing.xs) {
                                 Image(systemName: "chevron.right")
                                     .font(.ttIcon(TTIcon.xxs))
                                     .foregroundColor(.ttPrimary)
@@ -491,7 +491,7 @@ struct EntryDetailPanel: View {
                 
                 Spacer()
             }
-            .padding(16)
+            .padding(TTSpacing.lg)
         }
         .background(Color.ttBackground)
         .overlay(

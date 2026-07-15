@@ -28,7 +28,7 @@ struct WelcomeSheet: View {
             // Bottom controls
             HStack {
                 // Page dots
-                HStack(spacing: 8) {
+                HStack(spacing: TTSpacing.sm) {
                     ForEach(0..<totalPages, id: \.self) { index in
                         Circle()
                             .fill(currentPage == index ? Color.ttPrimary : Color.ttBorder)
@@ -41,7 +41,7 @@ struct WelcomeSheet: View {
                 Spacer()
                 
                 // Navigation
-                HStack(spacing: 12) {
+                HStack(spacing: TTSpacing.md) {
                     if currentPage > 0 {
                         Button("Back") {
                             withAnimation { currentPage -= 1 }
@@ -67,8 +67,8 @@ struct WelcomeSheet: View {
                     }
                 }
             }
-            .padding(.horizontal, 32)
-            .padding(.bottom, 24)
+            .padding(.horizontal, TTSpacing.xxxl)
+            .padding(.bottom, TTSpacing.xxl)
         }
         .background(Color.ttBackground)
         .frame(width: 680, height: 520)
@@ -76,7 +76,7 @@ struct WelcomeSheet: View {
     
     // MARK: - Page 1: Hero
     private var heroPage: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: TTSpacing.xxl) {
             Spacer()
             
             // App icon gradient
@@ -112,7 +112,7 @@ struct WelcomeSheet: View {
                 }
             }
             
-            VStack(spacing: 8) {
+            VStack(spacing: TTSpacing.sm) {
                 Text("TTBDebugPlus")
                     .font(TTFont.displayLarge)
                     .foregroundColor(.ttTextPrimary)
@@ -130,23 +130,23 @@ struct WelcomeSheet: View {
             
             Spacer()
         }
-        .padding(.horizontal, 40)
+        .padding(.horizontal, TTSpacing.xxxxl)
     }
     
     // MARK: - Page 2: Features
     private var featuresPage: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: TTSpacing.xxl) {
             Text("Everything You Need to Debug")
                 .font(TTFont.displayMedium)
                 .foregroundColor(.ttTextPrimary)
-                .padding(.top, 32)
+                .padding(.top, TTSpacing.xxxl)
             
             // Feature grid (2x3)
             LazyVGrid(columns: [
                 GridItem(.flexible()),
                 GridItem(.flexible()),
                 GridItem(.flexible())
-            ], spacing: 16) {
+            ], spacing: TTSpacing.lg) {
                 featureCard(icon: AppIcon.console, title: "Console", description: "Real-time logs with\nlevel filtering", color: .ttSuccess)
                 featureCard(icon: AppIcon.network, title: "Network", description: "API inspector with\nJSON preview", color: .ttPrimary)
                 featureCard(icon: AppIcon.device, title: "Device", description: "Remote screenshots\n& annotations", color: .ttWarning)
@@ -154,14 +154,14 @@ struct WelcomeSheet: View {
                 featureCard(icon: AppIcon.feedback, title: "Feedback", description: "Bug reports with\nscreenshot export", color: .purple)
                 featureCard(icon: "square.and.arrow.up.fill", title: "Export", description: "HAR, cURL &\nMarkdown export", color: .cyan)
             }
-            .padding(.horizontal, 32)
+            .padding(.horizontal, TTSpacing.xxxl)
             
             Spacer()
         }
     }
     
     private func featureCard(icon: String, title: String, description: String, color: Color) -> some View {
-        VStack(spacing: 10) {
+        VStack(spacing: TTSpacing.inputPaddingH) {
             ZStack {
                 RoundedRectangle(cornerRadius: 14)
                     .fill(color.opacity(0.12))
@@ -182,7 +182,7 @@ struct WelcomeSheet: View {
                 .lineSpacing(2)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 16)
+        .padding(.vertical, TTSpacing.lg)
         .background(
             RoundedRectangle(cornerRadius: 12)
                 .fill(Color.ttSurface.opacity(0.5))
@@ -195,13 +195,13 @@ struct WelcomeSheet: View {
     
     // MARK: - Page 3: Quick Start
     private var quickStartPage: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: TTSpacing.xxl) {
             Text("Quick Start")
                 .font(TTFont.displayMedium)
                 .foregroundColor(.ttTextPrimary)
-                .padding(.top, 32)
+                .padding(.top, TTSpacing.xxxl)
             
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: TTSpacing.xl) {
                 quickStartStep(
                     number: 1,
                     title: "Add TTBaseUIKit to your iOS project",
@@ -220,10 +220,10 @@ struct WelcomeSheet: View {
                     subtitle: "TTBDebugPlus auto-discovers your iOS device via Bonjour"
                 )
             }
-            .padding(.horizontal, 60)
+            .padding(.horizontal, TTSpacing.sheetWidePadding)
             
             // Tip — high-contrast warning surface
-            HStack(spacing: 10) {
+            HStack(spacing: TTSpacing.inputPaddingH) {
                 Image(systemName: "lightbulb.fill")
                     .foregroundColor(TTBannerKind.warning.foreground)
                     .font(.ttIcon(TTIcon.xl))
@@ -231,8 +231,8 @@ struct WelcomeSheet: View {
                     .font(TTFont.bodySmall)
                     .foregroundColor(TTBannerKind.warning.foreground)
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 12)
+            .padding(.horizontal, TTSpacing.xl)
+            .padding(.vertical, TTSpacing.md)
             .background(
                 RoundedRectangle(cornerRadius: 10)
                     .fill(TTBannerKind.warning.background)
@@ -247,7 +247,7 @@ struct WelcomeSheet: View {
     }
     
     private func quickStartStep(number: Int, title: String, subtitle: String) -> some View {
-        HStack(alignment: .top, spacing: 16) {
+        HStack(alignment: .top, spacing: TTSpacing.lg) {
             // Number badge
             ZStack {
                 Circle()
@@ -258,7 +258,7 @@ struct WelcomeSheet: View {
                     .foregroundColor(.ttTextOnAccent)
             }
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: TTSpacing.xxs) {
                 Text(title)
                     .font(TTFont.labelLarge)
                     .foregroundColor(.ttTextPrimary)

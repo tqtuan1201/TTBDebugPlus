@@ -38,7 +38,7 @@ struct SaveTemplateSheet: View {
 
     private var header: some View {
         HStack {
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: TTSpacing.xxxs) {
                 Text("Save as Template")
                     .font(TTFont.heading3)
                     .foregroundColor(.ttTextPrimary)

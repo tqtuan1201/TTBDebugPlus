@@ -20,8 +20,8 @@ struct JWTSectionCard<Content: View>: View {
     @ViewBuilder var content: () -> Content
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 11) {
-            HStack(spacing: 8) {
+        VStack(alignment: .leading, spacing: TTSpacing.md) {
+            HStack(spacing: TTSpacing.sm) {
                 Label(title, systemImage: icon)
                     .font(TTFont.labelLarge)
                     .foregroundColor(.ttTextSecondary)
@@ -30,7 +30,7 @@ struct JWTSectionCard<Content: View>: View {
             }
             content()
         }
-        .padding(13)
+        .padding(TTSpacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: TTRadius.md)
@@ -55,8 +55,8 @@ struct JWTCopyButton: View {
             Label(copied ? "Copied" : label, systemImage: copied ? "checkmark.circle.fill" : "doc.on.doc")
                 .font(TTFont.labelSmall)
                 .foregroundColor(copied ? .ttSuccess : .ttTextSecondary)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
+                .padding(.horizontal, TTSpacing.inputPaddingH)
+                .padding(.vertical, TTSpacing.xs)
                 .background(
                     RoundedRectangle(cornerRadius: TTRadius.sm)
                         .fill(copied ? Color.ttSuccess.opacity(0.1) : Color.ttSurface.opacity(0.35))
@@ -91,7 +91,7 @@ struct JWTActionButton: View {
                 .font(TTFont.labelMedium)
                 .foregroundColor(foreground)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 9)
+                .padding(.vertical, TTSpacing.sm)
                 .background(
                     RoundedRectangle(cornerRadius: TTRadius.sm)
                         .fill(background)
@@ -124,14 +124,14 @@ struct JWTMonoEditor: View {
             .foregroundColor(.ttTextPrimary)
             .scrollContentBackground(.hidden)
             .background(Color.clear)
-            .padding(10)
+            .padding(TTSpacing.inputPaddingH)
             .overlay(alignment: .topLeading) {
                 if text.isEmpty {
                     Text(placeholder)
                         .font(TTFont.codeMedium)
                         .foregroundColor(.ttTextMuted)
-                        .padding(.horizontal, 15)
-                        .padding(.vertical, 18)
+                        .padding(.horizontal, TTSpacing.chromeInsetH)
+                        .padding(.vertical, TTSpacing.xl)
                         .allowsHitTesting(false)
                 }
             }
@@ -159,7 +159,7 @@ struct JWTMonoDisplay: View {
                 .foregroundColor(text.isEmpty ? .ttTextMuted : .ttTextPrimary)
                 .textSelection(.enabled)
                 .frame(maxWidth: .infinity, alignment: .topLeading)
-                .padding(12)
+                .padding(TTSpacing.md)
         }
         .background(
             RoundedRectangle(cornerRadius: TTRadius.md)
@@ -183,7 +183,7 @@ struct JWTColorizedToken: View {
             .font(TTFont.codeSmall)
             .textSelection(.enabled)
             .frame(maxWidth: .infinity, alignment: .topLeading)
-            .padding(12)
+            .padding(TTSpacing.md)
             .background(
                 RoundedRectangle(cornerRadius: TTRadius.md)
                     .fill(Color.ttBackground.opacity(0.58))
@@ -217,8 +217,8 @@ struct JWTClaimRowView: View {
     let claim: JWTClaimRow
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 3) {
-            HStack(spacing: 6) {
+        VStack(alignment: .leading, spacing: TTSpacing.inlineGapSmall) {
+            HStack(spacing: TTSpacing.xs) {
                 Text(claim.key)
                     .font(TTFont.codeSmall)
                     .foregroundColor(.ttJsonKey)
@@ -226,14 +226,14 @@ struct JWTClaimRowView: View {
                     Text(description)
                         .font(TTFont.badge)
                         .foregroundColor(.ttTextTertiary)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
+                        .padding(.horizontal, TTSpacing.xs)
+                        .padding(.vertical, TTSpacing.xxxs)
                         .background(Capsule().fill(Color.ttSurface.opacity(0.4)))
                 }
                 Spacer()
                 if let severity = claim.severity {
                     Image(systemName: severity.icon)
-                        .font(.system(size: 10))
+                        .font(TTFont.labelSmall)
                         .foregroundColor(severity.color)
                 }
             }
@@ -249,7 +249,7 @@ struct JWTClaimRowView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.vertical, 7)
+        .padding(.vertical, TTSpacing.rowVertical)
         .overlay(
             Rectangle().fill(Color.ttBorder.opacity(0.12)).frame(height: 1),
             alignment: .bottom
@@ -263,21 +263,21 @@ struct JWTFindingRowView: View {
     let finding: JWTSecurityFinding
 
     var body: some View {
-        HStack(alignment: .top, spacing: 10) {
+        HStack(alignment: .top, spacing: TTSpacing.inputPaddingH) {
             Image(systemName: finding.severity.icon)
-                .font(.system(size: 13))
+                .font(TTFont.bodyMedium)
                 .foregroundColor(finding.severity.color)
                 .frame(width: 18)
-            VStack(alignment: .leading, spacing: 3) {
-                HStack(spacing: 6) {
+            VStack(alignment: .leading, spacing: TTSpacing.inlineGapSmall) {
+                HStack(spacing: TTSpacing.xs) {
                     Text(finding.title)
                         .font(TTFont.labelMedium)
                         .foregroundColor(.ttTextPrimary)
                     Text(finding.severity.label)
                         .font(TTFont.badge)
                         .foregroundColor(finding.severity.color)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
+                        .padding(.horizontal, TTSpacing.xs)
+                        .padding(.vertical, TTSpacing.xxxs)
                         .background(Capsule().fill(finding.severity.color.opacity(0.14)))
                 }
                 Text(finding.detail)
@@ -287,7 +287,7 @@ struct JWTFindingRowView: View {
             }
             Spacer(minLength: 0)
         }
-        .padding(10)
+        .padding(TTSpacing.inputPaddingH)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: TTRadius.sm)
@@ -308,12 +308,12 @@ struct JWTEmptyState: View {
     let subtitle: String
 
     var body: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: TTSpacing.chromeInsetH) {
             Spacer()
             ZStack {
                 Circle().fill(Color.ttSurface.opacity(0.4)).frame(width: 72, height: 72)
                 Image(systemName: icon)
-                    .font(.system(size: 28))
+                    .font(TTFont.displayMedium)
                     .foregroundColor(.ttTextMuted)
             }
             Text(title)
@@ -338,7 +338,7 @@ struct JWTPaneHeader: View {
     var trailing: AnyView? = nil
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: TTSpacing.sm) {
             Label(title, systemImage: icon)
                 .font(TTFont.labelLarge)
                 .foregroundColor(.ttTextSecondary)

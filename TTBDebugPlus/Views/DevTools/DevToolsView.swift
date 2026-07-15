@@ -96,7 +96,7 @@ struct DevToolsView: View {
     // MARK: - Dev Tools Menu
     private var devToolsMenu: some View {
         VStack(alignment: .leading, spacing: 0) {
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: TTSpacing.xs) {
                 Text("Dev Tools")
                     .font(TTFont.heading1)
                     .foregroundColor(.ttTextPrimary)
@@ -105,24 +105,24 @@ struct DevToolsView: View {
                     .font(TTFont.bodyMedium)
                     .foregroundColor(.ttTextSecondary)
             }
-            .padding(.horizontal, 24)
-            .padding(.top, 24)
-            .padding(.bottom, 18)
+            .padding(.horizontal, TTSpacing.xxl)
+            .padding(.top, TTSpacing.xxl)
+            .padding(.bottom, TTSpacing.xl)
             
             ScrollView {
                 LazyVGrid(
                     columns: [
-                        GridItem(.adaptive(minimum: 220, maximum: 280), spacing: 14, alignment: .top)
+                        GridItem(.adaptive(minimum: 220, maximum: 280), spacing: TTIcon.xl, alignment: .top)
                     ],
                     alignment: .leading,
-                    spacing: 14
+                    spacing: TTIcon.xl
                 ) {
                     ForEach(DevTool.allCases) { tool in
                         devToolCard(tool)
                     }
                 }
-                .padding(.horizontal, 24)
-                .padding(.bottom, 24)
+                .padding(.horizontal, TTSpacing.xxl)
+                .padding(.bottom, TTSpacing.xxl)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -138,19 +138,20 @@ struct DevToolsView: View {
                 }
             }
         }) {
-            VStack(alignment: .leading, spacing: 14) {
-                HStack(alignment: .top, spacing: 12) {
+            VStack(alignment: .leading, spacing: TTIcon.xl) {
+                HStack(alignment: .top, spacing: TTSpacing.md) {
                     ZStack {
                         RoundedRectangle(cornerRadius: TTRadius.md)
                             .fill(tool.isAvailable ? Color.ttPrimary.opacity(0.18) : Color.ttSurfaceLight.opacity(0.35))
-                            .frame(width: 42, height: 42)
+                            .frame(width: TTSpacing.toolIconTile, height: TTSpacing.toolIconTile)
                         
                         Image(systemName: tool.icon)
-                            .font(.system(size: 18, weight: .semibold))
+                            .font(.ttIcon(TTIcon.xxxl))
+                            .fontWeight(.semibold)
                             .foregroundColor(tool.isAvailable ? .ttPrimaryLight : .ttTextMuted)
                     }
                     
-                    VStack(alignment: .leading, spacing: 5) {
+                    VStack(alignment: .leading, spacing: TTSpacing.tight) {
                         Text(tool.menuTitle)
                             .font(TTFont.heading3)
                             .foregroundColor(tool.isAvailable ? .ttTextPrimary : .ttTextMuted)
@@ -173,35 +174,38 @@ struct DevToolsView: View {
                     .fixedSize(horizontal: false, vertical: true)
                 
                 if tool == .json {
-                    HStack(spacing: 5) {
+                    HStack(spacing: TTSpacing.tight) {
                         ForEach(JSONTool.allCases) { jsonTool in
                             Image(systemName: jsonTool.icon)
-                                .font(.system(size: 10, weight: .medium))
+                                .font(.ttIcon(TTIcon.sm))
+                                .fontWeight(.medium)
                                 .foregroundColor(.ttTextTertiary)
                             .help(jsonTool.rawValue)
                         }
                     }
                 } else if tool == .qrCode {
-                    HStack(spacing: 5) {
+                    HStack(spacing: TTSpacing.tight) {
                         Image(systemName: "square.and.arrow.down")
                         Image(systemName: "doc.on.clipboard")
                         Image(systemName: AppIcon.qrCode)
                     }
-                    .font(.system(size: 10, weight: .medium))
+                    .font(.ttIcon(TTIcon.sm))
+                                .fontWeight(.medium)
                     .foregroundColor(.ttTextTertiary)
                 } else if tool == .caseConverter {
-                    HStack(spacing: 5) {
+                    HStack(spacing: TTSpacing.tight) {
                         Image(systemName: "textformat.size")
                         Image(systemName: "a.square")
                         Image(systemName: "arrow.up.arrow.down")
                     }
-                    .font(.system(size: 10, weight: .medium))
+                    .font(.ttIcon(TTIcon.sm))
+                                .fontWeight(.medium)
                     .foregroundColor(.ttTextTertiary)
                 }
                 
                 Spacer(minLength: 0)
             }
-            .padding(16)
+            .padding(TTSpacing.lg)
             .frame(maxWidth: .infinity, minHeight: 168, alignment: .topLeading)
             .background(
                 RoundedRectangle(cornerRadius: TTRadius.md)
@@ -226,25 +230,26 @@ struct DevToolsView: View {
                     selectedTool = nil
                 }
             }) {
-                HStack(spacing: 6) {
+                HStack(spacing: TTSpacing.xs) {
                     Image(systemName: "chevron.left")
-                        .font(.system(size: 11, weight: .semibold))
+                        .font(.ttIcon(TTIcon.md))
+                        .fontWeight(.semibold)
                     Text("Dev Tools")
                         .font(TTFont.tabLabel)
                 }
                 .foregroundColor(.ttTextSecondary)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
+                .padding(.horizontal, TTSpacing.md)
+                .padding(.vertical, TTSpacing.sm)
             }
             .buttonStyle(.plain)
             .help("Back to Dev Tools menu")
             
             Rectangle()
                 .fill(Color.ttBorder.opacity(0.25))
-                .frame(width: 1, height: 18)
-                .padding(.horizontal, 4)
+                .frame(width: 1, height: TTIcon.xxxl)
+                .padding(.horizontal, TTSpacing.xxs)
             
-            HStack(spacing: 2) {
+            HStack(spacing: TTSpacing.xxxs) {
                 ForEach(DevTool.allCases) { tool in
                     Button(action: {
                         if tool.isAvailable {
@@ -253,7 +258,7 @@ struct DevToolsView: View {
                             }
                         }
                     }) {
-                        HStack(spacing: 5) {
+                        HStack(spacing: TTSpacing.tight) {
                             Image(systemName: tool.icon)
                                 .font(.ttIcon(TTIcon.md))
                             Text(tool.rawValue)
@@ -263,8 +268,8 @@ struct DevToolsView: View {
                             !tool.isAvailable ? .ttTextMuted :
                             (currentTool == tool ? .ttPrimary : .ttTextSecondary)
                         )
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 8)
+                        .padding(.horizontal, TTSpacing.chromeInsetH)
+                        .padding(.vertical, TTSpacing.sm)
                         .overlay(
                             Rectangle()
                                 .fill(currentTool == tool ? Color.ttPrimary : Color.clear)
@@ -288,22 +293,22 @@ struct DevToolsView: View {
                         source: viewModel.sourceLabel ?? "JSON Editor"
                     )
                 }) {
-                    HStack(spacing: 5) {
+                    HStack(spacing: TTSpacing.tight) {
                         Image(systemName: AppIcon.saveTemplate)
                             .font(.ttIcon(TTIcon.md))
                         Text("Save as Template")
                             .font(TTFont.tabLabel)
                     }
                     .foregroundColor(.ttPrimary)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
+                    .padding(.horizontal, TTSpacing.inputPaddingH)
+                    .padding(.vertical, TTSpacing.xs)
                 }
                 .buttonStyle(.plain)
                 .help("Save this JSON to the Template Library")
             }
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
+        .padding(.horizontal, TTSpacing.sm)
+        .padding(.vertical, TTSpacing.xxs)
         .background(Color.ttSurface.opacity(0.2))
         .overlay(
             Rectangle().fill(Color.ttBorder.opacity(0.2)).frame(height: 1),
@@ -314,14 +319,14 @@ struct DevToolsView: View {
     // MARK: - JSON Sub-Tool Header
     private var jsonSubToolHeader: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 3) {
+            HStack(spacing: TTSpacing.inlineGapSmall) {
                 ForEach(JSONTool.allCases) { tool in
                     Button(action: {
                         withAnimation(.easeInOut(duration: 0.12)) {
                             selectedJsonTool = tool
                         }
                     }) {
-                        HStack(spacing: 5) {
+                        HStack(spacing: TTSpacing.tight) {
                             Image(systemName: tool.icon)
                                 .font(.ttIcon(TTIcon.sm))
                             Text(tool.rawValue)
@@ -331,8 +336,8 @@ struct DevToolsView: View {
                             selectedJsonTool == tool ? .white :
                             (hoveredJsonTool == tool ? .ttTextSecondary : .ttTextTertiary)
                         )
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
+                        .padding(.horizontal, TTSpacing.md)
+                        .padding(.vertical, TTSpacing.xs)
                         .background(
                             Capsule()
                                 .fill(
@@ -348,10 +353,10 @@ struct DevToolsView: View {
                     .help(tool.description)
                 }
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 5)
+            .padding(.horizontal, TTSpacing.md)
+            .padding(.vertical, TTSpacing.tight)
         }
-        .frame(minHeight: 32)
+        .frame(minHeight: TTSpacing.statusBarHeight)
         .background(Color.ttSurface.opacity(0.08))
         .overlay(
             Rectangle().fill(Color.ttBorder.opacity(0.12)).frame(height: 1),
@@ -378,15 +383,15 @@ struct DevToolsView: View {
     
     // MARK: - Coming Soon
     private func comingSoonView(_ tool: DevTool) -> some View {
-        VStack(spacing: 16) {
+        VStack(spacing: TTSpacing.lg) {
             Spacer()
             
             ZStack {
                 Circle()
                     .fill(Color.ttSurface.opacity(0.5))
-                    .frame(width: 80, height: 80)
+                    .frame(width: TTSpacing.emptyStateIcon, height: TTSpacing.emptyStateIcon)
                 Image(systemName: tool.icon)
-                    .font(.system(size: 32))
+                    .font(TTFont.displayLarge)
                     .foregroundColor(.ttTextMuted)
             }
             
@@ -397,8 +402,8 @@ struct DevToolsView: View {
             Text("Coming Soon")
                 .font(TTFont.bodyMedium)
                 .foregroundColor(.ttTextTertiary)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 5)
+                .padding(.horizontal, TTSpacing.chromeInsetH)
+                .padding(.vertical, TTSpacing.tight)
                 .background(
                     Capsule()
                         .fill(Color.ttSurface.opacity(0.5))

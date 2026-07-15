@@ -60,7 +60,7 @@ struct JWTHistoryView: View {
     // MARK: - Toolbar
 
     private var toolbar: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: TTSpacing.inputPaddingH) {
             Picker("", selection: $scope) {
                 Text("All").tag(TokenScope.all)
                 Text("Favorites").tag(TokenScope.favorites)
@@ -69,9 +69,9 @@ struct JWTHistoryView: View {
             .pickerStyle(.segmented)
             .frame(width: 180)
 
-            HStack(spacing: 7) {
+            HStack(spacing: TTSpacing.rowVertical) {
                 Image(systemName: "magnifyingglass")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(TTFont.labelMedium)
                     .foregroundColor(.ttTextTertiary)
                 TextField("Search name, source, algorithm…", text: $search)
                     .textFieldStyle(.plain)
@@ -79,12 +79,12 @@ struct JWTHistoryView: View {
                     .foregroundColor(.ttTextPrimary)
                 if !search.isEmpty {
                     Button { search = "" } label: {
-                        Image(systemName: "xmark.circle.fill").font(.system(size: 11)).foregroundColor(.ttTextTertiary)
+                        Image(systemName: "xmark.circle.fill").font(TTFont.bodySmall).foregroundColor(.ttTextTertiary)
                     }
                     .buttonStyle(.plain)
                 }
             }
-            .padding(.horizontal, 10).padding(.vertical, 6)
+            .padding(.horizontal, TTSpacing.inputPaddingH).padding(.vertical, TTSpacing.xs)
             .background(RoundedRectangle(cornerRadius: TTRadius.sm).fill(Color.ttSurface.opacity(0.4)))
 
             Menu {
@@ -100,10 +100,10 @@ struct JWTHistoryView: View {
 
             Text("\(rows.count)")
                 .font(TTFont.badge).foregroundColor(.ttTextTertiary)
-                .padding(.horizontal, 7).padding(.vertical, 3)
+                .padding(.horizontal, TTSpacing.rowVertical).padding(.vertical, TTSpacing.inlineGapSmall)
                 .background(Capsule().fill(Color.ttSurface.opacity(0.4)))
         }
-        .padding(.horizontal, 14).padding(.vertical, 10)
+        .padding(.horizontal, TTSpacing.chromeInsetH).padding(.vertical, TTSpacing.inputPaddingH)
         .background(Color.ttSurface.opacity(0.08))
     }
 
@@ -121,7 +121,7 @@ struct JWTHistoryView: View {
             )
         } else {
             ScrollView {
-                LazyVStack(spacing: 8) {
+                LazyVStack(spacing: TTSpacing.sm) {
                     ForEach(rows) { token in
                         JWTHistoryRow(
                             token: token,
@@ -132,7 +132,7 @@ struct JWTHistoryView: View {
                         )
                     }
                 }
-                .padding(14)
+                .padding(TTSpacing.chromeInsetH)
             }
         }
     }
@@ -150,33 +150,33 @@ struct JWTHistoryRow: View {
     @State private var isHovered = false
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: TTSpacing.md) {
             Button(action: onToggleFavorite) {
                 Image(systemName: token.isFavorite ? "star.fill" : "star")
-                    .font(.system(size: 13))
+                    .font(TTFont.bodyMedium)
                     .foregroundColor(token.isFavorite ? .ttWarning : .ttTextMuted)
             }
             .buttonStyle(.plain)
             .help(token.isFavorite ? "Unfavorite" : "Favorite")
 
-            VStack(alignment: .leading, spacing: 3) {
-                HStack(spacing: 6) {
+            VStack(alignment: .leading, spacing: TTSpacing.inlineGapSmall) {
+                HStack(spacing: TTSpacing.xs) {
                     Text(token.name.isEmpty ? "Untitled token" : token.name)
                         .font(TTFont.labelLarge).foregroundColor(.ttTextPrimary).lineLimit(1)
                     if !token.algorithm.isEmpty {
                         Text(token.algorithm)
                             .font(TTFont.badge).foregroundColor(.ttPrimaryLight)
-                            .padding(.horizontal, 6).padding(.vertical, 2)
+                            .padding(.horizontal, TTSpacing.xs).padding(.vertical, TTSpacing.xxxs)
                             .background(Capsule().fill(Color.ttPrimary.opacity(0.14)))
                     }
                     if token.isExpired {
                         Text("EXPIRED")
                             .font(TTFont.badge).foregroundColor(.ttError)
-                            .padding(.horizontal, 6).padding(.vertical, 2)
+                            .padding(.horizontal, TTSpacing.xs).padding(.vertical, TTSpacing.xxxs)
                             .background(Capsule().fill(Color.ttError.opacity(0.14)))
                     }
                 }
-                HStack(spacing: 8) {
+                HStack(spacing: TTSpacing.sm) {
                     if !token.sourceLabel.isEmpty {
                         Text(token.sourceLabel).font(TTFont.bodySmall).foregroundColor(.ttTextTertiary).lineLimit(1)
                     }
@@ -187,14 +187,14 @@ struct JWTHistoryRow: View {
 
             Spacer(minLength: 8)
 
-            HStack(spacing: 4) {
+            HStack(spacing: TTSpacing.xxs) {
                 rowButton("arrow.up.forward.app", "Load into decoder", color: .ttPrimary, action: onLoad)
                 rowButton("pencil", "Rename / notes", action: onEdit)
                 rowButton("trash", "Delete", color: .ttError, action: onDelete)
             }
             .opacity(isHovered ? 1 : 0.55)
         }
-        .padding(.horizontal, 12).padding(.vertical, 10)
+        .padding(.horizontal, TTSpacing.md).padding(.vertical, TTSpacing.inputPaddingH)
         .background(
             RoundedRectangle(cornerRadius: TTRadius.md)
                 .fill(Color.ttSurface.opacity(isHovered ? 0.45 : 0.3))
@@ -212,7 +212,7 @@ struct JWTHistoryRow: View {
     private func rowButton(_ icon: String, _ help: String, color: Color = .ttTextSecondary, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: icon)
-                .font(.system(size: 12))
+                .font(TTFont.bodyMedium)
                 .foregroundColor(color)
                 .frame(width: 26, height: 24)
                 .background(RoundedRectangle(cornerRadius: TTRadius.sm).fill(Color.ttSurface.opacity(0.5)))
@@ -241,23 +241,23 @@ struct JWTTokenEditSheet: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: TTSpacing.chromeInsetH) {
             Text("Edit Token").font(TTFont.heading2).foregroundColor(.ttTextPrimary)
 
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: TTSpacing.xs) {
                 Text("Name").font(TTFont.labelMedium).foregroundColor(.ttTextSecondary)
                 TextField("Token name", text: $name)
                     .textFieldStyle(.roundedBorder)
                     .foregroundColor(.ttTextPrimary)
             }
 
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: TTSpacing.xs) {
                 Text("Notes").font(TTFont.labelMedium).foregroundColor(.ttTextSecondary)
                 TextEditor(text: $notes)
                     .font(TTFont.bodyMedium)
                     .foregroundColor(.ttTextPrimary)
                     .frame(height: 90)
-                    .padding(4)
+                    .padding(TTSpacing.xxs)
                     .background(RoundedRectangle(cornerRadius: TTRadius.sm).fill(Color.ttSurface.opacity(0.4)))
             }
 
@@ -270,7 +270,7 @@ struct JWTTokenEditSheet: View {
                     .buttonStyle(.borderedProminent)
             }
         }
-        .padding(20)
+        .padding(TTSpacing.xl)
         .frame(width: 420)
         .background(Color.ttBackground)
     }

@@ -85,10 +85,10 @@ struct NetworkRequestRowView: View {
                 color: Color.forStatusCode(request.statusCode)
             )
             .frame(width: 100)
-            .padding(.leading, 12)
+            .padding(.leading, TTSpacing.md)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 7)
+        .padding(.horizontal, TTSpacing.lg)
+        .padding(.vertical, TTSpacing.rowVertical)
         .background(rowBackground)
         .overlay(
             Rectangle().fill(Color.ttBorder.opacity(0.1)).frame(height: 1),

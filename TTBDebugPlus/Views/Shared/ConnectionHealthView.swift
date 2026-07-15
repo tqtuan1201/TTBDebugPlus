@@ -26,21 +26,21 @@ struct ConnectionHealthView: View {
     
     var body: some View {
         ScrollView {
-            VStack(spacing: 24) {
+            VStack(spacing: TTSpacing.xxl) {
                 // Hero section
                 heroSection
                 
                 // Status cards grid
-                HStack(alignment: .top, spacing: 16) {
+                HStack(alignment: .top, spacing: TTSpacing.lg) {
                     // Left: Server + Network
-                    VStack(spacing: 16) {
+                    VStack(spacing: TTSpacing.lg) {
                         serverStatusCard
                         networkInfoCard
                     }
                     .frame(maxWidth: .infinity)
                     
                     // Right: Relay status + Troubleshooting + Device diagnostics
-                    VStack(spacing: 16) {
+                    VStack(spacing: TTSpacing.lg) {
                         relayStatusCard
                         troubleshootingCard
                         if let device = connectionManager.selectedDevice,
@@ -53,14 +53,14 @@ struct ConnectionHealthView: View {
                 .frame(maxWidth: 800)
                 
                 // Quick start code + QR pairing
-                HStack(alignment: .top, spacing: 16) {
+                HStack(alignment: .top, spacing: TTSpacing.lg) {
                     quickStartCard
                     qrPairingCard
                 }
                 .frame(maxWidth: 800)
                 
                 // ── NEW: Multi-Interface Sections ─────────────────────────
-                VStack(spacing: 16) {
+                VStack(spacing: TTSpacing.lg) {
                     networkInterfacesCard
                     bonjourStatusCard
                     if !connectionManager.connectedDevices.isEmpty {
@@ -69,7 +69,7 @@ struct ConnectionHealthView: View {
                 }
                 .frame(maxWidth: 800)
             }
-            .padding(32)
+            .padding(TTSpacing.xxxl)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.ttBackground)
@@ -78,7 +78,7 @@ struct ConnectionHealthView: View {
     // MARK: - Hero Section
     
     private var heroSection: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: TTSpacing.lg) {
             // Animated icon
             ZStack {
                 // Outer ring pulse
@@ -109,12 +109,12 @@ struct ConnectionHealthView: View {
                     )
                 
                 Image(systemName: AppIcon.connectionHealth)
-                    .font(.system(size: 36, weight: .light))
+                    .font(TTFont.lightDisplay(base: 36))
                     .foregroundColor(.ttPrimary)
                     .symbolEffect(.variableColor.iterative, options: .repeating, value: refreshTick)
             }
             
-            VStack(spacing: 6) {
+            VStack(spacing: TTSpacing.xs) {
                 Text("Waiting for iOS Device")
                     .font(TTFont.heading1)
                     .foregroundColor(.ttTextPrimary)
@@ -131,7 +131,7 @@ struct ConnectionHealthView: View {
     
     private var serverStatusCard: some View {
         CardView(title: "SERVER STATUS") {
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: TTSpacing.inputPaddingH) {
                 statusRow(
                     icon: connectionManager.isServerRunning
                         ? "checkmark.circle.fill"
@@ -170,11 +170,11 @@ struct ConnectionHealthView: View {
                 
                 // ── Action Buttons ──────────────────────────────────────
                 // Lifecycle (isLifecycleActive) drives Start/Stop; isServerRunning is port-bound advertise.
-                HStack(spacing: 8) {
+                HStack(spacing: TTSpacing.sm) {
                     if connectionManager.isLifecycleActive {
                         // Force Reconnect — restart Bonjour without clearing sessions
                         Button(action: { connectionManager.forceReconnect() }) {
-                            HStack(spacing: 5) {
+                            HStack(spacing: TTSpacing.tight) {
                                 Image(systemName: AppIcon.reconnect)
                                 Text(connectionManager.isServerRunning ? "Force Reconnect" : "Recover Advertise")
                             }
@@ -183,7 +183,7 @@ struct ConnectionHealthView: View {
 
                         // Full Restart — tear down everything and start fresh
                         Button(action: { connectionManager.restartServer() }) {
-                            HStack(spacing: 5) {
+                            HStack(spacing: TTSpacing.tight) {
                                 Image(systemName: "arrow.clockwise")
                                 Text("Restart Server")
                             }
@@ -191,7 +191,7 @@ struct ConnectionHealthView: View {
                         .buttonStyle(.ttGhost)
 
                         Button(action: { connectionManager.stopServer() }) {
-                            HStack(spacing: 5) {
+                            HStack(spacing: TTSpacing.tight) {
                                 Image(systemName: "stop.circle.fill")
                                 Text("Stop Server")
                             }
@@ -199,7 +199,7 @@ struct ConnectionHealthView: View {
                         .buttonStyle(.ttGhost)
                     } else {
                         Button(action: { connectionManager.startServer() }) {
-                            HStack(spacing: 5) {
+                            HStack(spacing: TTSpacing.tight) {
                                 Image(systemName: "play.circle.fill")
                                 Text("Start Server")
                             }
@@ -207,7 +207,7 @@ struct ConnectionHealthView: View {
                         .buttonStyle(.ttPrimary)
                     }
                 }
-                .padding(.top, 4)
+                .padding(.top, TTSpacing.xxs)
             }
         }
     }
@@ -216,7 +216,7 @@ struct ConnectionHealthView: View {
     
     private var networkInfoCard: some View {
         CardView(title: "NETWORK") {
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: TTSpacing.inputPaddingH) {
                 if let ip = connectionManager.macLocalIP {
                     statusRow(
                         icon: "globe",
@@ -272,7 +272,7 @@ struct ConnectionHealthView: View {
     /// explanation + what to do next, instead of raw settings controls.
     private var relayStatusCard: some View {
         CardView(title: "RELAY STATUS") {
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: TTSpacing.inputPaddingH) {
                 relayServerBanner
                 relayClientBanner
             }
@@ -333,7 +333,7 @@ struct ConnectionHealthView: View {
 
     private var troubleshootingCard: some View {
         CardView(title: "TROUBLESHOOTING CHECKLIST") {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: TTSpacing.sm) {
                 checklistItem(
                     checked: connectionManager.isServerRunning,
                     text: "TTBDebugPlus server is running"
@@ -355,7 +355,7 @@ struct ConnectionHealthView: View {
                 Text("On your iOS device, verify:")
                     .font(TTFont.labelSmall)
                     .foregroundColor(.ttTextTertiary)
-                    .padding(.top, 4)
+                    .padding(.top, TTSpacing.xxs)
                 
                 hintItem(icon: "swift", text: "TTDebugBridge.shared.start() is called")
                 hintItem(icon: "wifi", text: "Both devices on the same Wi-Fi network")
@@ -370,7 +370,7 @@ struct ConnectionHealthView: View {
     
     private func deviceDiagnosticsCard(device: DeviceSession, diag: ConnectionDiagnosticsPayload) -> some View {
         CardView(title: "iOS DEVICE DIAGNOSTICS") {
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: TTSpacing.inputPaddingH) {
                 statusRow(
                     icon: AppIcon.device,
                     iconColor: .ttSuccess,
@@ -422,7 +422,7 @@ struct ConnectionHealthView: View {
     
     private var quickStartCard: some View {
         CardView(title: "QUICK START") {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: TTSpacing.sm) {
                 Text("Add this to your AppDelegate or SceneDelegate:")
                     .font(TTFont.bodySmall)
                     .foregroundColor(.ttTextTertiary)
@@ -437,7 +437,7 @@ struct ConnectionHealthView: View {
                 Text("For manual diagnostics, call in Xcode console:")
                     .font(TTFont.bodySmall)
                     .foregroundColor(.ttTextTertiary)
-                    .padding(.top, 4)
+                    .padding(.top, TTSpacing.xxs)
                 
                 codeBlock("po TTDebugBridge.shared.printDiagnosticReport()")
             }
@@ -451,7 +451,7 @@ struct ConnectionHealthView: View {
     /// manual-connect fields when Bonjour/mDNS discovery fails or is just slow.
     private var qrPairingCard: some View {
         CardView(title: "PAIR BY QR CODE") {
-            VStack(spacing: 10) {
+            VStack(spacing: TTSpacing.inputPaddingH) {
                 if let ip = connectionManager.macLocalIP, let port = connectionManager.serverPort {
                     let pairingString = "ttbdebug://\(ip):\(port)"
                     if let qrImage = QRCodeEngine.generate(
@@ -465,7 +465,7 @@ struct ConnectionHealthView: View {
                             .resizable()
                             .interpolation(.none)
                             .frame(width: 150, height: 150)
-                            .padding(8)
+                            .padding(TTSpacing.sm)
                             .background(RoundedRectangle(cornerRadius: 8).fill(Color.white))
                     }
                     Text("iOS → Debug Bridge panel → Scan QR")
@@ -496,7 +496,7 @@ struct ConnectionHealthView: View {
     // MARK: - Reusable Components
 
     private func statusRow(icon: String, iconColor: Color, label: String, value: String) -> some View {
-        HStack(spacing: 10) {
+        HStack(spacing: TTSpacing.inputPaddingH) {
             Image(systemName: icon)
                 .font(.ttIcon(TTIcon.lg))
                 .foregroundColor(iconColor)
@@ -517,9 +517,9 @@ struct ConnectionHealthView: View {
     }
     
     private func checklistItem(checked: Bool, text: String) -> some View {
-        HStack(spacing: 8) {
+        HStack(spacing: TTSpacing.sm) {
             Image(systemName: checked ? "checkmark.circle.fill" : "circle")
-                .font(.system(size: 14))
+                .font(TTFont.codeLarge)
                 .foregroundColor(checked ? .ttSuccess : .ttTextTertiary)
             
             Text(text)
@@ -529,9 +529,9 @@ struct ConnectionHealthView: View {
     }
     
     private func hintItem(icon: String, text: String) -> some View {
-        HStack(spacing: 8) {
+        HStack(spacing: TTSpacing.sm) {
             Image(systemName: icon)
-                .font(.system(size: 11))
+                .font(TTFont.bodySmall)
                 .foregroundColor(.ttTextTertiary)
                 .frame(width: 16, alignment: .center)
             
@@ -539,14 +539,14 @@ struct ConnectionHealthView: View {
                 .font(TTFont.bodySmall)
                 .foregroundColor(.ttTextSecondary)
         }
-        .padding(.leading, 6)
+        .padding(.leading, TTSpacing.xs)
     }
     
     private func codeBlock(_ code: String) -> some View {
         Text(code)
             .font(TTFont.codeSmall)
             .foregroundColor(.ttJsonString)
-            .padding(12)
+            .padding(TTSpacing.md)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
                 RoundedRectangle(cornerRadius: 8)
@@ -577,11 +577,11 @@ extension ConnectionHealthView {
                             .font(TTFont.bodySmall)
                             .foregroundColor(.ttTextTertiary)
                     }
-                    .padding(.vertical, 6)
+                    .padding(.vertical, TTSpacing.xs)
                 } else {
                     ForEach(connectionManager.activeInterfaces) { iface in
                         VStack(spacing: 0) {
-                            HStack(spacing: 12) {
+                            HStack(spacing: TTSpacing.md) {
                                 // Toggle
                                 Toggle("", isOn: Binding(
                                     get: { connectionManager.isInterfaceEnabled(iface.name) },
@@ -595,7 +595,7 @@ extension ConnectionHealthView {
                                 ifaceBadge(iface.kind)
 
                                 // Name + IP
-                                VStack(alignment: .leading, spacing: 2) {
+                                VStack(alignment: .leading, spacing: TTSpacing.xxxs) {
                                     Text(iface.name)
                                         .font(TTFont.codeMedium)
                                         .foregroundColor(.ttTextPrimary)
@@ -612,7 +612,7 @@ extension ConnectionHealthView {
                                           : Color.ttTextMuted)
                                     .frame(width: 8, height: 8)
                             }
-                            .padding(.vertical, 8)
+                            .padding(.vertical, TTSpacing.sm)
                             .animation(.easeInOut(duration: 0.2), value: connectionManager.isInterfaceEnabled(iface.name))
 
                             if iface.id != connectionManager.activeInterfaces.last?.id {
@@ -629,8 +629,8 @@ extension ConnectionHealthView {
 
     var bonjourStatusCard: some View {
         CardView(title: "BONJOUR STATUS") {
-            VStack(alignment: .leading, spacing: 10) {
-                HStack(spacing: 8) {
+            VStack(alignment: .leading, spacing: TTSpacing.inputPaddingH) {
+                HStack(spacing: TTSpacing.sm) {
                     Text("Service")
                         .font(TTFont.labelSmall)
                         .foregroundColor(.ttTextTertiary)
@@ -651,11 +651,11 @@ extension ConnectionHealthView {
                     )
                 } else {
                     ForEach(enabledIfaces) { iface in
-                        HStack(spacing: 12) {
+                        HStack(spacing: TTSpacing.md) {
                             let port = connectionManager.serverPorts[iface.name]
                             let kind: TTBannerKind = port != nil ? .success : .warning
                             Image(systemName: port != nil ? "checkmark.circle.fill" : "clock.fill")
-                                .font(.system(size: 13, weight: .semibold))
+                                .font(TTFont.labelLarge)
                                 .foregroundColor(kind.foreground)
 
                             Text(iface.name)
@@ -675,7 +675,7 @@ extension ConnectionHealthView {
                                 kind: kind
                             )
                         }
-                        .padding(.vertical, 4)
+                        .padding(.vertical, TTSpacing.xxs)
                     }
                 }
             }
@@ -688,10 +688,10 @@ extension ConnectionHealthView {
         CardView(title: "DEVICE NETWORK DETAILS") {
             VStack(spacing: 0) {
                 ForEach(connectionManager.connectedDevices) { session in
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack(spacing: 10) {
+                    VStack(alignment: .leading, spacing: TTSpacing.sm) {
+                        HStack(spacing: TTSpacing.inputPaddingH) {
                             Image(systemName: session.isSimulator ? AppIcon.simulator : AppIcon.device)
-                                .font(.system(size: 14))
+                                .font(TTFont.codeLarge)
                                 .foregroundColor(session.isOnline(relativeTo: connectionManager.uiNow) ? .ttSuccess : .ttTextTertiary)
                             Text(session.displayName)
                                 .font(TTFont.labelLarge)
@@ -710,7 +710,7 @@ extension ConnectionHealthView {
                                 )
                         }
 
-                        HStack(spacing: 16) {
+                        HStack(spacing: TTSpacing.lg) {
                             if let ip = session.latestDiagnostics?.localIP {
                                 Label(ip, systemImage: "network")
                                     .font(TTFont.codeSmall)
@@ -729,9 +729,9 @@ extension ConnectionHealthView {
                                     .foregroundColor(.ttTextTertiary)
                             }
                         }
-                        .padding(.leading, 24)
+                        .padding(.leading, TTSpacing.xxl)
                     }
-                    .padding(.vertical, 8)
+                    .padding(.vertical, TTSpacing.sm)
 
                     if session.id != connectionManager.connectedDevices.last?.id {
                         Divider().background(Color.ttBorder)
@@ -751,15 +751,15 @@ extension ConnectionHealthView {
         case .vpn:      bannerKind = .info
         case .other:    bannerKind = .info
         }
-        return HStack(spacing: 4) {
+        return HStack(spacing: TTSpacing.xxs) {
             Image(systemName: kind.icon)
-                .font(.system(size: 9, weight: .semibold))
+                .font(TTFont.badge)
             Text(kind.rawValue.uppercased())
                 .font(TTFont.badge)
         }
         .foregroundColor(bannerKind.foreground)
-        .padding(.horizontal, 7)
-        .padding(.vertical, 3)
+        .padding(.horizontal, TTSpacing.rowVertical)
+        .padding(.vertical, TTSpacing.inlineGapSmall)
         .background(
             Capsule()
                 .fill(bannerKind.background)

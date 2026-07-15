@@ -38,7 +38,7 @@ struct TemplateVersionHistoryView: View {
 
     private var header: some View {
         HStack {
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: TTSpacing.xxxs) {
                 Text("Version History")
                     .font(TTFont.heading3)
                     .foregroundColor(.ttTextPrimary)
@@ -69,7 +69,7 @@ struct TemplateVersionHistoryView: View {
         let isCurrent = version.content == template.content
         let isSelected = selectedVersion?.id == version.id
         return Button(action: { selectedVersionID = version.id }) {
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: TTSpacing.inlineGapSmall) {
                 HStack(spacing: TTSpacing.xs) {
                     Text("v\(version.versionNumber)")
                         .font(TTFont.labelLarge)
@@ -78,7 +78,7 @@ struct TemplateVersionHistoryView: View {
                         Text("CURRENT")
                             .font(TTFont.badge)
                             .foregroundColor(.ttSuccess)
-                            .padding(.horizontal, 5).padding(.vertical, 1)
+                            .padding(.horizontal, TTSpacing.tight).padding(.vertical, TTSpacing.hairline)
                             .background(Capsule().fill(Color.ttSuccess.opacity(0.15)))
                     }
                     Spacer()

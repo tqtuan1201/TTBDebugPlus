@@ -20,7 +20,7 @@ struct DeviceSessionMenuButton: View {
     var body: some View {
         Button(action: { showPopover.toggle() }) {
             Image(systemName: AppIcon.deviceSessions)
-                .font(.system(size: 11, weight: .medium))
+                .font(TTFont.labelMedium)
                 .foregroundColor(onlineCount > 0 ? .ttSuccess : .ttTextTertiary)
                 .frame(width: 28, height: 28)
                 .background(
@@ -56,9 +56,9 @@ struct DeviceSessionMenuView: View {
         VStack(alignment: .leading, spacing: 0) {
 
             // ── Header ─────────────────────────────────────────────────────────
-            HStack(spacing: 8) {
+            HStack(spacing: TTSpacing.sm) {
                 Image(systemName: AppIcon.deviceSessions)
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(TTFont.labelLarge)
                     .foregroundColor(.ttSuccess)
                 Text("Device Sessions")
                     .font(TTFont.heading3)
@@ -73,9 +73,9 @@ struct DeviceSessionMenuView: View {
                     .buttonStyle(.plain)
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 14)
-            .padding(.bottom, 10)
+            .padding(.horizontal, TTSpacing.lg)
+            .padding(.top, TTSpacing.chromeInsetH)
+            .padding(.bottom, TTSpacing.inputPaddingH)
 
             Divider().background(Color.ttBorder)
 
@@ -90,7 +90,7 @@ struct DeviceSessionMenuView: View {
                             if session.id != connectionManager.connectedDevices.last?.id {
                                 Divider()
                                     .background(Color.ttBorder.opacity(0.4))
-                                    .padding(.leading, 52)
+                                    .padding(.leading, TTSpacing.menuRowIndent)
                             }
                         }
                     }
@@ -101,7 +101,7 @@ struct DeviceSessionMenuView: View {
             Divider().background(Color.ttBorder)
 
             // ── Footer summary ─────────────────────────────────────────────────
-            HStack(spacing: 8) {
+            HStack(spacing: TTSpacing.sm) {
                 // Live indicator
                 Circle()
                     .fill(connectionManager.onlineDevices.isEmpty ? Color.ttTextMuted : Color.ttSuccess)
@@ -124,7 +124,7 @@ struct DeviceSessionMenuView: View {
 
                 // API / Console log counts
                 if connectionManager.totalAPILogs > 0 || connectionManager.totalConsoleLogs > 0 {
-                    HStack(spacing: 6) {
+                    HStack(spacing: TTSpacing.xs) {
                         Label(String(connectionManager.totalAPILogs), systemImage: "network")
                             .font(TTFont.codeSmall)
                             .foregroundColor(.ttTextMuted)
@@ -134,8 +134,8 @@ struct DeviceSessionMenuView: View {
                     }
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 10)
+            .padding(.horizontal, TTSpacing.lg)
+            .padding(.vertical, TTSpacing.inputPaddingH)
         }
         .frame(width: 360)
         .background(Color.ttSurface)
@@ -144,12 +144,12 @@ struct DeviceSessionMenuView: View {
     // MARK: - Empty State
 
     private var emptyState: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: TTSpacing.md) {
             Image(systemName: AppIcon.deviceUnavailable)
-                .font(.system(size: 28, weight: .light))
+                .font(TTFont.lightDisplay(base: 28))
                 .foregroundColor(.ttTextMuted)
 
-            VStack(spacing: 4) {
+            VStack(spacing: TTSpacing.xxs) {
                 Text("No Devices Connected")
                     .font(TTFont.labelLarge)
                     .foregroundColor(.ttTextSecondary)
@@ -160,7 +160,7 @@ struct DeviceSessionMenuView: View {
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(24)
+        .padding(TTSpacing.xxl)
     }
 }
 
@@ -191,12 +191,12 @@ struct SessionRow: View {
         VStack(alignment: .leading, spacing: 0) {
 
             // ── Main row ──────────────────────────────────────────────────
-            HStack(spacing: 12) {
+            HStack(spacing: TTSpacing.md) {
 
                 // Device icon + online dot
                 ZStack(alignment: .bottomTrailing) {
                     Image(systemName: session.isSimulator ? AppIcon.simulator : AppIcon.device)
-                        .font(.system(size: 20, weight: .light))
+                        .font(.ttIcon(TTIcon.xxxl))
                         .foregroundColor(session.isOnline(relativeTo: now) ? .ttTextPrimary : .ttTextTertiary)
                         .frame(width: 28)
 
@@ -212,8 +212,8 @@ struct SessionRow: View {
                 }
 
                 // Info
-                VStack(alignment: .leading, spacing: 3) {
-                    HStack(spacing: 6) {
+                VStack(alignment: .leading, spacing: TTSpacing.inlineGapSmall) {
+                    HStack(spacing: TTSpacing.xs) {
                         Text(session.displayName)
                             .font(TTFont.labelLarge)
                             .foregroundColor(session.isOnline(relativeTo: now) ? .ttTextPrimary : .ttTextTertiary)
@@ -225,14 +225,14 @@ struct SessionRow: View {
                                 Text("ACTIVE")
                                     .font(TTFont.badge)
                                     .foregroundColor(.ttPrimary)
-                                    .padding(.horizontal, 5)
-                                    .padding(.vertical, 2)
+                                    .padding(.horizontal, TTSpacing.tight)
+                                    .padding(.vertical, TTSpacing.xxxs)
                                     .background(Capsule().fill(Color.ttPrimary.opacity(0.12)))
                             }
                         }
                     }
 
-                    HStack(spacing: 8) {
+                    HStack(spacing: TTSpacing.sm) {
                         // OS version
                         Text(session.osVersionString)
                             .font(TTFont.codeSmall)
@@ -250,15 +250,15 @@ struct SessionRow: View {
                     }
 
                     // IP + heartbeat
-                    HStack(spacing: 8) {
+                    HStack(spacing: TTSpacing.sm) {
                         if let ip = session.latestDiagnostics?.localIP {
                             Label(ip, systemImage: "network")
-                                .font(.system(size: 10))
+                                .font(TTFont.labelSmall)
                                 .foregroundColor(.ttTextMuted)
                         }
 
                         Label(heartbeatText, systemImage: "heart.fill")
-                            .font(.system(size: 10))
+                            .font(TTFont.labelSmall)
                             .foregroundColor(heartbeatColor)
                     }
                 }
@@ -266,7 +266,7 @@ struct SessionRow: View {
                 Spacer()
 
                 // Log counts
-                VStack(alignment: .trailing, spacing: 3) {
+                VStack(alignment: .trailing, spacing: TTSpacing.inlineGapSmall) {
                     if session.apiLogs.count > 0 {
                         Label(String(session.apiLogs.count), systemImage: "network")
                             .font(TTFont.codeSmall)
@@ -279,8 +279,8 @@ struct SessionRow: View {
                     }
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 10)
+            .padding(.horizontal, TTSpacing.lg)
+            .padding(.vertical, TTSpacing.inputPaddingH)
             .background(isHovered ? Color.ttSurface.opacity(0.5) : Color.clear)
 
             // ── Actions (show on hover) ───────────────────────────────────
@@ -319,8 +319,8 @@ struct SessionRow: View {
                         }
                     }
                 }
-                .padding(.horizontal, 12)
-                .padding(.bottom, 6)
+                .padding(.horizontal, TTSpacing.md)
+                .padding(.bottom, TTSpacing.xs)
                 .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
@@ -339,22 +339,22 @@ struct SessionActionButton: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 4) {
+            HStack(spacing: TTSpacing.xxs) {
                 Image(systemName: icon)
-                    .font(.system(size: 10))
+                    .font(TTFont.labelSmall)
                 Text(title)
                     .font(TTFont.labelSmall)
             }
             .foregroundColor(color)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
+            .padding(.horizontal, TTSpacing.sm)
+            .padding(.vertical, TTSpacing.xxs)
             .background(
                 RoundedRectangle(cornerRadius: 5)
                     .fill(color.opacity(0.1))
             )
         }
         .buttonStyle(.plain)
-        .padding(.horizontal, 3)
+        .padding(.horizontal, TTSpacing.inlineGapSmall)
     }
 }
 

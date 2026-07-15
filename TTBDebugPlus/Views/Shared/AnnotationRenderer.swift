@@ -158,15 +158,24 @@ enum AnnotationCanvasRenderer {
 
         case .text:
             if let pos = annotation.points.first {
+                let textSize = DesignSystemConfig.shared.annotationFontSize(
+                    lineWidth: annotation.lineWidth,
+                    multiplier: 4,
+                    minimumBase: 14
+                )
                 let text = Text(annotation.text)
-                    .font(.system(size: max(14, annotation.lineWidth * 4), weight: .medium))
+                    .font(.system(size: textSize, weight: .medium))
                     .foregroundColor(annotation.color)
                 context.draw(context.resolve(text), at: pos, anchor: .topLeading)
             }
 
         case .stepCounter:
             if let pos = annotation.points.first {
-                let r: CGFloat = max(14, annotation.lineWidth * 3)
+                let r: CGFloat = DesignSystemConfig.shared.annotationFontSize(
+                    lineWidth: annotation.lineWidth,
+                    multiplier: 3,
+                    minimumBase: 14
+                )
                 let circleRect = CGRect(x: pos.x - r, y: pos.y - r, width: r * 2, height: r * 2)
                 context.fill(Path(ellipseIn: circleRect), with: shading)
                 context.stroke(Path(ellipseIn: circleRect), with: .color(.white.opacity(0.8)), lineWidth: 2)

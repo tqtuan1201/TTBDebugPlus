@@ -26,10 +26,10 @@ struct PermissionsView: View {
         Form {
             // Local Network
             Section("Local Network") {
-                HStack(spacing: 12) {
+                HStack(spacing: TTSpacing.md) {
                     permissionIcon(granted: connectionManager.isServerRunning || connectionManager.isLifecycleActive)
                     
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: TTSpacing.xxxs) {
                         Text("Local Network Access")
                             .font(.body)
                         
@@ -53,12 +53,12 @@ struct PermissionsView: View {
             
             // Network & Firewall
             Section("Firewall") {
-                HStack(spacing: 12) {
+                HStack(spacing: TTSpacing.md) {
                     Image(systemName: "flame.fill")
                         .foregroundColor(.ttWarning)
                         .frame(width: 20)
                     
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: TTSpacing.xxxs) {
                         Text("Firewall Configuration")
                             .font(.body)
                         
@@ -78,7 +78,7 @@ struct PermissionsView: View {
             
             // Sandbox Info
             Section("App Sandbox") {
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: TTSpacing.sm) {
                     permissionRow(
                         icon: "network",
                         title: "Network Server",
@@ -120,12 +120,12 @@ struct PermissionsView: View {
     }
     
     private func permissionRow(icon: String, title: String, description: String, granted: Bool) -> some View {
-        HStack(spacing: 8) {
+        HStack(spacing: TTSpacing.sm) {
             Image(systemName: granted ? "checkmark.circle.fill" : "xmark.circle.fill")
                 .foregroundColor(granted ? .ttSuccess : .ttError)
                 .font(.ttIcon(TTIcon.xl))
             
-            VStack(alignment: .leading, spacing: 1) {
+            VStack(alignment: .leading, spacing: TTSpacing.hairline) {
                 Text(title)
                     .font(.callout)
                 Text(description)

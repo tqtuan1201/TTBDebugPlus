@@ -16,7 +16,7 @@ struct PerformanceView: View {
     
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: TTSpacing.xl) {
                 // Header
                 HStack {
                     Text("Performance Monitor")
@@ -27,11 +27,11 @@ struct PerformanceView: View {
                         StatusBadge(text: "⚠️ ALERT", color: .ttWarning)
                     }
                 }
-                .padding(.horizontal, 24)
-                .padding(.top, 20)
+                .padding(.horizontal, TTSpacing.xxl)
+                .padding(.top, TTSpacing.xl)
                 
                 // Metric Cards Row
-                HStack(spacing: 16) {
+                HStack(spacing: TTSpacing.lg) {
                     metricCard(
                         title: "CPU USAGE",
                         value: String(format: "%.1f%%", viewModel.currentCPU),
@@ -78,13 +78,13 @@ struct PerformanceView: View {
                         )
                     }
                 }
-                .padding(.horizontal, 24)
+                .padding(.horizontal, TTSpacing.xxl)
                 
                 // Charts
                 if viewModel.cpuHistory.isEmpty && viewModel.memoryHistory.isEmpty {
                     // Empty state for charts
                     CardView(title: "PERFORMANCE CHARTS") {
-                        VStack(spacing: 12) {
+                        VStack(spacing: TTSpacing.md) {
                             Image(systemName: "chart.xyaxis.line")
                                 .font(TTFont.displayLarge)
                                 .foregroundColor(.ttTextTertiary)
@@ -97,25 +97,25 @@ struct PerformanceView: View {
                                 .multilineTextAlignment(.center)
                         }
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 40)
+                        .padding(.vertical, TTSpacing.xxxxl)
                     }
-                    .padding(.horizontal, 24)
+                    .padding(.horizontal, TTSpacing.xxl)
                 } else {
-                    HStack(alignment: .top, spacing: 16) {
+                    HStack(alignment: .top, spacing: TTSpacing.lg) {
                         cpuChart
                         memoryChart
                     }
-                    .padding(.horizontal, 24)
+                    .padding(.horizontal, TTSpacing.xxl)
                     
                     // Network bandwidth
                     networkChart
-                        .padding(.horizontal, 24)
+                        .padding(.horizontal, TTSpacing.xxl)
                 }
                 
                 // API Analytics
                 apiAnalyticsSection
-                    .padding(.horizontal, 24)
-                    .padding(.bottom, 24)
+                    .padding(.horizontal, TTSpacing.xxl)
+                    .padding(.bottom, TTSpacing.xxl)
             }
         }
         .background(Color.ttBackground)
@@ -144,7 +144,7 @@ struct PerformanceView: View {
     // MARK: - Metric Card
     private func metricCard(title: String, value: String, icon: String, color: Color, alert: Bool = false, subtitle: String? = nil) -> some View {
         CardView(title: title) {
-            HStack(spacing: 12) {
+            HStack(spacing: TTSpacing.md) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 12)
                         .fill(alert ? color.opacity(0.2) : color.opacity(0.12))
@@ -158,7 +158,7 @@ struct PerformanceView: View {
                         .foregroundColor(color)
                 }
                 
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: TTSpacing.xxxs) {
                     Text(value)
                         .font(TTFont.heading2)
                         // Body value stays primary; alert is signaled via icon chrome
@@ -298,12 +298,12 @@ struct PerformanceView: View {
             }
             .frame(height: 150)
             
-            HStack(spacing: 16) {
-                HStack(spacing: 4) {
+            HStack(spacing: TTSpacing.lg) {
+                HStack(spacing: TTSpacing.xxs) {
                     Circle().fill(Color.ttPrimary).frame(width: 8, height: 8)
                     Text("Upload").font(TTFont.labelSmall).foregroundColor(.ttTextTertiary)
                 }
-                HStack(spacing: 4) {
+                HStack(spacing: TTSpacing.xxs) {
                     Circle().fill(Color.ttSuccess).frame(width: 8, height: 8)
                     Text("Download").font(TTFont.labelSmall).foregroundColor(.ttTextTertiary)
                 }
@@ -314,7 +314,7 @@ struct PerformanceView: View {
     // MARK: - API Analytics
     private var apiAnalyticsSection: some View {
         CardView(title: "API ANALYTICS") {
-            VStack(spacing: 14) {
+            VStack(spacing: TTSpacing.chromeInsetH) {
                 analyticsRow(label: "Avg Response Time", value: String(format: "%.0fms", viewModel.averageResponseTime), color: viewModel.averageResponseTime > 1000 ? .ttWarning : .ttTextPrimary)
                 Divider().background(Color.ttBorder.opacity(0.2))
                 analyticsRow(label: "Slow Requests (>\(Int(viewModel.slowAPIThreshold))ms)", value: "\(viewModel.slowRequestCount)", color: viewModel.slowRequestCount > 0 ? .ttWarning : .ttSuccess)

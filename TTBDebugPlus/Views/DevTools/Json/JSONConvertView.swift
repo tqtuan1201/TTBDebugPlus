@@ -64,7 +64,7 @@ struct JSONConvertView: View {
     
     // MARK: - Header
     private var convertHeader: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: TTSpacing.md) {
             // Icon with glow
             ZStack {
                 Circle()
@@ -80,22 +80,22 @@ struct JSONConvertView: View {
                 .foregroundColor(.ttTextSecondary)
             
             // Format picker — pill style
-            HStack(spacing: 3) {
+            HStack(spacing: TTSpacing.inlineGapSmall) {
                 ForEach(ConvertFormat.allCases.filter { $0 != .json }) { format in
                     Button(action: { 
                         withAnimation(.easeInOut(duration: 0.15)) {
                             selectedFormat = format
                         }
                     }) {
-                        HStack(spacing: 5) {
+                        HStack(spacing: TTSpacing.tight) {
                             Image(systemName: format.icon)
                                 .font(.ttIcon(TTIcon.sm))
                             Text(format.rawValue)
                                 .font(TTFont.labelMedium)
                         }
                         .foregroundColor(selectedFormat == format ? .white : .ttTextTertiary)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
+                        .padding(.horizontal, TTSpacing.md)
+                        .padding(.vertical, TTSpacing.xs)
                         .background(
                             Capsule()
                                 .fill(selectedFormat == format ? Color.ttPrimary.opacity(0.5) : 
@@ -108,7 +108,7 @@ struct JSONConvertView: View {
                     }
                 }
             }
-            .padding(3)
+            .padding(TTSpacing.inlineGapSmall)
             .background(
                 Capsule()
                     .fill(Color.ttSurface.opacity(0.2))
@@ -119,10 +119,10 @@ struct JSONConvertView: View {
             // Output size
             if let result = convertResult, result.isSuccess {
                 Text(formatBytes(result.output.utf8.count))
-                    .font(.system(size: 9, weight: .medium, design: .monospaced))
+                    .font(TTFont.badge)
                     .foregroundColor(.ttTextMuted)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
+                    .padding(.horizontal, TTSpacing.xs)
+                    .padding(.vertical, TTSpacing.xxxs)
                     .background(
                         RoundedRectangle(cornerRadius: 3)
                             .fill(Color.ttSurface.opacity(0.3))
@@ -131,15 +131,15 @@ struct JSONConvertView: View {
             
             // Copy
             Button(action: copyResult) {
-                HStack(spacing: 4) {
+                HStack(spacing: TTSpacing.xxs) {
                     Image(systemName: isCopied ? "checkmark.circle.fill" : "doc.on.doc")
                         .font(.ttIcon(TTIcon.sm))
                     Text(isCopied ? "Copied!" : "Copy")
                         .font(TTFont.labelSmall)
                 }
                 .foregroundColor(isCopied ? .ttSuccess : .ttTextSecondary)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 5)
+                .padding(.horizontal, TTSpacing.inputPaddingH)
+                .padding(.vertical, TTSpacing.tight)
                 .background(
                     RoundedRectangle(cornerRadius: 6)
                         .fill(isCopied ? Color.ttSuccess.opacity(0.08) : Color.ttSurface.opacity(0.3))
@@ -150,15 +150,15 @@ struct JSONConvertView: View {
             
             // Save
             Button(action: saveResult) {
-                HStack(spacing: 4) {
+                HStack(spacing: TTSpacing.xxs) {
                     Image(systemName: "square.and.arrow.down")
                         .font(.ttIcon(TTIcon.sm))
                     Text("Save")
                         .font(TTFont.labelSmall)
                 }
                 .foregroundColor(.ttTextSecondary)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 5)
+                .padding(.horizontal, TTSpacing.inputPaddingH)
+                .padding(.vertical, TTSpacing.tight)
                 .background(
                     RoundedRectangle(cornerRadius: 6)
                         .fill(Color.ttSurface.opacity(0.3))
@@ -167,8 +167,8 @@ struct JSONConvertView: View {
             .buttonStyle(.plain)
             .disabled(convertResult?.isSuccess != true)
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
+        .padding(.horizontal, TTSpacing.chromeInsetH)
+        .padding(.vertical, TTSpacing.inputPaddingH)
         .background(Color.ttSurface.opacity(0.1))
     }
     
@@ -176,10 +176,10 @@ struct JSONConvertView: View {
     private func resultView(_ output: String) -> some View {
         ScrollView([.horizontal, .vertical]) {
             Text(output)
-                .font(.system(size: 12, weight: .regular, design: .monospaced))
+                .font(TTFont.codeMedium)
                 .foregroundColor(.ttTextPrimary)
                 .textSelection(.enabled)
-                .padding(16)
+                .padding(TTSpacing.lg)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -188,21 +188,21 @@ struct JSONConvertView: View {
             VStack {
                 HStack {
                     Spacer()
-                    HStack(spacing: 4) {
+                    HStack(spacing: TTSpacing.xxs) {
                         Image(systemName: selectedFormat.icon)
                             .font(.ttIcon(TTIcon.xs))
                         Text(selectedFormat.rawValue)
-                            .font(.system(size: 9, weight: .bold))
+                            .font(TTFont.badge)
                     }
                     .foregroundColor(.ttPrimary.opacity(0.6))
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 3)
+                    .padding(.horizontal, TTSpacing.sm)
+                    .padding(.vertical, TTSpacing.inlineGapSmall)
                     .background(
                         Capsule()
                             .fill(Color.ttSurface.opacity(0.8))
                             .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
                     )
-                    .padding(12)
+                    .padding(TTSpacing.md)
                 }
                 Spacer()
             }
@@ -212,13 +212,13 @@ struct JSONConvertView: View {
     // MARK: - States
     
     private var emptyState: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: TTSpacing.chromeInsetH) {
             ZStack {
                 Circle()
                     .fill(Color.ttSurface.opacity(0.5))
                     .frame(width: 56, height: 56)
                 Image(systemName: "arrow.triangle.swap")
-                    .font(.system(size: 24))
+                    .font(TTFont.heading1)
                     .foregroundColor(.ttTextMuted)
             }
             Text("No JSON Data")
@@ -232,13 +232,13 @@ struct JSONConvertView: View {
     }
     
     private func errorState(_ error: String) -> some View {
-        VStack(spacing: 12) {
+        VStack(spacing: TTSpacing.md) {
             ZStack {
                 Circle()
                     .fill(Color.ttWarning.opacity(0.08))
                     .frame(width: 56, height: 56)
                 Image(systemName: "exclamationmark.triangle.fill")
-                    .font(.system(size: 24))
+                    .font(TTFont.heading1)
                     .foregroundColor(.ttWarning)
             }
             Text("Conversion Error")
@@ -248,13 +248,13 @@ struct JSONConvertView: View {
                 .font(TTFont.codeSmall)
                 .foregroundColor(.ttTextSecondary)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal, 20)
+                .padding(.horizontal, TTSpacing.xl)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
     private var loadingState: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: TTSpacing.inputPaddingH) {
             ProgressView()
                 .scaleEffect(0.7)
                 .tint(.ttPrimary)

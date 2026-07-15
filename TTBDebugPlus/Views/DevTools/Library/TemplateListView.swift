@@ -167,7 +167,7 @@ struct TemplateListView: View {
         VStack(spacing: TTSpacing.md) {
             Spacer()
             Image(systemName: viewModel.searchText.isEmpty ? "tray" : "magnifyingglass")
-                .font(.system(size: 28, weight: .light))
+                .font(TTFont.lightDisplay(base: 28))
                 .foregroundColor(.ttTextMuted)
             Text(viewModel.searchText.isEmpty ? "No templates here yet" : "No matches")
                 .font(TTFont.bodyMedium)

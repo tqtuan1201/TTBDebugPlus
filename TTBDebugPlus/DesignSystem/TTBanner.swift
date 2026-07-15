@@ -79,15 +79,16 @@ struct TTBanner: View {
     }
 
     var body: some View {
-        HStack(alignment: .top, spacing: 10) {
+        HStack(alignment: .top, spacing: TTSpacing.inputPaddingH) {
             if iconVisible {
                 Image(systemName: kind.icon)
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.ttIcon(TTIcon.xl))
+                    .fontWeight(.semibold)
                     .foregroundColor(kind.foreground)
                     .accessibilityHidden(true)
             }
 
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: TTSpacing.inlineGapSmall) {
                 if let title, !title.isEmpty {
                     Text(title)
                         .font(TTFont.labelMedium)
@@ -106,9 +107,9 @@ struct TTBanner: View {
                 trailing
             }
         }
-        .padding(.leading, 14)
-        .padding(.trailing, 12)
-        .padding(.vertical, 10)
+        .padding(.leading, TTSpacing.chromeInsetH)
+        .padding(.trailing, TTSpacing.md)
+        .padding(.vertical, TTSpacing.chromeInsetV)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: TTRadius.sm)
@@ -140,18 +141,18 @@ struct TTStatusPill: View {
     var showsDot: Bool = false
 
     var body: some View {
-        HStack(spacing: 5) {
+        HStack(spacing: TTSpacing.tight) {
             if showsDot {
                 Circle()
                     .fill(solid ? Color.ttTextOnAccent : kind.border)
-                    .frame(width: 6, height: 6)
+                    .frame(width: TTSpacing.xs, height: TTSpacing.xs)
             }
             Text(text)
                 .font(TTFont.badge)
                 .foregroundColor(solid ? .ttTextOnAccent : kind.foreground)
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
+        .padding(.horizontal, TTSpacing.badgePaddingH)
+        .padding(.vertical, TTSpacing.xxs)
         .background(
             Capsule()
                 .fill(solid ? kind.border : kind.background)
@@ -174,10 +175,11 @@ struct TTSemanticChip: View {
     var solid: Bool = false
 
     var body: some View {
-        HStack(spacing: 5) {
+        HStack(spacing: TTSpacing.tight) {
             if let icon {
                 Image(systemName: icon)
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(.ttIcon(TTIcon.md))
+                    .fontWeight(.semibold)
             }
             if let label, !label.isEmpty {
                 Text(label)
@@ -185,8 +187,8 @@ struct TTSemanticChip: View {
             }
         }
         .foregroundColor(solid ? .ttTextOnAccent : kind.foreground)
-        .padding(.horizontal, label == nil ? 6 : 8)
-        .padding(.vertical, 4)
+        .padding(.horizontal, label == nil ? TTSpacing.xs : TTSpacing.badgePaddingH)
+        .padding(.vertical, TTSpacing.xxs)
         .background(
             Capsule()
                 .fill(solid ? kind.border : kind.background)
@@ -225,15 +227,16 @@ struct ChannelChip: View {
     }
 
     var body: some View {
-        HStack(spacing: 5) {
+        HStack(spacing: TTSpacing.tight) {
             Image(systemName: channel.badgeIcon)
-                .font(.system(size: 10, weight: .semibold))
+                .font(.ttIcon(TTIcon.sm))
+                .fontWeight(.semibold)
             Text(style == .compact ? channel.badgeLabel : channel.fullDescription)
                 .font(TTFont.badge)
         }
         .foregroundColor(colors.foreground)
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
+        .padding(.horizontal, TTSpacing.badgePaddingH)
+        .padding(.vertical, TTSpacing.xxs)
         .background(
             Capsule()
                 .fill(colors.background)

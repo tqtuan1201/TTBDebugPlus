@@ -18,7 +18,7 @@ struct AnnotationTextField: NSViewRepresentable {
         let textField = NSTextField()
         textField.stringValue = text
         textField.delegate = context.coordinator
-        textField.font = NSFont.systemFont(ofSize: 14)
+        textField.font = TTFont.nsSystem(ofSize: 14)
         textField.isBordered = true
         textField.bezelStyle = .roundedBezel
         textField.backgroundColor = NSColor(Color.ttBackground)
@@ -27,7 +27,7 @@ struct AnnotationTextField: NSViewRepresentable {
             string: placeholder,
             attributes: [
                 .foregroundColor: NSColor(Color.ttTextPlaceholder),
-                .font: NSFont.systemFont(ofSize: 14)
+                .font: TTFont.nsSystem(ofSize: 14)
             ]
         )
         textField.focusRingType = .none

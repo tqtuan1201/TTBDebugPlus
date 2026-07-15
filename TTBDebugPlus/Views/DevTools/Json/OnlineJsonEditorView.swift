@@ -42,7 +42,7 @@ struct OnlineJsonEditorView: View {
                 if viewModel.isProcessing {
                     ProgressView()
                         .scaleEffect(0.9)
-                        .padding(12)
+                        .padding(TTSpacing.md)
                         .background(
                             RoundedRectangle(cornerRadius: 8)
                                 .fill(Color.ttSurface.opacity(0.92))
@@ -140,9 +140,9 @@ struct OnlineJsonEditorView: View {
     // MARK: - Toolbar
 
     private var editorToolbar: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: TTSpacing.xs) {
             // Mode
-            HStack(spacing: 1) {
+            HStack(spacing: TTSpacing.hairline) {
                 modeButton("code", icon: "chevron.left.forwardslash.chevron.right", label: "Code")
                 modeButton("tree", icon: "list.bullet.indent", label: "Tree")
                 modeButton("preview", icon: "eye", label: "Preview")
@@ -152,7 +152,7 @@ struct OnlineJsonEditorView: View {
 
             // Search
             if isSearching {
-                HStack(spacing: 4) {
+                HStack(spacing: TTSpacing.xxs) {
                     Image(systemName: "magnifyingglass")
                         .font(.ttIcon(TTIcon.xs))
                         .foregroundColor(.ttTextTertiary)
@@ -189,8 +189,8 @@ struct OnlineJsonEditorView: View {
                     }
                     .buttonStyle(.plain)
                 }
-                .padding(.horizontal, 6)
-                .padding(.vertical, 3)
+                .padding(.horizontal, TTSpacing.xs)
+                .padding(.vertical, TTSpacing.inlineGapSmall)
                 .background(
                     RoundedRectangle(cornerRadius: 5)
                         .fill(Color.ttSurface)
@@ -295,8 +295,8 @@ struct OnlineJsonEditorView: View {
             .frame(width: 26)
             .help("More")
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
+        .padding(.horizontal, TTSpacing.inputPaddingH)
+        .padding(.vertical, TTSpacing.xs)
         .background(Color.ttSurface.opacity(0.2))
         .overlay(
             Rectangle().fill(Color.ttBorder.opacity(0.2)).frame(height: 1),
@@ -311,13 +311,13 @@ struct OnlineJsonEditorView: View {
                 bridge.setMode(mode)
             }
         }) {
-            HStack(spacing: 3) {
+            HStack(spacing: TTSpacing.inlineGapSmall) {
                 Image(systemName: icon).font(.ttIcon(TTIcon.sm))
                 Text(label).font(TTFont.labelSmall)
             }
             .foregroundColor(displayMode == mode ? .white : .ttTextTertiary)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
+            .padding(.horizontal, TTSpacing.sm)
+            .padding(.vertical, TTSpacing.xxs)
             .background(
                 RoundedRectangle(cornerRadius: 4)
                     .fill(displayMode == mode ? Color.ttPrimary.opacity(0.4) : Color.clear)
@@ -341,8 +341,8 @@ struct OnlineJsonEditorView: View {
 
     private func statusBannerView(_ text: String) -> some View {
         TTBanner(kind: statusBannerKind, message: text)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
+            .padding(.horizontal, TTSpacing.sm)
+            .padding(.vertical, TTSpacing.xxs)
     }
 
     private var statusBannerKind: TTBannerKind {
@@ -366,8 +366,8 @@ struct OnlineJsonEditorView: View {
                 .controlSize(.small)
             )
         )
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
+        .padding(.horizontal, TTSpacing.sm)
+        .padding(.vertical, TTSpacing.xxs)
     }
 
     private func errorBannerKind(_ err: JSONValidationError) -> TTBannerKind {
@@ -378,7 +378,7 @@ struct OnlineJsonEditorView: View {
     }
 
     private var emptyHintBar: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: TTSpacing.sm) {
             Image(systemName: "curlybraces")
                 .foregroundColor(.ttTextSecondary)
             Text("Paste JSON, open a file, or load sample data to get started.")
@@ -390,16 +390,16 @@ struct OnlineJsonEditorView: View {
             Button("Paste") { viewModel.paste() }
                 .buttonStyle(.ttSecondary)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
+        .padding(.horizontal, TTSpacing.md)
+        .padding(.vertical, TTSpacing.xs)
         .background(Color.ttSurface.opacity(0.35))
     }
 
     // MARK: - Status Bar
 
     private var editorStatusBar: some View {
-        HStack(spacing: 12) {
-            HStack(spacing: 5) {
+        HStack(spacing: TTSpacing.md) {
+            HStack(spacing: TTSpacing.tight) {
                 Circle()
                     .fill(viewModel.isEmpty ? Color.ttTextMuted : (viewModel.isValid ? Color.ttSuccess : Color.ttError))
                     .frame(width: 6, height: 6)
@@ -447,8 +447,8 @@ struct OnlineJsonEditorView: View {
                 .font(TTFont.codeSmall)
                 .foregroundColor(.ttTextMuted)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 4)
+        .padding(.horizontal, TTSpacing.md)
+        .padding(.vertical, TTSpacing.xxs)
         .background(Color.ttSurface.opacity(0.12))
         .overlay(
             Rectangle().fill(Color.ttBorder.opacity(0.15)).frame(height: 1),
@@ -525,8 +525,8 @@ struct OnlineJsonViewerView: View {
     }
 
     private var viewerToolbar: some View {
-        HStack(spacing: 4) {
-            HStack(spacing: 1) {
+        HStack(spacing: TTSpacing.xxs) {
+            HStack(spacing: TTSpacing.hairline) {
                 viewerModeButton(mode: "code", icon: "chevron.left.forwardslash.chevron.right", label: "Code")
                 viewerModeButton(mode: "tree", icon: "list.bullet.indent", label: "Tree")
                 if showPreviewMode {
@@ -537,7 +537,7 @@ struct OnlineJsonViewerView: View {
             Divider().frame(height: 14)
 
             if isSearching {
-                HStack(spacing: 4) {
+                HStack(spacing: TTSpacing.xxs) {
                     Image(systemName: "magnifyingglass")
                         .font(.ttIcon(TTIcon.xs))
                         .foregroundColor(.ttTextTertiary)
@@ -583,8 +583,8 @@ struct OnlineJsonViewerView: View {
                     }
                     .buttonStyle(.plain)
                 }
-                .padding(.horizontal, 6)
-                .padding(.vertical, 3)
+                .padding(.horizontal, TTSpacing.xs)
+                .padding(.vertical, TTSpacing.inlineGapSmall)
                 .background(
                     RoundedRectangle(cornerRadius: 5)
                         .fill(Color.ttSurface)
@@ -619,7 +619,7 @@ struct OnlineJsonViewerView: View {
             }
 
             Button(action: copyContent) {
-                HStack(spacing: 3) {
+                HStack(spacing: TTSpacing.inlineGapSmall) {
                     Image(systemName: isCopied ? "checkmark" : "doc.on.doc")
                         .font(.ttIcon(TTIcon.sm))
                     if isCopied {
@@ -632,7 +632,7 @@ struct OnlineJsonViewerView: View {
 
             if let onOpenInEditor {
                 Button(action: { onOpenInEditor(jsonString) }) {
-                    HStack(spacing: 3) {
+                    HStack(spacing: TTSpacing.inlineGapSmall) {
                         Image(systemName: "arrow.up.right.square")
                             .font(.ttIcon(TTIcon.sm))
                         Text("Editor")
@@ -643,8 +643,8 @@ struct OnlineJsonViewerView: View {
                 .buttonStyle(.ttGhost)
             }
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
+        .padding(.horizontal, TTSpacing.sm)
+        .padding(.vertical, TTSpacing.xxs)
         .background(Color.ttSurface.opacity(0.15))
         .overlay(
             Rectangle().fill(Color.ttBorder.opacity(0.2)).frame(height: 1),
@@ -659,13 +659,13 @@ struct OnlineJsonViewerView: View {
                 bridge.setMode(mode)
             }
         }) {
-            HStack(spacing: 3) {
+            HStack(spacing: TTSpacing.inlineGapSmall) {
                 Image(systemName: icon).font(.ttIcon(TTIcon.sm))
                 Text(label).font(TTFont.labelSmall)
             }
             .foregroundColor(displayMode == mode ? .white : .ttTextTertiary)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
+            .padding(.horizontal, TTSpacing.sm)
+            .padding(.vertical, TTSpacing.xxs)
             .background(
                 RoundedRectangle(cornerRadius: 4)
                     .fill(displayMode == mode ? Color.ttPrimary.opacity(0.4) : Color.clear)
@@ -675,8 +675,8 @@ struct OnlineJsonViewerView: View {
     }
 
     private var viewerStatusBar: some View {
-        HStack(spacing: 12) {
-            HStack(spacing: 4) {
+        HStack(spacing: TTSpacing.md) {
+            HStack(spacing: TTSpacing.xxs) {
                 Circle()
                     .fill(bridge.isValid ? Color.ttSuccess : Color.ttError)
                     .frame(width: 6, height: 6)
@@ -704,12 +704,12 @@ struct OnlineJsonViewerView: View {
             Text("Read-Only")
                 .font(TTFont.codeSmall)
                 .foregroundColor(.ttTextMuted)
-                .padding(.horizontal, 6)
-                .padding(.vertical, 1)
+                .padding(.horizontal, TTSpacing.xs)
+                .padding(.vertical, TTSpacing.hairline)
                 .background(Capsule().fill(Color.ttSurface.opacity(0.5)))
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 3)
+        .padding(.horizontal, TTSpacing.inputPaddingH)
+        .padding(.vertical, TTSpacing.inlineGapSmall)
         .background(Color.ttSurface.opacity(0.1))
         .overlay(
             Rectangle().fill(Color.ttBorder.opacity(0.15)).frame(height: 1),

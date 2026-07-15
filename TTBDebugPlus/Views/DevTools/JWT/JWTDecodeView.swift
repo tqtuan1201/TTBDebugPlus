@@ -51,7 +51,7 @@ struct JWTDecodeView: View {
 
     private var inputPanel: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: TTSpacing.chromeInsetH) {
                 JWTSectionCard(title: "Encoded Token", icon: "key.horizontal") {
                     JWTMonoEditor(text: $token, placeholder: "Paste a JWT (header.payload.signature)…")
                         .frame(height: 150)
@@ -60,11 +60,11 @@ struct JWTDecodeView: View {
                         JWTColorizedToken(token: trimmed)
                     }
 
-                    HStack(spacing: 8) {
+                    HStack(spacing: TTSpacing.sm) {
                         JWTActionButton(title: "Paste", icon: "doc.on.clipboard") { paste() }
                         JWTActionButton(title: "Clear", icon: "xmark.circle", disabled: token.isEmpty) { token = "" }
                     }
-                    HStack(spacing: 8) {
+                    HStack(spacing: TTSpacing.sm) {
                         JWTActionButton(title: "Sample", icon: "sparkles") { token = Self.sampleToken }
                         JWTCopyButton(text: trimmed, label: "Copy")
                             .frame(maxWidth: .infinity)
@@ -88,14 +88,14 @@ struct JWTDecodeView: View {
 
                     JWTSectionCard(title: "Actions", icon: "wand.and.stars") {
                         JWTActionButton(title: "Verify Signature", icon: "checkmark.seal", prominent: true) { onVerify() }
-                        HStack(spacing: 8) {
+                        HStack(spacing: TTSpacing.sm) {
                             JWTActionButton(title: "Compare", icon: "rectangle.on.rectangle") { onSendToCompare(trimmed) }
                             JWTActionButton(title: "Save", icon: "tray.and.arrow.down") { onSaveToHistory(decoded) }
                         }
                     }
                 }
             }
-            .padding(16)
+            .padding(TTSpacing.lg)
         }
         .background(Color.ttSurface.opacity(0.08))
     }
@@ -122,7 +122,7 @@ struct JWTDecodeView: View {
             JWTEmptyState(icon: "exclamationmark.triangle", title: "Could Not Decode", subtitle: error)
         } else if let decoded {
             ScrollView {
-                VStack(alignment: .leading, spacing: 14) {
+                VStack(alignment: .leading, spacing: TTSpacing.chromeInsetH) {
                     JWTSectionCard(
                         title: "Header",
                         icon: "number",
@@ -151,7 +151,7 @@ struct JWTDecodeView: View {
 
                     securityCard(for: decoded)
                 }
-                .padding(16)
+                .padding(TTSpacing.lg)
             }
         }
     }
@@ -166,11 +166,11 @@ struct JWTDecodeView: View {
                 Text("\(findings.count) finding\(findings.count == 1 ? "" : "s")")
                     .font(TTFont.badge)
                     .foregroundColor(worst.color)
-                    .padding(.horizontal, 7).padding(.vertical, 3)
+                    .padding(.horizontal, TTSpacing.rowVertical).padding(.vertical, TTSpacing.inlineGapSmall)
                     .background(Capsule().fill(worst.color.opacity(0.14)))
             )
         ) {
-            VStack(spacing: 8) {
+            VStack(spacing: TTSpacing.sm) {
                 ForEach(findings) { JWTFindingRowView(finding: $0) }
             }
         }

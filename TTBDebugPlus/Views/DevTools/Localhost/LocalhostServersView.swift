@@ -17,7 +17,7 @@ struct LocalhostServersView: View {
             toolbar
             Divider().overlay(Color.ttBorder.opacity(0.35))
             if let status = viewModel.statusMessage {
-                HStack(spacing: 8) {
+                HStack(spacing: TTSpacing.sm) {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundColor(.ttSuccess)
                     Text(status)
@@ -25,8 +25,8 @@ struct LocalhostServersView: View {
                         .foregroundColor(.ttTextPrimary)
                     Spacer()
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 6)
+                .padding(.horizontal, TTSpacing.lg)
+                .padding(.vertical, TTSpacing.xs)
                 .background(Color.ttSuccess.opacity(0.12))
             }
             content
@@ -100,7 +100,7 @@ struct LocalhostServersView: View {
     // MARK: - Toolbar
 
     private var toolbar: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: TTSpacing.md) {
             Picker("Pane", selection: $viewModel.pane) {
                 Text("Live Ports (\(viewModel.livePortsCountLabel))")
                     .tag(LocalhostServersViewModel.Pane.livePorts)
@@ -139,8 +139,8 @@ struct LocalhostServersView: View {
                 .buttonStyle(.ttPrimary)
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
+        .padding(.horizontal, TTSpacing.lg)
+        .padding(.vertical, TTSpacing.inputPaddingH)
         .background(Color.ttSurface.opacity(0.25))
     }
 
@@ -178,10 +178,10 @@ struct LocalhostServersView: View {
 
     private var livePortsList: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 8) {
+            HStack(spacing: TTSpacing.sm) {
                 Image(systemName: "magnifyingglass")
                     .foregroundColor(.ttTextSecondary)
-                    .font(.system(size: 12))
+                    .font(TTFont.bodyMedium)
                 TextField("Filter name, port, PID…", text: $viewModel.portSearchText)
                     .textFieldStyle(.plain)
                     .font(TTFont.bodySmall)
@@ -196,8 +196,8 @@ struct LocalhostServersView: View {
                     .help("Clear filter")
                 }
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 8)
+            .padding(.horizontal, TTSpacing.inputPaddingH)
+            .padding(.vertical, TTSpacing.sm)
             .background(Color.ttSurface.opacity(0.35))
 
             if let scanError = viewModel.scanError {
@@ -206,8 +206,8 @@ struct LocalhostServersView: View {
                     message: scanError,
                     title: viewModel.scanErrorIsHardFailure ? "Port discovery blocked" : "Limited discovery"
                 )
-                .padding(.horizontal, 10)
-                .padding(.top, 8)
+                .padding(.horizontal, TTSpacing.inputPaddingH)
+                .padding(.top, TTSpacing.sm)
             }
 
             if viewModel.endpoints.isEmpty && !viewModel.isScanning {
@@ -238,11 +238,11 @@ struct LocalhostServersView: View {
     }
 
     private func livePortRow(_ endpoint: ListeningEndpoint) -> some View {
-        HStack(spacing: 10) {
+        HStack(spacing: TTSpacing.inputPaddingH) {
             Circle()
                 .fill(classColor(endpoint.classification))
                 .frame(width: 8, height: 8)
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: TTSpacing.xxxs) {
                 Text(endpoint.displayTitle)
                     .font(TTFont.labelMedium)
                     .foregroundColor(.ttTextPrimary)
@@ -254,7 +254,7 @@ struct LocalhostServersView: View {
             }
             Spacer(minLength: 0)
         }
-        .padding(.vertical, 2)
+        .padding(.vertical, TTSpacing.xxxs)
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(endpoint.processName), port \(endpoint.port), \(endpoint.classification.displayName)")
@@ -263,9 +263,9 @@ struct LocalhostServersView: View {
     private var livePortDetail: some View {
         Group {
             if let endpoint = viewModel.selectedEndpoint {
-                VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: TTSpacing.lg) {
                     HStack {
-                        VStack(alignment: .leading, spacing: 4) {
+                        VStack(alignment: .leading, spacing: TTSpacing.xxs) {
                             Text(endpoint.processName)
                                 .font(TTFont.heading2)
                                 .foregroundColor(.ttTextPrimary)
@@ -298,7 +298,7 @@ struct LocalhostServersView: View {
                         )
                     }
 
-                    HStack(spacing: 10) {
+                    HStack(spacing: TTSpacing.inputPaddingH) {
                         Button("Soft Stop") {
                             viewModel.softStopEndpoint(endpoint)
                         }
@@ -333,7 +333,7 @@ struct LocalhostServersView: View {
                         $0.pid == endpoint.pid && $0.id != endpoint.id
                     }
                     if !siblings.isEmpty {
-                        VStack(alignment: .leading, spacing: 8) {
+                        VStack(alignment: .leading, spacing: TTSpacing.sm) {
                             Text("Other ports for this PID")
                                 .font(TTFont.labelSmall)
                                 .foregroundColor(.ttTextSecondary)
@@ -355,7 +355,7 @@ struct LocalhostServersView: View {
                                 .buttonStyle(.plain)
                             }
                         }
-                        .padding(12)
+                        .padding(TTSpacing.md)
                         .background(
                             RoundedRectangle(cornerRadius: 8)
                                 .fill(Color.ttSurface.opacity(0.4))
@@ -364,7 +364,7 @@ struct LocalhostServersView: View {
 
                     Spacer()
                 }
-                .padding(20)
+                .padding(TTSpacing.xl)
             } else {
                 EmptyStateView(
                     icon: "list.bullet.rectangle",
@@ -416,11 +416,11 @@ struct LocalhostServersView: View {
 
     private func myServerRow(_ def: LocalServerDefinition) -> some View {
         let rt = viewModel.runtime(for: def.id)
-        return HStack(spacing: 10) {
+        return HStack(spacing: TTSpacing.inputPaddingH) {
             Circle()
                 .fill(stateColor(rt.state))
                 .frame(width: 8, height: 8)
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: TTSpacing.xxxs) {
                 Text(def.name.isEmpty ? "Untitled" : def.name)
                     .font(TTFont.labelMedium)
                     .foregroundColor(.ttTextPrimary)
@@ -433,7 +433,7 @@ struct LocalhostServersView: View {
             Spacer(minLength: 0)
             TTStatusPill(text: rt.state.displayName, kind: stateKind(rt.state))
         }
-        .padding(.vertical, 2)
+        .padding(.vertical, TTSpacing.xxxs)
         .contentShape(Rectangle())
     }
 
@@ -454,9 +454,9 @@ struct LocalhostServersView: View {
             if let def = viewModel.selectedDefinition {
                 let rt = viewModel.runtime(for: def.id)
                 VStack(alignment: .leading, spacing: 0) {
-                    VStack(alignment: .leading, spacing: 14) {
+                    VStack(alignment: .leading, spacing: TTSpacing.chromeInsetH) {
                         HStack {
-                            VStack(alignment: .leading, spacing: 4) {
+                            VStack(alignment: .leading, spacing: TTSpacing.xxs) {
                                 Text(def.name.isEmpty ? "Untitled" : def.name)
                                     .font(TTFont.heading2)
                                     .foregroundColor(.ttTextPrimary)
@@ -480,7 +480,7 @@ struct LocalhostServersView: View {
                             TTBanner(kind: .error, message: err, title: "Server error")
                         }
 
-                        HStack(spacing: 10) {
+                        HStack(spacing: TTSpacing.inputPaddingH) {
                             Button {
                                 viewModel.startServer(id: def.id)
                             } label: {
@@ -523,7 +523,7 @@ struct LocalhostServersView: View {
                             .foregroundColor(.ttTextSecondary)
                         }
                     }
-                    .padding(16)
+                    .padding(TTSpacing.lg)
 
                     Divider().overlay(Color.ttBorder.opacity(0.3))
 
@@ -546,19 +546,19 @@ struct LocalhostServersView: View {
             Text("Logs")
                 .font(TTFont.labelSmall)
                 .foregroundColor(.ttTextSecondary)
-                .padding(.horizontal, 16)
-                .padding(.top, 10)
-                .padding(.bottom, 6)
+                .padding(.horizontal, TTSpacing.lg)
+                .padding(.top, TTSpacing.inputPaddingH)
+                .padding(.bottom, TTSpacing.xs)
 
             ScrollViewReader { proxy in
                 ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 2) {
+                    LazyVStack(alignment: .leading, spacing: TTSpacing.xxxs) {
                         if lines.isEmpty {
                             Text("No log output yet.")
                                 .font(TTFont.codeSmall)
                                 .foregroundColor(.ttTextSecondary)
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(12)
+                                .padding(TTSpacing.md)
                         } else {
                             ForEach(Array(lines.enumerated()), id: \.offset) { index, line in
                                 Text(line)
@@ -570,8 +570,8 @@ struct LocalhostServersView: View {
                             }
                         }
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.bottom, 12)
+                    .padding(.horizontal, TTSpacing.md)
+                    .padding(.bottom, TTSpacing.md)
                 }
                 .background(Color.ttSurface.opacity(0.35))
                 .onChange(of: lines.count) { _, count in
@@ -589,14 +589,14 @@ struct LocalhostServersView: View {
     private func metaGrid(_ items: [(String, String)]) -> some View {
         LazyVGrid(
             columns: [
-                GridItem(.flexible(), spacing: 12),
-                GridItem(.flexible(), spacing: 12)
+                GridItem(.flexible(), spacing: TTSpacing.md),
+                GridItem(.flexible(), spacing: TTSpacing.md)
             ],
             alignment: .leading,
-            spacing: 10
+            spacing: TTSpacing.inputPaddingH
         ) {
             ForEach(items, id: \.0) { item in
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: TTSpacing.xxxs) {
                     Text(item.0)
                         .font(TTFont.labelSmall)
                         .foregroundColor(.ttTextSecondary)
@@ -683,7 +683,7 @@ struct LocalhostServerEditorSheet: View {
                     .buttonStyle(.ttPrimary)
                     .disabled(!canSave)
             }
-            .padding(16)
+            .padding(TTSpacing.lg)
 
             Divider().overlay(Color.ttBorder.opacity(0.3))
 
@@ -701,7 +701,7 @@ struct LocalhostServerEditorSheet: View {
                     set: { draft.openURLOnStart = $0.isEmpty ? nil : $0 }
                 ))
                 Toggle("Use login shell (zsh -lc)", isOn: $draft.useLoginShell)
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: TTSpacing.xxs) {
                     Text("Environment (KEY=value per line)")
                         .font(TTFont.labelSmall)
                         .foregroundColor(.ttTextPrimary)
@@ -710,7 +710,7 @@ struct LocalhostServerEditorSheet: View {
                         .frame(minHeight: 80)
                 }
             }
-            .padding(16)
+            .padding(TTSpacing.lg)
             .frame(minWidth: 520, minHeight: 420)
         }
         .background(Color.ttBackground)
@@ -769,7 +769,7 @@ struct LocalhostConflictSheet: View {
     let onCancel: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: TTSpacing.lg) {
             Text("Port Conflict")
                 .font(TTFont.heading2)
                 .foregroundColor(.ttTextPrimary)
@@ -802,7 +802,7 @@ struct LocalhostConflictSheet: View {
                     .help("Requires confirmation before SIGKILL")
             }
         }
-        .padding(24)
+        .padding(TTSpacing.xxl)
         .frame(minWidth: 440)
         .background(Color.ttBackground)
     }

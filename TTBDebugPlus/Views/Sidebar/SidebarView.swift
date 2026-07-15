@@ -40,13 +40,13 @@ struct SidebarView: View {
             // Scrollable section — devices, navigation, bottom actions
             ScrollView(.vertical, showsIndicators: true) {
                 VStack(spacing: 0) {
-                    VStack(alignment: .leading, spacing: 12) {
+                    VStack(alignment: .leading, spacing: TTSpacing.md) {
                         connectedDevicesSection
                         navigationSection
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.top, 10)
-                    .padding(.bottom, 8)
+                    .padding(.horizontal, TTSpacing.md)
+                    .padding(.top, TTSpacing.chromeInsetV)
+                    .padding(.bottom, TTSpacing.sm)
 
                     bottomActions
                 }
@@ -83,9 +83,9 @@ struct SidebarView: View {
     
     // MARK: - Branding (compact — secondary to server controls)
     private var brandingHeader: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: TTSpacing.inputPaddingH) {
             ZStack {
-                RoundedRectangle(cornerRadius: 8)
+                RoundedRectangle(cornerRadius: TTRadius.md)
                     .fill(
                         LinearGradient(
                             colors: [Color.ttPrimary, Color.ttPrimaryDark],
@@ -93,14 +93,14 @@ struct SidebarView: View {
                             endPoint: .bottomTrailing
                         )
                     )
-                    .frame(width: 32, height: 32)
+                    .frame(width: TTSpacing.statusBarHeight, height: TTSpacing.statusBarHeight)
                 
                 Image(systemName: AppIcon.app)
                     .font(.ttIcon(TTIcon.xxl))
                     .foregroundColor(.ttTextOnAccent)
             }
             
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: TTSpacing.xxxs) {
                 Text(AppBrand.name)
                     .font(TTFont.labelLarge)
                     .foregroundColor(.ttTextPrimary)
@@ -114,21 +114,21 @@ struct SidebarView: View {
             
             Spacer(minLength: 0)
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 8)
+        .padding(.horizontal, TTSpacing.chromeInsetH)
+        .padding(.vertical, TTSpacing.sm)
     }
     
     // MARK: - Server Status (Start / Stop — reserved height for both styles)
     private var serverStatusBar: some View {
         let lifecycleOn = connectionManager.isLifecycleActive
 
-        return VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 8) {
+        return VStack(alignment: .leading, spacing: TTSpacing.sm) {
+            HStack(spacing: TTSpacing.sm) {
                 ZStack {
                     if connectionManager.isServerRunning {
                         Circle()
                             .fill(Color.ttSuccess.opacity(0.4))
-                            .frame(width: 14, height: 14)
+                            .frame(width: TTIcon.xl, height: TTIcon.xl)
                             .opacity(pulseActive ? 0.0 : 0.6)
                             .animation(
                                 .easeInOut(duration: 1.5).repeatForever(autoreverses: true),
@@ -139,11 +139,11 @@ struct SidebarView: View {
                     }
                     Circle()
                         .fill(connectionManager.isServerRunning ? Color.ttSuccess : Color.ttError)
-                        .frame(width: 8, height: 8)
+                        .frame(width: TTSpacing.sm, height: TTSpacing.sm)
                 }
-                .frame(width: 14, height: 14)
+                .frame(width: TTIcon.xl, height: TTIcon.xl)
                 
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: TTSpacing.xxxs) {
                     Text(serverStatusTitle)
                         .font(TTFont.labelMedium)
                         .foregroundColor(.ttTextPrimary)
@@ -156,7 +156,7 @@ struct SidebarView: View {
                         .truncationMode(.tail)
                 }
                 
-                Spacer(minLength: 4)
+                Spacer(minLength: TTSpacing.xxs)
             }
             
             // Reserved height so Primary vs Outlined style swap cannot collapse chrome.
@@ -179,18 +179,19 @@ struct SidebarView: View {
                     .help("Start the debug bridge when you need a device connection")
                 }
             }
-            .frame(maxWidth: .infinity, minHeight: 36, alignment: .center)
+            .frame(maxWidth: .infinity, minHeight: TTSpacing.controlMinHeight, alignment: .center)
             
             // Secondary server tools — fixed 28pt row (never half-clipped)
-            HStack(spacing: 6) {
+            HStack(spacing: TTSpacing.xs) {
                 DeviceSessionMenuButton()
                 NetworkInterfaceMenuButton()
                 
                 Button(action: { connectionManager.forceReconnect() }) {
                     Image(systemName: AppIcon.reconnect)
-                        .font(.system(size: 11, weight: .medium))
+                        .font(.ttIcon(TTIcon.md))
+                        .fontWeight(.medium)
                         .foregroundColor(lifecycleOn ? .ttWarning : .ttTextMuted)
-                        .frame(width: 28, height: 28)
+                        .frame(width: TTSpacing.controlHit, height: TTSpacing.controlHit)
                         .background(
                             RoundedRectangle(cornerRadius: TTRadius.sm)
                                 .fill(Color.ttSurface)
@@ -207,10 +208,10 @@ struct SidebarView: View {
                 
                 Spacer(minLength: 0)
             }
-            .frame(height: 28, alignment: .center)
+            .frame(height: TTSpacing.controlHit, alignment: .center)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
+        .padding(.horizontal, TTSpacing.md)
+        .padding(.vertical, TTSpacing.chromeInsetV)
         .background(Color.ttSurface.opacity(0.45))
     }
 
@@ -240,7 +241,7 @@ struct SidebarView: View {
     
     // MARK: - Connected Devices
     private var connectedDevicesSection: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: TTSpacing.xs) {
             HStack {
                 Text("CONNECTED DEVICES")
                     .font(TTFont.sidebarHeader)
@@ -252,8 +253,8 @@ struct SidebarView: View {
                 Text("\(connectionManager.onlineDevices.count)")
                     .font(TTFont.badge)
                     .foregroundColor(.ttPrimary)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
+                    .padding(.horizontal, TTSpacing.xs)
+                    .padding(.vertical, TTSpacing.xxxs)
                     .background(
                         Capsule()
                             .fill(Color.ttPrimary.opacity(0.15))
@@ -262,8 +263,8 @@ struct SidebarView: View {
             
             if connectionManager.connectedDevices.isEmpty {
                 // No devices — show network hint
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: TTSpacing.xs) {
+                    HStack(spacing: TTSpacing.sm) {
                         Image(systemName: AppIcon.connectionOffline)
                             .font(.ttIcon(TTIcon.lg))
                             .foregroundColor(.ttTextTertiary)
@@ -273,15 +274,15 @@ struct SidebarView: View {
                     }
                     
                     if let ip = connectionManager.macLocalIP {
-                        HStack(spacing: 4) {
+                        HStack(spacing: TTSpacing.xxs) {
                             Image(systemName: AppIcon.network)
-                                .font(.system(size: 9))
+                                .font(.ttIcon(TTIcon.xs))
                                 .foregroundColor(.ttTextMuted)
                             Text("Mac IP: \(ip)")
                                 .font(TTFont.codeSmall)
                                 .foregroundColor(.ttTextMuted)
                         }
-                        .padding(.leading, 28)
+                        .padding(.leading, TTSpacing.controlHit)
                     }
                     
                     Button(action: { appState.selectedTab = .connectionHealth }) {
@@ -290,10 +291,10 @@ struct SidebarView: View {
                             .foregroundColor(.ttPrimary)
                     }
                     .buttonStyle(.plain)
-                    .padding(.leading, 28)
+                    .padding(.leading, TTSpacing.controlHit)
                 }
-                .padding(.vertical, 8)
-                .padding(.horizontal, 4)
+                .padding(.vertical, TTSpacing.sm)
+                .padding(.horizontal, TTSpacing.xxs)
             } else {
                 ForEach(connectionManager.connectedDevices) { session in
                     DeviceRowView(
@@ -312,7 +313,7 @@ struct SidebarView: View {
     
     // MARK: - Navigation
     private var navigationSection: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: TTSpacing.xxs) {
             ForEach(SidebarSection.allCases) { section in
                 let gated = section.requiresLiveServer && !connectionManager.isLifecycleActive
                 SidebarItemView(
@@ -356,7 +357,7 @@ struct SidebarView: View {
     
     // MARK: - Bottom Actions
     private var bottomActions: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: TTSpacing.sm) {
             Divider()
                 .overlay(Color.ttBorder)
             
@@ -371,8 +372,8 @@ struct SidebarView: View {
                 }
                 .buttonStyle(.plain)
                 .help("Open Settings (⌘,)")
-                .padding(.horizontal, 16)
-                .padding(.vertical, 6)
+                .padding(.horizontal, TTSpacing.lg)
+                .padding(.vertical, TTSpacing.xs)
             }
             
             HStack(spacing: 0) {
@@ -386,11 +387,11 @@ struct SidebarView: View {
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 6)
+                .padding(.horizontal, TTSpacing.lg)
+                .padding(.vertical, TTSpacing.xs)
             }
         }
-        .padding(.bottom, 12)
+        .padding(.bottom, TTSpacing.md)
     }
 }
 
@@ -405,19 +406,19 @@ struct DeviceRowView: View {
     private var warning: Bool { session.isHeartbeatWarning(relativeTo: now) }
 
     var body: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: TTSpacing.inputPaddingH) {
             // Device icon
             ZStack {
-                RoundedRectangle(cornerRadius: 8)
+                RoundedRectangle(cornerRadius: TTRadius.md)
                     .fill(online ? Color.ttSuccess.opacity(0.12) : Color.ttSurface.opacity(0.55))
-                    .frame(width: 32, height: 32)
+                    .frame(width: TTSpacing.statusBarHeight, height: TTSpacing.statusBarHeight)
                 
                 Image(systemName: session.isSimulator ? AppIcon.simulator : AppIcon.device)
                     .font(.ttIcon(TTIcon.xl))
                     .foregroundColor(online ? .ttSuccess : .ttTextTertiary)
             }
             
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: TTSpacing.xxxs) {
                 Text(session.displayName)
                     .font(TTFont.labelMedium)
                     .foregroundColor(isSelected ? .ttPrimary : .ttTextPrimary)
@@ -439,12 +440,12 @@ struct DeviceRowView: View {
             // Status: green / amber / offline
             Circle()
                 .fill(online ? (warning ? Color.ttWarning : Color.ttSuccess) : Color.ttTextTertiary)
-                .frame(width: 6, height: 6)
+                .frame(width: TTSpacing.xs, height: TTSpacing.xs)
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 6)
+        .padding(.horizontal, TTSpacing.sm)
+        .padding(.vertical, TTSpacing.xs)
         .background(
-            RoundedRectangle(cornerRadius: 8)
+            RoundedRectangle(cornerRadius: TTRadius.md)
                 .fill(isSelected ? Color.ttPrimary.opacity(0.12) : Color.clear)
         )
         .contentShape(Rectangle())
@@ -471,7 +472,7 @@ struct SidebarItemView: View {
     
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 10) {
+            HStack(spacing: TTSpacing.inputPaddingH) {
                 Image(systemName: section.icon)
                     .font(.ttIcon(TTIcon.xl))
                     .foregroundColor(iconColor)
@@ -487,8 +488,8 @@ struct SidebarItemView: View {
                     Text("\(badge)")
                         .font(TTFont.badge)
                         .foregroundColor(.ttTextTertiary)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
+                        .padding(.horizontal, TTSpacing.xs)
+                        .padding(.vertical, TTSpacing.xxxs)
                         .background(
                             Capsule()
                                 .fill(Color.ttSurface)

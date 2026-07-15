@@ -11,10 +11,10 @@ import SwiftUI
 struct UsageGuideView: View {
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 28) {
+            VStack(alignment: .leading, spacing: TTSpacing.sectionGapLarge) {
                 // Header
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(spacing: 10) {
+                VStack(alignment: .leading, spacing: TTSpacing.sm) {
+                    HStack(spacing: TTSpacing.inputPaddingH) {
                         ZStack {
                             RoundedRectangle(cornerRadius: 10)
                                 .fill(Color.ttSuccess.opacity(0.12))
@@ -24,7 +24,7 @@ struct UsageGuideView: View {
                                 .foregroundColor(.ttSuccess)
                         }
                         
-                        VStack(alignment: .leading, spacing: 2) {
+                        VStack(alignment: .leading, spacing: TTSpacing.xxxs) {
                             Text("How to Use TTBDebugPlus")
                                 .font(TTFont.displayMedium)
                                 .foregroundColor(.ttTextPrimary)
@@ -41,7 +41,7 @@ struct UsageGuideView: View {
                     .foregroundColor(.ttTextTertiary)
                     .tracking(0.8)
                 
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: TTSpacing.lg) {
                     featureGuideCard(
                         icon: AppIcon.console,
                         title: "Console",
@@ -170,7 +170,7 @@ struct UsageGuideView: View {
                     .foregroundColor(.ttTextTertiary)
                     .tracking(0.8)
                 
-                VStack(spacing: 12) {
+                VStack(spacing: TTSpacing.md) {
                     tipCard(
                         icon: "arrow.clockwise.circle.fill",
                         title: "Replay API Requests",
@@ -221,16 +221,16 @@ struct UsageGuideView: View {
                     )
                 }
             }
-            .padding(.horizontal, 32)
-            .padding(.vertical, 24)
+            .padding(.horizontal, TTSpacing.xxxl)
+            .padding(.vertical, TTSpacing.xxl)
         }
         .background(Color.ttBackground)
     }
     
     // MARK: - Feature Guide Card
     private func featureGuideCard(icon: String, title: String, color: Color, features: [String]) -> some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(spacing: 10) {
+        VStack(alignment: .leading, spacing: TTSpacing.chromeInsetH) {
+            HStack(spacing: TTSpacing.inputPaddingH) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 10)
                         .fill(color.opacity(0.12))
@@ -244,13 +244,13 @@ struct UsageGuideView: View {
                     .foregroundColor(.ttTextPrimary)
             }
             
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: TTSpacing.sm) {
                 ForEach(features, id: \.self) { feature in
-                    HStack(alignment: .top, spacing: 8) {
+                    HStack(alignment: .top, spacing: TTSpacing.sm) {
                         Image(systemName: "checkmark")
                             .font(.ttIcon(TTIcon.xs))
                             .foregroundColor(color)
-                            .padding(.top, 3)
+                            .padding(.top, TTSpacing.inlineGapSmall)
                         Text(feature)
                             .font(TTFont.bodySmall)
                             .foregroundColor(.ttTextSecondary)
@@ -258,7 +258,7 @@ struct UsageGuideView: View {
                 }
             }
         }
-        .padding(16)
+        .padding(TTSpacing.lg)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 12)
@@ -274,13 +274,13 @@ struct UsageGuideView: View {
     private func shortcutRow(keys: String, action: String, isAlternate: Bool) -> some View {
         HStack {
             // Key badges
-            HStack(spacing: 4) {
+            HStack(spacing: TTSpacing.xxs) {
                 ForEach(keys.split(separator: " ").map(String.init), id: \.self) { key in
                     Text(key)
                         .font(TTFont.codeMedium)
                         .foregroundColor(.ttTextPrimary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
+                        .padding(.horizontal, TTSpacing.sm)
+                        .padding(.vertical, TTSpacing.xxs)
                         .background(
                             RoundedRectangle(cornerRadius: 5)
                                 .fill(Color.ttSurface)
@@ -299,14 +299,14 @@ struct UsageGuideView: View {
             
             Spacer()
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
+        .padding(.horizontal, TTSpacing.chromeInsetH)
+        .padding(.vertical, TTSpacing.inputPaddingH)
         .background(isAlternate ? Color.ttSurface.opacity(0.15) : Color.clear)
     }
     
     // MARK: - Tip Card
     private func tipCard(icon: String, title: String, description: String, color: Color) -> some View {
-        HStack(alignment: .top, spacing: 14) {
+        HStack(alignment: .top, spacing: TTSpacing.chromeInsetH) {
             ZStack {
                 Circle()
                     .fill(color.opacity(0.12))
@@ -316,7 +316,7 @@ struct UsageGuideView: View {
                     .foregroundColor(color)
             }
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: TTSpacing.xxs) {
                 Text(title)
                     .font(TTFont.labelLarge)
                     .foregroundColor(.ttTextPrimary)
@@ -326,7 +326,7 @@ struct UsageGuideView: View {
                     .lineSpacing(2)
             }
         }
-        .padding(16)
+        .padding(TTSpacing.lg)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 10)

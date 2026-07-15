@@ -45,6 +45,7 @@ struct TTBDebugPlusApp: App {
                 .environment(storageManager)
                 .environment(libraryStore)
                 .environment(tokenStore)
+                .environment(DesignSystemConfig.shared)
                 .modelContainer(libraryStore.container)
                 .preferredColorScheme(preferredScheme)
                 .frame(minWidth: 1000, minHeight: 700)
@@ -171,6 +172,7 @@ struct TTBDebugPlusApp: App {
                 .environment(appState)
                 .environment(connectionManager)
                 .environment(tokenStore)
+                .environment(DesignSystemConfig.shared)
         }
         .menuBarExtraStyle(.window)
 
@@ -179,6 +181,7 @@ struct TTBDebugPlusApp: App {
                 .environment(appState)
                 .environment(connectionManager)
                 .environment(storageManager)
+                .environment(DesignSystemConfig.shared)
                 .preferredColorScheme(preferredScheme)
         }
     }

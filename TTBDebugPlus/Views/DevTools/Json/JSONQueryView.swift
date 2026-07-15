@@ -64,8 +64,8 @@ struct JSONQueryView: View {
     
     // MARK: - Query Input
     private var queryInputBar: some View {
-        VStack(spacing: 8) {
-            HStack(spacing: 10) {
+        VStack(spacing: TTSpacing.sm) {
+            HStack(spacing: TTSpacing.inputPaddingH) {
                 // JSONPath icon with glow
                 ZStack {
                     Circle()
@@ -79,21 +79,21 @@ struct JSONQueryView: View {
                 // Input
                 TextField("Enter JSONPath (e.g., $.data[0].name)", text: $queryPath)
                     .textFieldStyle(.plain)
-                    .font(.system(size: 13, weight: .regular, design: .monospaced))
+                    .font(TTFont.codeMedium)
                     .foregroundColor(.ttTextPrimary)
                     .frame(minWidth: 200)
                 
                 // Result count badge
                 if !result.isEmpty {
-                    HStack(spacing: 3) {
+                    HStack(spacing: TTSpacing.inlineGapSmall) {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.ttIcon(TTIcon.xs))
                         Text("\(result.count) match\(result.count == 1 ? "" : "es")")
                             .font(TTFont.badge)
                     }
                     .foregroundColor(.ttSuccess)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 4)
+                    .padding(.horizontal, TTSpacing.inputPaddingH)
+                    .padding(.vertical, TTSpacing.xxs)
                     .background(
                         Capsule()
                             .fill(Color.ttSuccess.opacity(0.1))
@@ -114,8 +114,8 @@ struct JSONQueryView: View {
                     .buttonStyle(.plain)
                 }
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 10)
+            .padding(.horizontal, TTSpacing.chromeInsetH)
+            .padding(.vertical, TTSpacing.inputPaddingH)
             .background(
                 RoundedRectangle(cornerRadius: 8)
                     .fill(Color.ttSurface.opacity(0.4))
@@ -127,19 +127,19 @@ struct JSONQueryView: View {
             
             // Suggestions — wrapping
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 6) {
+                HStack(spacing: TTSpacing.xs) {
                     Text("Try:")
-                        .font(.system(size: 9, weight: .bold))
+                        .font(TTFont.badge)
                         .foregroundColor(.ttTextMuted)
                         .tracking(0.5)
                     
                     ForEach(suggestions, id: \.0) { path, desc in
                         Button(action: { queryPath = path }) {
                             Text(path)
-                                .font(.system(size: 11, weight: .medium, design: .monospaced))
+                                .font(TTFont.codeSmall)
                                 .foregroundColor(queryPath == path ? .white : .ttPrimaryLight)
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 4)
+                                .padding(.horizontal, TTSpacing.inputPaddingH)
+                                .padding(.vertical, TTSpacing.xxs)
                                 .background(
                                     Capsule()
                                         .fill(queryPath == path ? Color.ttPrimary.opacity(0.5) : Color.ttPrimary.opacity(0.06))
@@ -151,7 +151,7 @@ struct JSONQueryView: View {
                 }
             }
         }
-        .padding(14)
+        .padding(TTSpacing.chromeInsetH)
         .background(Color.ttSurface.opacity(0.1))
     }
     
@@ -160,15 +160,15 @@ struct JSONQueryView: View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 0) {
                 ForEach(Array(result.matches.enumerated()), id: \.element.id) { index, match in
-                    VStack(alignment: .leading, spacing: 6) {
+                    VStack(alignment: .leading, spacing: TTSpacing.xs) {
                         // Path + index
-                        HStack(spacing: 6) {
+                        HStack(spacing: TTSpacing.xs) {
                             // Index badge
                             Text("#\(index + 1)")
-                                .font(.system(size: 9, weight: .bold, design: .monospaced))
+                                .font(TTFont.badge)
                                 .foregroundColor(.ttPrimary)
-                                .padding(.horizontal, 5)
-                                .padding(.vertical, 2)
+                                .padding(.horizontal, TTSpacing.tight)
+                                .padding(.vertical, TTSpacing.xxxs)
                                 .background(
                                     RoundedRectangle(cornerRadius: 3)
                                         .fill(Color.ttPrimary.opacity(0.08))
@@ -179,7 +179,7 @@ struct JSONQueryView: View {
                                 .foregroundColor(.ttPrimary.opacity(0.5))
                             
                             Text(match.path)
-                                .font(.system(size: 11, weight: .medium, design: .monospaced))
+                                .font(TTFont.codeSmall)
                                 .foregroundColor(.ttPrimaryLight)
                                 .textSelection(.enabled)
                                 .lineLimit(1)
@@ -196,12 +196,12 @@ struct JSONQueryView: View {
                                     if copiedMatchId == match.id { copiedMatchId = nil }
                                 }
                             }) {
-                                HStack(spacing: 3) {
+                                HStack(spacing: TTSpacing.inlineGapSmall) {
                                     Image(systemName: copiedMatchId == match.id ? "checkmark" : "doc.on.doc")
                                         .font(.ttIcon(TTIcon.xs))
                                     if copiedMatchId == match.id {
                                         Text("Copied")
-                                            .font(.system(size: 9, weight: .medium))
+                                            .font(TTFont.badge)
                                     }
                                 }
                                 .foregroundColor(copiedMatchId == match.id ? .ttSuccess : .ttTextTertiary)
@@ -211,11 +211,11 @@ struct JSONQueryView: View {
                         
                         // Value
                         Text(match.value)
-                            .font(.system(size: 12, weight: .regular, design: .monospaced))
+                            .font(TTFont.codeMedium)
                             .foregroundColor(.ttJsonString)
                             .textSelection(.enabled)
                             .lineLimit(12)
-                            .padding(10)
+                            .padding(TTSpacing.inputPaddingH)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .background(
                                 RoundedRectangle(cornerRadius: 6)
@@ -226,8 +226,8 @@ struct JSONQueryView: View {
                                     )
                             )
                     }
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 10)
+                    .padding(.horizontal, TTSpacing.chromeInsetH)
+                    .padding(.vertical, TTSpacing.inputPaddingH)
                     .overlay(
                         Rectangle().fill(Color.ttBorder.opacity(0.08)).frame(height: 1),
                         alignment: .bottom
@@ -240,13 +240,13 @@ struct JSONQueryView: View {
     // MARK: - States
     
     private var emptyJSONState: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: TTSpacing.chromeInsetH) {
             ZStack {
                 Circle()
                     .fill(Color.ttSurface.opacity(0.5))
                     .frame(width: 56, height: 56)
                 Image(systemName: "doc.text")
-                    .font(.system(size: 24))
+                    .font(TTFont.heading1)
                     .foregroundColor(.ttTextMuted)
             }
             Text("No JSON Data")
@@ -260,7 +260,7 @@ struct JSONQueryView: View {
     }
     
     private var loadingState: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: TTSpacing.inputPaddingH) {
             ProgressView()
                 .scaleEffect(0.7)
                 .tint(.ttPrimary)
@@ -272,13 +272,13 @@ struct JSONQueryView: View {
     }
     
     private func errorState(_ error: String) -> some View {
-        VStack(spacing: 10) {
+        VStack(spacing: TTSpacing.inputPaddingH) {
             ZStack {
                 Circle()
                     .fill(Color.ttWarning.opacity(0.08))
                     .frame(width: 56, height: 56)
                 Image(systemName: "exclamationmark.triangle.fill")
-                    .font(.system(size: 24))
+                    .font(TTFont.heading1)
                     .foregroundColor(.ttWarning)
             }
             Text("Query Error")
@@ -292,13 +292,13 @@ struct JSONQueryView: View {
     }
     
     private var noResultsState: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: TTSpacing.chromeInsetH) {
             ZStack {
                 Circle()
                     .fill(Color.ttSurface.opacity(0.5))
                     .frame(width: 56, height: 56)
                 Image(systemName: "magnifyingglass")
-                    .font(.system(size: 24))
+                    .font(TTFont.heading1)
                     .foregroundColor(.ttTextMuted)
             }
             Text("No Matches")

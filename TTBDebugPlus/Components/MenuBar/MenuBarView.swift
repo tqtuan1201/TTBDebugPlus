@@ -12,6 +12,7 @@ import SwiftUI
 struct MenuBarView: View {
     @Environment(AppState.self) var appState
     @Environment(ConnectionManager.self) var connectionManager
+    @Environment(DesignSystemConfig.self) private var designConfig
     @Environment(\.openWindow) private var openWindow
     @Environment(\.openSettings) private var openSettings
     @State private var toolSearchText = ""
@@ -76,6 +77,8 @@ struct MenuBarView: View {
     }
     
     var body: some View {
+        // Re-render when layout metrics are Applied (typography / spacing).
+        let _ = designConfig.appliedRevision
         VStack(spacing: 0) {
             // MARK: - Header
             headerSection
@@ -84,31 +87,31 @@ struct MenuBarView: View {
             serverStatusSection
             
             Divider()
-                .padding(.vertical, 4)
+                .padding(.vertical, TTSpacing.xxs)
             
             // MARK: - Connected Devices
             devicesSection
             
             Divider()
-                .padding(.vertical, 4)
+                .padding(.vertical, TTSpacing.xxs)
             
             // MARK: - Dev Tools
             devToolsSection
             
             Divider()
-                .padding(.vertical, 4)
+                .padding(.vertical, TTSpacing.xxs)
             
             // MARK: - Quick Actions
             quickActionsSection
             
             Divider()
-                .padding(.vertical, 4)
+                .padding(.vertical, TTSpacing.xxs)
             
             // MARK: - App Actions
             appActionsSection
         }
-        .padding(.top, 10)
-        .padding(.bottom, 14)
+        .padding(.top, TTSpacing.chromeInsetV)
+        .padding(.bottom, TTIcon.xl)
         .frame(width: 300)
         // Force the VStack to claim its full natural height so macOS
         // MenuBarExtra .window style doesn't clip the bottom on first open.
@@ -136,9 +139,9 @@ struct MenuBarView: View {
     // MARK: - Header
     
     private var headerSection: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: TTSpacing.inputPaddingH) {
             ZStack {
-                RoundedRectangle(cornerRadius: 8)
+                RoundedRectangle(cornerRadius: TTRadius.md)
                     .fill(
                         LinearGradient(
                             colors: [Color.ttPrimary, Color.ttPrimaryDark],
@@ -149,18 +152,19 @@ struct MenuBarView: View {
                     .frame(width: 32, height: 32)
                 
                 Image(systemName: AppIcon.app)
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.ttIcon(TTIcon.xl))
+                    .fontWeight(.semibold)
                     .foregroundColor(.ttTextOnAccent)
             }
             
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: TTSpacing.xxxs) {
                 Text(AppBrand.name)
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(TTFont.labelLarge)
                     .foregroundColor(.ttTextPrimary)
                     .lineLimit(1)
                 
                 Text(AppBrand.versionLabel)
-                    .font(.system(size: 10, design: .monospaced))
+                    .font(TTFont.codeSmall)
                     .foregroundColor(.ttTextTertiary)
                     .lineLimit(1)
             }
@@ -170,15 +174,15 @@ struct MenuBarView: View {
             // Connection count badge
             if connectionManager.onlineDevices.count > 0 {
                 Text("\(connectionManager.onlineDevices.count)")
-                    .font(.system(size: 11, weight: .bold))
+                    .font(TTFont.labelMedium)
                     .foregroundColor(.ttTextOnAccent)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
+                    .padding(.horizontal, TTSpacing.xs)
+                    .padding(.vertical, TTSpacing.xxxs)
                     .background(Capsule().fill(Color.ttSuccess))
             }
         }
-        .padding(.horizontal, 14)
-        .padding(.bottom, 10)
+        .padding(.horizontal, TTSpacing.chromeInsetH)
+        .padding(.bottom, TTSpacing.chromeInsetV)
     }
     
     // MARK: - Server Status
@@ -186,21 +190,21 @@ struct MenuBarView: View {
     // title → status line → full-width Start/Stop → icon tool row (never clipped).
     
     private var serverStatusSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: TTSpacing.inputPaddingH) {
+            VStack(alignment: .leading, spacing: TTSpacing.xxs) {
                 Text(serverModeTitle)
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(TTFont.labelLarge)
                     .foregroundColor(.ttTextPrimary)
                     .lineLimit(1)
                 
-                HStack(alignment: .top, spacing: 6) {
+                HStack(alignment: .top, spacing: TTSpacing.xs) {
                     Circle()
                         .fill(serverModeColor)
                         .frame(width: 8, height: 8)
-                        .padding(.top, 3)
+                        .padding(.top, TTSpacing.inlineGapSmall)
                     
                     Text(serverStatusDetail)
-                        .font(.system(size: 11))
+                        .font(TTFont.bodySmall)
                         .foregroundColor(.ttTextSecondary)
                         .lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
@@ -231,13 +235,14 @@ struct MenuBarView: View {
             .frame(maxWidth: .infinity, minHeight: 36, alignment: .center)
             
             // Secondary server tools — fixed min height so icons never clip at panel edge
-            HStack(spacing: 6) {
+            HStack(spacing: TTSpacing.xs) {
                 DeviceSessionMenuButton()
                 NetworkInterfaceMenuButton()
                 
                 Button(action: { connectionManager.forceReconnect() }) {
                     Image(systemName: AppIcon.reconnect)
-                        .font(.system(size: 11, weight: .medium))
+                        .font(.ttIcon(TTIcon.md))
+                    .fontWeight(.medium)
                         .foregroundColor(connectionManager.isLifecycleActive ? .ttWarning : .ttTextMuted)
                         .frame(width: 28, height: 28)
                         .background(
@@ -258,32 +263,32 @@ struct MenuBarView: View {
             }
             .frame(height: 28, alignment: .center)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
+        .padding(.horizontal, TTSpacing.md)
+        .padding(.vertical, TTSpacing.chromeInsetV)
         .background(Color.ttSurface.opacity(0.45))
     }
     
     // MARK: - Devices
     
     private var devicesSection: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: TTSpacing.xxs) {
             Text("CONNECTED DEVICES")
-                .font(.system(size: 10, weight: .semibold))
+                .font(TTFont.labelSmall)
                 .foregroundColor(.ttTextSecondary)
                 .tracking(0.5)
-                .padding(.horizontal, 12)
+                .padding(.horizontal, TTSpacing.md)
             
             if connectionManager.connectedDevices.isEmpty {
-                HStack(spacing: 6) {
+                HStack(spacing: TTSpacing.xs) {
                     Image(systemName: AppIcon.connectionOffline)
-                        .font(.system(size: 11))
+                        .font(TTFont.bodySmall)
                         .foregroundColor(.ttTextSecondary)
                     Text("No devices connected")
-                        .font(.system(size: 11))
+                        .font(TTFont.bodySmall)
                         .foregroundColor(.ttTextSecondary)
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 4)
+                .padding(.horizontal, TTSpacing.md)
+                .padding(.vertical, TTSpacing.xxs)
             } else {
                 ForEach(connectionManager.connectedDevices) { session in
                     MenuBarDeviceRow(session: session)
@@ -295,88 +300,90 @@ struct MenuBarView: View {
     // MARK: - Dev Tools
     
     private var devToolsSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 6) {
+        VStack(alignment: .leading, spacing: TTSpacing.sm) {
+            HStack(spacing: TTSpacing.xs) {
                 Text("DEV TOOLS")
-                    .font(.system(size: 10, weight: .semibold))
+                    .font(TTFont.labelSmall)
                     .foregroundColor(.ttTextSecondary)
                     .tracking(0.5)
                 
                 Spacer()
                 
                 Text("\(availableDevToolCount)/\(DevTool.allCases.count)")
-                    .font(.system(size: 9, weight: .semibold, design: .monospaced))
+                    .font(TTFont.badge)
                     .foregroundColor(.ttPrimary)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
+                    .padding(.horizontal, TTSpacing.xs)
+                    .padding(.vertical, TTSpacing.xxxs)
                     .background(Capsule().fill(Color.ttPrimary.opacity(0.12)))
             }
-            .padding(.horizontal, 12)
+            .padding(.horizontal, TTSpacing.md)
             
-            HStack(spacing: 7) {
+            HStack(spacing: TTSpacing.rowVertical) {
                 Image(systemName: "magnifyingglass")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(.ttIcon(TTIcon.md))
+                    .fontWeight(.semibold)
                     .foregroundColor(.ttTextSecondary)
                 
                 TextField("Search tools", text: $toolSearchText)
                     .textFieldStyle(.plain)
-                    .font(.system(size: 12))
+                    .font(TTFont.bodyMedium)
                     .foregroundColor(.ttTextPrimary)
                 
                 if !toolSearchText.isEmpty {
                     Button(action: { toolSearchText = "" }) {
                         Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 11, weight: .semibold))
+                            .font(.ttIcon(TTIcon.md))
+                    .fontWeight(.semibold)
                             .foregroundColor(.ttTextSecondary)
                     }
                     .buttonStyle(.plain)
                     .help("Clear search")
                 }
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 7)
+            .padding(.horizontal, TTSpacing.inputPaddingH)
+            .padding(.vertical, TTSpacing.rowVertical)
             .background(
-                RoundedRectangle(cornerRadius: 7)
+                RoundedRectangle(cornerRadius: TTRadius.sm)
                     .fill(Color.ttSurface)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 7)
+                        RoundedRectangle(cornerRadius: TTRadius.sm)
                             .stroke(Color.ttBorder.opacity(0.6), lineWidth: 1)
                     )
             )
-            .padding(.horizontal, 12)
+            .padding(.horizontal, TTSpacing.md)
             
             VStack(spacing: 0) {
                 HStack {
                     Text(toolSearchText.isEmpty ? "All tools" : "Search results")
-                        .font(.system(size: 10, weight: .medium))
+                        .font(TTFont.labelSmall)
                         .foregroundColor(.ttTextTertiary)
                     
                     Spacer()
                     
                     Text("\(filteredDevTools.count)")
-                        .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                        .font(TTFont.badge)
                         .foregroundColor(.ttTextTertiary)
                 }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
+                .padding(.horizontal, TTSpacing.inputPaddingH)
+                .padding(.vertical, TTSpacing.xs)
                 
                 Divider()
                     .overlay(Color.ttBorder)
                 
                 ScrollView(.vertical, showsIndicators: true) {
-                    LazyVStack(spacing: 2) {
+                    LazyVStack(spacing: TTSpacing.xxxs) {
                         if filteredDevTools.isEmpty {
-                            HStack(spacing: 7) {
+                            HStack(spacing: TTSpacing.rowVertical) {
                                 Image(systemName: "magnifyingglass")
-                                    .font(.system(size: 11))
+                                    .font(TTFont.bodySmall)
                                     .foregroundColor(.ttTextTertiary)
                                 Text("No matching tools")
-                                    .font(.system(size: 11))
+                                    .font(TTFont.bodySmall)
                                     .foregroundColor(.ttTextTertiary)
                                 Spacer()
                             }
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 10)
+                            .padding(.horizontal, TTSpacing.inputPaddingH)
+                            .padding(.vertical, TTSpacing.chromeInsetV)
                         } else {
                             ForEach(filteredDevTools) { tool in
                                 MenuBarDevToolRow(
@@ -388,19 +395,19 @@ struct MenuBarView: View {
                             }
                         }
                     }
-                    .padding(6)
+                    .padding(TTSpacing.xs)
                 }
             }
             .frame(height: devToolListHeight + 29)
             .background(
-                RoundedRectangle(cornerRadius: 8)
+                RoundedRectangle(cornerRadius: TTRadius.md)
                     .fill(Color.ttSurface)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 8)
+                        RoundedRectangle(cornerRadius: TTRadius.md)
                             .stroke(Color.ttBorder.opacity(0.6), lineWidth: 1)
                     )
             )
-            .padding(.horizontal, 12)
+            .padding(.horizontal, TTSpacing.md)
             
             MenuBarActionButton(
                 icon: AppIcon.devTools,
@@ -415,7 +422,7 @@ struct MenuBarView: View {
     // MARK: - Quick Actions
     
     private var quickActionsSection: some View {
-        VStack(spacing: 2) {
+        VStack(spacing: TTSpacing.xxxs) {
             MenuBarActionButton(
                 icon: AppIcon.clearLogs,
                 title: "Clear All Logs",
@@ -437,7 +444,7 @@ struct MenuBarView: View {
     // MARK: - App Actions
     
     private var appActionsSection: some View {
-        VStack(spacing: 2) {
+        VStack(spacing: TTSpacing.xxxs) {
             MenuBarActionButton(
                 icon: AppIcon.mainWindow,
                 title: "Open Full App",
@@ -447,12 +454,12 @@ struct MenuBarView: View {
             }
             
             Divider()
-                .padding(.vertical, 4)
+                .padding(.vertical, TTSpacing.xxs)
             
             launchAtLoginSetting
             
             Divider()
-                .padding(.vertical, 4)
+                .padding(.vertical, TTSpacing.xxs)
             
             MenuBarActionButton(
                 icon: AppIcon.settings,
@@ -463,7 +470,7 @@ struct MenuBarView: View {
             }
             
             Divider()
-                .padding(.vertical, 4)
+                .padding(.vertical, TTSpacing.xxs)
             
             MenuBarActionButton(
                 icon: AppIcon.quit,
@@ -477,7 +484,7 @@ struct MenuBarView: View {
     }
     
     private var launchAtLoginSetting: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: TTSpacing.xxs) {
             MenuBarToggleRow(
                 icon: "power",
                 title: "Open at Login",
@@ -490,13 +497,13 @@ struct MenuBarView: View {
             
             if let launchAtLoginErrorMessage {
                 Text(launchAtLoginErrorMessage)
-                    .font(.system(size: 10))
+                    .font(TTFont.labelSmall)
                     .foregroundColor(.ttError)
                     .lineLimit(2)
-                    .padding(.leading, 36)
+                    .padding(.leading, TTSpacing.controlMinHeight)
             }
         }
-        .padding(.horizontal, 8)
+        .padding(.horizontal, TTSpacing.sm)
     }
     
     // MARK: - Navigation
@@ -624,21 +631,21 @@ struct MenuBarDevToolRow: View {
             guard tool.isAvailable else { return }
             action()
         }) {
-            HStack(alignment: .center, spacing: 9) {
+            HStack(alignment: .center, spacing: TTSpacing.sm) {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 5)
+                    RoundedRectangle(cornerRadius: TTRadius.sm)
                         .fill(iconBackgroundColor)
                         .frame(width: 28, height: 28)
                     
                     Image(systemName: tool.icon)
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(TTFont.labelLarge)
                         .foregroundColor(tool.isAvailable ? .ttPrimary : .ttTextMuted)
                 }
                 
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 6) {
+                VStack(alignment: .leading, spacing: TTSpacing.xxxs) {
+                    HStack(spacing: TTSpacing.xs) {
                         Text(tool.menuTitle)
-                            .font(.system(size: 12, weight: .medium))
+                            .font(TTFont.labelLarge)
                             .foregroundColor(tool.isAvailable ? .ttTextPrimary : .ttTextMuted)
                             .lineLimit(1)
                         
@@ -649,7 +656,7 @@ struct MenuBarDevToolRow: View {
                     }
                     
                     Text(tool.menuDescription)
-                        .font(.system(size: 10))
+                        .font(TTFont.labelSmall)
                         .foregroundColor(.ttTextSecondary)
                         .lineLimit(1)
                 }
@@ -657,11 +664,11 @@ struct MenuBarDevToolRow: View {
                 Spacer(minLength: 4)
                 
                 Image(systemName: tool.isAvailable ? "chevron.right" : "clock")
-                    .font(.system(size: 10, weight: .semibold))
+                    .font(TTFont.labelSmall)
                     .foregroundColor((isHovered || isSelected) && tool.isAvailable ? .ttPrimary : .ttTextMuted)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
+            .padding(.horizontal, TTSpacing.md)
+            .padding(.vertical, TTSpacing.xs)
             .background(
                 RoundedRectangle(cornerRadius: 6)
                     .fill(rowBackgroundColor)
@@ -730,24 +737,25 @@ struct MenuBarToolPopoverContent: View {
     }
     
     private var header: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: TTSpacing.inputPaddingH) {
             ZStack {
-                RoundedRectangle(cornerRadius: 7)
+                RoundedRectangle(cornerRadius: TTRadius.sm)
                     .fill(Color.ttPrimary.opacity(0.16))
                     .frame(width: 32, height: 32)
                 
                 Image(systemName: tool.icon)
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.ttIcon(TTIcon.xl))
+                    .fontWeight(.semibold)
                     .foregroundColor(.ttPrimary)
             }
             
-            VStack(alignment: .leading, spacing: 1) {
+            VStack(alignment: .leading, spacing: TTSpacing.hairline) {
                 Text(tool.menuTitle)
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(TTFont.labelLarge)
                     .foregroundColor(.ttTextPrimary)
                 
                 Text("Menu Bar Tool")
-                    .font(.system(size: 10))
+                    .font(TTFont.labelSmall)
                     .foregroundColor(.ttTextSecondary)
             }
             
@@ -755,7 +763,7 @@ struct MenuBarToolPopoverContent: View {
             
             Button(action: onOpenInMainWindow) {
                 Image(systemName: "arrow.up.forward.app")
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(TTFont.labelLarge)
                     .frame(width: 26, height: 24)
             }
             .buttonStyle(.plain)
@@ -763,14 +771,14 @@ struct MenuBarToolPopoverContent: View {
             
             Button(action: onClose) {
                 Image(systemName: "xmark")
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(TTFont.labelLarge)
                     .frame(width: 26, height: 24)
             }
             .buttonStyle(.plain)
             .help("Close")
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
+        .padding(.horizontal, TTSpacing.chromeInsetH)
+        .padding(.vertical, TTSpacing.chromeInsetV)
         .background(Color.ttSurface)
     }
 
@@ -781,11 +789,11 @@ struct MenuBarToolPopoverContent: View {
                 .frame(width: 34, height: 34)
 
             Image(systemName: "line.3.horizontal")
-                .font(.system(size: 13, weight: .semibold))
+                .font(TTFont.labelLarge)
                 .foregroundColor(.ttTextTertiary)
                 .rotationEffect(.degrees(-45))
-                .padding(.trailing, 5)
-                .padding(.bottom, 4)
+                .padding(.trailing, TTSpacing.tight)
+                .padding(.bottom, TTSpacing.xxs)
         }
         .contentShape(Rectangle())
         .help("Drag to resize")
@@ -837,25 +845,27 @@ struct MenuBarJSONToolPopoverView: View {
     var body: some View {
         VStack(spacing: 0) {
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 3) {
+                HStack(spacing: TTSpacing.inlineGapSmall) {
                     ForEach(JSONTool.allCases) { tool in
                         Button(action: {
                             withAnimation(.easeInOut(duration: 0.12)) {
                                 selectedJsonTool = tool
                             }
                         }) {
-                            HStack(spacing: 5) {
+                            HStack(spacing: TTSpacing.tight) {
                                 Image(systemName: tool.icon)
-                                    .font(.system(size: 11, weight: .semibold))
+                                    .font(.ttIcon(TTIcon.md))
+                    .fontWeight(.semibold)
                                 Text(tool.rawValue)
-                                    .font(.system(size: 11, weight: .medium))
+                                    .font(.ttIcon(TTIcon.md))
+                    .fontWeight(.medium)
                             }
                             .foregroundColor(
                                 selectedJsonTool == tool ? .white :
                                 (hoveredJsonTool == tool ? .ttTextSecondary : .ttTextTertiary)
                             )
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
+                            .padding(.horizontal, TTSpacing.md)
+                            .padding(.vertical, TTSpacing.xs)
                             .background(
                                 Capsule()
                                     .fill(
@@ -871,8 +881,8 @@ struct MenuBarJSONToolPopoverView: View {
                         .help(tool.description)
                     }
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
+                .padding(.horizontal, TTSpacing.md)
+                .padding(.vertical, TTSpacing.xs)
             }
             .background(Color.ttSurface)
             
@@ -906,17 +916,17 @@ struct MenuBarUnavailableToolView: View {
     let tool: DevTool
     
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: TTSpacing.md) {
             Image(systemName: tool.icon)
-                .font(.system(size: 34, weight: .semibold))
+                .font(TTFont.displayLarge)
                 .foregroundColor(.ttTextSecondary)
             
             Text(tool.menuTitle)
-                .font(.system(size: 16, weight: .semibold))
+                .font(TTFont.heading3)
                 .foregroundColor(.ttTextPrimary)
             
             Text("This tool is not available yet.")
-                .font(.system(size: 12))
+                .font(TTFont.bodyMedium)
                 .foregroundColor(.ttTextSecondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -1013,21 +1023,21 @@ struct MenuBarToggleRow: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 8) {
+            HStack(spacing: TTSpacing.sm) {
                 Image(systemName: icon)
-                    .font(.system(size: 12))
+                    .font(TTFont.bodyMedium)
                     .foregroundColor(isEnabled ? .ttTextPrimary : .ttTextMuted)
                     .frame(width: 16)
 
-                VStack(alignment: .leading, spacing: 1) {
+                VStack(alignment: .leading, spacing: TTSpacing.hairline) {
                     Text(title)
-                        .font(.system(size: 12, weight: .medium))
+                        .font(TTFont.labelLarge)
                         .foregroundColor(isEnabled ? .ttTextPrimary : .ttTextMuted)
                         .lineLimit(1)
 
                     if let detail {
                         Text(detail)
-                            .font(.system(size: 10))
+                            .font(TTFont.labelSmall)
                             .foregroundColor(.ttTextSecondary)
                             .lineLimit(1)
                     }
@@ -1038,10 +1048,10 @@ struct MenuBarToggleRow: View {
                 CompactSwitch(isOn: isOn, isEnabled: isEnabled)
             }
             .frame(minHeight: detail == nil ? 30 : 38)
-            .padding(.horizontal, 4)
-            .padding(.vertical, 3)
+            .padding(.horizontal, TTSpacing.xxs)
+            .padding(.vertical, TTSpacing.inlineGapSmall)
             .background(
-                RoundedRectangle(cornerRadius: 5)
+                RoundedRectangle(cornerRadius: TTRadius.sm)
                     .fill(isHovered && isEnabled ? Color.ttSurfaceHover : Color.clear)
             )
             .contentShape(Rectangle())
@@ -1070,7 +1080,7 @@ struct CompactSwitch: View {
                 .fill(isEnabled ? Color.ttTextPrimary : Color.ttTextTertiary)
                 .frame(width: 16, height: 16)
                 .shadow(color: .black.opacity(0.25), radius: 1, x: 0, y: 1)
-                .padding(.horizontal, 2)
+                .padding(.horizontal, TTSpacing.xxxs)
         }
         .animation(.easeInOut(duration: 0.12), value: isOn)
     }
@@ -1092,26 +1102,26 @@ struct MenuBarActionButton: View {
     
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 8) {
+            HStack(spacing: TTSpacing.sm) {
                 Image(systemName: icon)
-                    .font(.system(size: 12))
+                    .font(TTFont.bodyMedium)
                     .foregroundColor(isDestructive ? .ttError : .ttTextPrimary)
                     .frame(width: 16)
                 
                 Text(title)
-                    .font(.system(size: 12))
+                    .font(TTFont.bodyMedium)
                     .foregroundColor(isDestructive ? .ttError : .ttTextPrimary)
                 
                 Spacer()
                 
                 if !shortcut.isEmpty {
                     Text(shortcut)
-                        .font(.system(size: 10, design: .monospaced))
+                        .font(TTFont.codeSmall)
                         .foregroundColor(.ttTextTertiary)
                 }
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 5)
+            .padding(.horizontal, TTSpacing.md)
+            .padding(.vertical, TTSpacing.tight)
             .background(
                 RoundedRectangle(cornerRadius: 4)
                     .fill(isHovered ? Color.ttSurfaceHover : Color.clear)

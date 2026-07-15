@@ -22,6 +22,10 @@ let package = Package(
         .library(
             name: "ColorPickerTools",
             targets: ["ColorPickerTools"]
+        ),
+        .library(
+            name: "DesignSystemTools",
+            targets: ["DesignSystemTools"]
         )
     ],
     targets: [
@@ -64,6 +68,18 @@ let package = Package(
             name: "ColorPickerToolsTests",
             dependencies: ["ColorPickerTools"],
             path: "Tests/ColorPickerToolsTests"
+        ),
+        .target(
+            name: "DesignSystemTools",
+            path: "TTBDebugPlus/DesignSystem",
+            sources: [
+                "DesignSystemMetrics.swift"
+            ]
+        ),
+        .testTarget(
+            name: "DesignSystemToolsTests",
+            dependencies: ["DesignSystemTools"],
+            path: "Tests/DesignSystemToolsTests"
         )
     ]
 )

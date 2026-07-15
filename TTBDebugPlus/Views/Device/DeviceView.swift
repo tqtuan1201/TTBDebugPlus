@@ -187,7 +187,7 @@ struct DeviceView: View {
     
     // MARK: - Compact Header
     private func compactHeader(device: DeviceSession) -> some View {
-        HStack(spacing: 8) {
+        HStack(spacing: TTSpacing.sm) {
             // Connection status
             ConnectionIndicator(isConnected: device.isOnline(relativeTo: connectionManager.uiNow))
             Text(device.displayName)
@@ -200,7 +200,7 @@ struct DeviceView: View {
             
             // Recording indicator — error banner tokens for AA contrast
             if captureVM.isRecording {
-                HStack(spacing: 5) {
+                HStack(spacing: TTSpacing.tight) {
                     Circle()
                         .fill(TTBannerKind.error.border)
                         .frame(width: 7, height: 7)
@@ -213,8 +213,8 @@ struct DeviceView: View {
                         .font(TTFont.codeSmall)
                         .foregroundColor(TTBannerKind.error.foreground.opacity(0.85))
                 }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 3)
+                .padding(.horizontal, TTSpacing.sm)
+                .padding(.vertical, TTSpacing.inlineGapSmall)
                 .background(
                     Capsule()
                         .fill(TTBannerKind.error.background)
@@ -229,7 +229,7 @@ struct DeviceView: View {
             
             // Gallery toggle
             Button(action: { withAnimation(.easeInOut(duration: 0.2)) { showGallery.toggle() } }) {
-                HStack(spacing: 3) {
+                HStack(spacing: TTSpacing.inlineGapSmall) {
                     Image(systemName: showGallery ? "sidebar.trailing" : "photo.on.rectangle")
                         .font(.ttIcon(TTIcon.md))
                     if !captureVM.screenshotHistory.isEmpty {
@@ -242,8 +242,8 @@ struct DeviceView: View {
             .buttonStyle(.ttGhost)
             .help(showGallery ? "Hide gallery" : "Show gallery")
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
+        .padding(.horizontal, TTSpacing.lg)
+        .padding(.vertical, TTSpacing.sm)
         .background(Color.ttSurface.opacity(0.3))
     }
     
@@ -251,9 +251,9 @@ struct DeviceView: View {
     @State private var showCopiedFeedback: Bool = false
     
     private var captureToolbar: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: TTSpacing.xxs) {
             // ── Capture Group ──
-            HStack(spacing: 2) {
+            HStack(spacing: TTSpacing.xxxs) {
                 // Capture
                 Button(action: { captureVM.requestCapture(from: connectionManager) }) {
                     if captureVM.isCapturing {
@@ -287,7 +287,7 @@ struct DeviceView: View {
                 }
                 .buttonStyle(.plain)
                 .popover(isPresented: $showIntervalPicker) {
-                    VStack(alignment: .leading, spacing: 6) {
+                    VStack(alignment: .leading, spacing: TTSpacing.xs) {
                         Text("CAPTURE INTERVAL")
                             .font(TTFont.sidebarHeader)
                             .foregroundColor(.ttTextTertiary)
@@ -308,15 +308,15 @@ struct DeviceView: View {
                                 }
                             }
                             .buttonStyle(.plain)
-                            .padding(.vertical, 2)
+                            .padding(.vertical, TTSpacing.xxxs)
                         }
                     }
-                    .padding(12)
+                    .padding(TTSpacing.md)
                     .frame(width: 140)
                 }
             }
-            .padding(.horizontal, 6)
-            .padding(.vertical, 3)
+            .padding(.horizontal, TTSpacing.xs)
+            .padding(.vertical, TTSpacing.inlineGapSmall)
             .background(
                 RoundedRectangle(cornerRadius: 7)
                     .fill(Color.ttSurface.opacity(0.6))
@@ -325,15 +325,15 @@ struct DeviceView: View {
             
             // ── Draw / Annotate — Highlighted CTA ──
             Button(action: { captureVM.isAnnotating = true }) {
-                HStack(spacing: 4) {
+                HStack(spacing: TTSpacing.xxs) {
                     Image(systemName: "pencil.tip.crop.circle")
                         .font(.ttIcon(TTIcon.lg))
                     Text("Draw")
                         .font(TTFont.badge)
                 }
                 .foregroundColor(captureVM.currentScreenshot != nil ? .white : .ttTextTertiary)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 5)
+                .padding(.horizontal, TTSpacing.inputPaddingH)
+                .padding(.vertical, TTSpacing.tight)
                 .background(
                     RoundedRectangle(cornerRadius: 7)
                         .fill(captureVM.currentScreenshot != nil ? Color.ttPrimary : Color.ttSurface.opacity(0.4))
@@ -358,10 +358,10 @@ struct DeviceView: View {
             Divider().frame(height: 18)
             
             // ── Action Group: Copy, Save, Share ──
-            HStack(spacing: 2) {
+            HStack(spacing: TTSpacing.xxxs) {
                 // Copy to clipboard
                 Button(action: copyScreenshotToClipboard) {
-                    HStack(spacing: 3) {
+                    HStack(spacing: TTSpacing.inlineGapSmall) {
                         Image(systemName: showCopiedFeedback ? "checkmark" : "doc.on.doc")
                             .font(.ttIcon(TTIcon.md))
                             .foregroundColor(showCopiedFeedback ? .ttSuccess : .ttTextSecondary)
@@ -428,8 +428,8 @@ struct DeviceView: View {
                 .help("Share")
                 .accessibilityLabel("Share Screenshot")
             }
-            .padding(.horizontal, 6)
-            .padding(.vertical, 3)
+            .padding(.horizontal, TTSpacing.xs)
+            .padding(.vertical, TTSpacing.inlineGapSmall)
             .background(
                 RoundedRectangle(cornerRadius: 7)
                     .fill(Color.ttSurface.opacity(0.6))
@@ -534,7 +534,7 @@ struct DeviceView: View {
     // MARK: - Left Panel
     private func leftPanel(device: DeviceSession) -> some View {
         ScrollView {
-            VStack(spacing: 14) {
+            VStack(spacing: TTSpacing.chromeInsetH) {
                 // Screenshot preview (compact, no bezel)
                 screenshotPreview(device: device)
                 
@@ -550,7 +550,7 @@ struct DeviceView: View {
                 DisclosureGroup(isExpanded: $deviceInfoExpanded) {
                     deviceInfoContent(device: device)
                 } label: {
-                    HStack(spacing: 6) {
+                    HStack(spacing: TTSpacing.xs) {
                         Image(systemName: AppIcon.device)
                             .font(.ttIcon(TTIcon.md))
                             .foregroundColor(.ttTextTertiary)
@@ -560,7 +560,7 @@ struct DeviceView: View {
                             .tracking(0.8)
                     }
                 }
-                .padding(12)
+                .padding(TTSpacing.md)
                 .background(
                     RoundedRectangle(cornerRadius: 10)
                         .fill(Color.ttSurface.opacity(0.5))
@@ -576,7 +576,7 @@ struct DeviceView: View {
                 // Coming soon
                 comingSoonSection
             }
-            .padding(14)
+            .padding(TTSpacing.chromeInsetH)
         }
     }
     
@@ -584,7 +584,7 @@ struct DeviceView: View {
     private func screenshotPreview(device: DeviceSession) -> some View {
         VStack(spacing: 0) {
             previewDeviceHeader(device: device)
-                .padding(.bottom, 8)
+                .padding(.bottom, TTSpacing.sm)
             
             // Image area
             ZStack {
@@ -638,9 +638,9 @@ struct DeviceView: View {
                                     }
                             }
                         )
-                        .padding(10)
+                        .padding(TTSpacing.inputPaddingH)
                 } else {
-                    VStack(spacing: 10) {
+                    VStack(spacing: TTSpacing.inputPaddingH) {
                         Image(systemName: AppIcon.device)
                             .font(TTFont.displayMedium)
                             .foregroundColor(.ttTextTertiary.opacity(0.4))
@@ -667,14 +667,14 @@ struct DeviceView: View {
             // Toolbar — sits BELOW the image, never overlapping
             if captureVM.currentScreenshot != nil {
                 quickDrawMiniToolbar
-                    .padding(.top, 6)
-                    .padding(.bottom, 2)
+                    .padding(.top, TTSpacing.xs)
+                    .padding(.bottom, TTSpacing.xxxs)
             }
         }
     }
     
     private func previewDeviceHeader(device: DeviceSession) -> some View {
-        HStack(spacing: 10) {
+        HStack(spacing: TTSpacing.inputPaddingH) {
             ZStack {
                 RoundedRectangle(cornerRadius: 7)
                     .fill(Color.ttPrimary.opacity(0.14))
@@ -684,8 +684,8 @@ struct DeviceView: View {
             }
             .frame(width: 34, height: 34)
             
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 6) {
+            VStack(alignment: .leading, spacing: TTSpacing.xxs) {
+                HStack(spacing: TTSpacing.xs) {
                     Text(device.displayName)
                         .font(TTFont.labelMedium)
                         .foregroundColor(.ttTextPrimary)
@@ -698,19 +698,19 @@ struct DeviceView: View {
                 }
                 
                 ViewThatFits(in: .horizontal) {
-                    HStack(spacing: 5) {
+                    HStack(spacing: TTSpacing.tight) {
                         previewInfoChip(icon: "iphone", text: device.deviceModelString)
                         previewInfoChip(icon: "gear", text: device.osVersionString)
                         previewInfoChip(icon: "app.badge", text: "v\(device.deviceInfo?.appVersion ?? "—")")
                         previewInfoChip(icon: AppIcon.screen, text: screenResolutionText(for: device))
                     }
                     
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack(spacing: 5) {
+                    VStack(alignment: .leading, spacing: TTSpacing.xxs) {
+                        HStack(spacing: TTSpacing.tight) {
                             previewInfoChip(icon: "iphone", text: device.deviceModelString)
                             previewInfoChip(icon: "gear", text: device.osVersionString)
                         }
-                        HStack(spacing: 5) {
+                        HStack(spacing: TTSpacing.tight) {
                             previewInfoChip(icon: "app.badge", text: "v\(device.deviceInfo?.appVersion ?? "—")")
                             previewInfoChip(icon: AppIcon.screen, text: screenResolutionText(for: device))
                         }
@@ -720,7 +720,7 @@ struct DeviceView: View {
             
             Spacer(minLength: 0)
         }
-        .padding(10)
+        .padding(TTSpacing.inputPaddingH)
         .background(
             RoundedRectangle(cornerRadius: 10)
                 .fill(Color.ttSurface.opacity(0.55))
@@ -729,7 +729,7 @@ struct DeviceView: View {
     }
     
     private func previewInfoChip(icon: String, text: String) -> some View {
-        HStack(spacing: 3) {
+        HStack(spacing: TTSpacing.inlineGapSmall) {
             Image(systemName: icon)
                 .font(.ttIcon(TTIcon.xxs))
                 .foregroundColor(.ttTextTertiary)
@@ -738,8 +738,8 @@ struct DeviceView: View {
                 .foregroundColor(.ttTextSecondary)
                 .lineLimit(1)
         }
-        .padding(.horizontal, 6)
-        .padding(.vertical, 2)
+        .padding(.horizontal, TTSpacing.xs)
+        .padding(.vertical, TTSpacing.xxxs)
         .background(Capsule().fill(Color.ttBackground.opacity(0.6)))
     }
     
@@ -749,22 +749,22 @@ struct DeviceView: View {
     private var quickDrawMiniToolbar: some View {
         HStack(spacing: 0) {
             // Tool buttons
-            HStack(spacing: 2) {
+            HStack(spacing: TTSpacing.xxxs) {
                 quickToolBtn(.pen)
                 quickToolBtn(.arrow)
                 quickToolBtn(.rectangle)
                 quickToolBtn(.text)
             }
-            .padding(.horizontal, 4)
+            .padding(.horizontal, TTSpacing.xxs)
             
             // Divider
             Rectangle()
                 .fill(Color.white.opacity(0.15))
                 .frame(width: 1, height: 18)
-                .padding(.horizontal, 4)
+                .padding(.horizontal, TTSpacing.xxs)
             
             // Color palette
-            HStack(spacing: 3) {
+            HStack(spacing: TTSpacing.inlineGapSmall) {
                 ForEach([Color.red, .orange, .yellow, .green, .blue, .white], id: \.self) { color in
                     Button(action: { quickDrawColor = color }) {
                         Circle()
@@ -783,19 +783,19 @@ struct DeviceView: View {
                     .buttonStyle(.plain)
                 }
             }
-            .padding(.horizontal, 4)
+            .padding(.horizontal, TTSpacing.xxs)
             
             // Divider
             Rectangle()
                 .fill(Color.white.opacity(0.15))
                 .frame(width: 1, height: 18)
-                .padding(.horizontal, 4)
+                .padding(.horizontal, TTSpacing.xxs)
             
             // Undo / Redo / Clear
-            HStack(spacing: 2) {
+            HStack(spacing: TTSpacing.xxxs) {
                 Button(action: quickUndo) {
                     Image(systemName: "arrow.uturn.backward")
-                        .font(.system(size: 11, weight: .medium))
+                        .font(TTFont.labelMedium)
                         .foregroundColor(quickAnnotations.isEmpty ? .white.opacity(0.25) : .white.opacity(0.8))
                         .frame(width: 24, height: 24)
                 }
@@ -805,7 +805,7 @@ struct DeviceView: View {
                 
                 Button(action: quickRedo) {
                     Image(systemName: "arrow.uturn.forward")
-                        .font(.system(size: 11, weight: .medium))
+                        .font(TTFont.labelMedium)
                         .foregroundColor(quickRedoStack.isEmpty ? .white.opacity(0.25) : .white.opacity(0.8))
                         .frame(width: 24, height: 24)
                 }
@@ -818,7 +818,7 @@ struct DeviceView: View {
                     quickRedoStack.removeAll()
                 }) {
                     Image(systemName: "trash")
-                        .font(.system(size: 10, weight: .medium))
+                        .font(TTFont.labelSmall)
                         .foregroundColor(quickAnnotations.isEmpty ? .white.opacity(0.25) : .ttError.opacity(0.9))
                         .frame(width: 24, height: 24)
                 }
@@ -826,21 +826,21 @@ struct DeviceView: View {
                 .disabled(quickAnnotations.isEmpty)
                 .help("Clear all")
             }
-            .padding(.horizontal, 2)
+            .padding(.horizontal, TTSpacing.xxxs)
             
             // Annotation count badge
             if !quickAnnotations.isEmpty {
                 Text("\(quickAnnotations.count)")
-                    .font(.system(size: 9, weight: .bold))
+                    .font(TTFont.badge)
                     .foregroundColor(.white)
-                    .padding(.horizontal, 5)
-                    .padding(.vertical, 2)
+                    .padding(.horizontal, TTSpacing.tight)
+                    .padding(.vertical, TTSpacing.xxxs)
                     .background(Capsule().fill(Color.ttPrimary))
-                    .padding(.trailing, 4)
+                    .padding(.trailing, TTSpacing.xxs)
             }
         }
-        .padding(.vertical, 5)
-        .padding(.horizontal, 6)
+        .padding(.vertical, TTSpacing.tight)
+        .padding(.horizontal, TTSpacing.xs)
         .background(
             Capsule()
                 .fill(.ultraThinMaterial)
@@ -864,7 +864,7 @@ struct DeviceView: View {
             }
         }) {
             Image(systemName: tool.icon)
-                .font(.system(size: 12, weight: .medium))
+                .font(TTFont.labelMedium)
                 .foregroundColor(isSelected ? .white : .white.opacity(0.55))
                 .frame(width: 26, height: 26)
                 .background(
@@ -887,17 +887,17 @@ struct DeviceView: View {
                 .onTapGesture { commitQuickText() }
             
             // Input card
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: 5) {
+            VStack(alignment: .leading, spacing: TTSpacing.xs) {
+                HStack(spacing: TTSpacing.tight) {
                     Circle()
                         .fill(quickDrawColor)
                         .frame(width: 8, height: 8)
                     Text("Add Note")
-                        .font(.system(size: 10, weight: .semibold))
+                        .font(TTFont.labelSmall)
                         .foregroundColor(.white.opacity(0.5))
                 }
                 
-                HStack(spacing: 6) {
+                HStack(spacing: TTSpacing.xs) {
                     QuickNoteTextField(
                         text: $quickTextInput,
                         placeholder: "Type description...",
@@ -907,7 +907,7 @@ struct DeviceView: View {
                     
                     Button(action: commitQuickText) {
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 16))
+                            .font(.ttIcon(TTIcon.xxl))
                             .foregroundColor(.ttPrimary)
                     }
                     .buttonStyle(.plain)
@@ -917,14 +917,14 @@ struct DeviceView: View {
                         quickTextInput = ""
                     }) {
                         Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 16))
+                            .font(.ttIcon(TTIcon.xxl))
                             .foregroundColor(.white.opacity(0.35))
                     }
                     .buttonStyle(.plain)
                 }
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
+            .padding(.horizontal, TTSpacing.md)
+            .padding(.vertical, TTSpacing.inputPaddingH)
             .background(
                 RoundedRectangle(cornerRadius: 10)
                     .fill(.ultraThinMaterial)
@@ -937,7 +937,7 @@ struct DeviceView: View {
             .shadow(color: .black.opacity(0.5), radius: 12, y: 4)
             .offset(x: min(quickTextPosition.x, previewDisplaySize.width - 200),
                     y: quickTextPosition.y + 8)
-            .padding(10)
+            .padding(TTSpacing.inputPaddingH)
         }
     }
     
@@ -945,12 +945,16 @@ struct DeviceView: View {
     private var quickTextAnnotationsOverlay: some View {
         ForEach(Array(quickAnnotations.enumerated()), id: \.element.id) { index, annotation in
             if annotation.tool == .text, let pos = annotation.points.first, !annotation.text.isEmpty {
-                let fontSize: CGFloat = max(11, annotation.lineWidth * 3.5)
+                let fontSize = DesignSystemConfig.shared.annotationFontSize(
+                    lineWidth: annotation.lineWidth,
+                    multiplier: 3.5,
+                    minimumBase: 11
+                )
                 Text(annotation.text)
                     .font(.system(size: fontSize, weight: .semibold))
                     .foregroundColor(annotation.color)
-                    .padding(.horizontal, 4)
-                    .padding(.vertical, 2)
+                    .padding(.horizontal, TTSpacing.xxs)
+                    .padding(.vertical, TTSpacing.xxxs)
                     .background(
                         RoundedRectangle(cornerRadius: 3)
                             .fill(Color.black.opacity(0.55))
@@ -1106,7 +1110,7 @@ struct DeviceView: View {
     
     // MARK: - Metadata Bar
     private func metadataBar(item: ScreenshotItem) -> some View {
-        HStack(spacing: 8) {
+        HStack(spacing: TTSpacing.sm) {
             metaChip(icon: "clock", text: item.formattedTime)
             metaChip(icon: "arrow.up.left.and.arrow.down.right", text: item.resolutionText)
             metaChip(icon: "doc", text: item.fileSizeEstimate)
@@ -1115,12 +1119,12 @@ struct DeviceView: View {
     }
     
     private func metaChip(icon: String, text: String) -> some View {
-        HStack(spacing: 3) {
+        HStack(spacing: TTSpacing.inlineGapSmall) {
             Image(systemName: icon).font(.ttIcon(TTIcon.xxs)).foregroundColor(.ttTextTertiary)
             Text(text).font(TTFont.codeSmall).foregroundColor(.ttTextTertiary)
         }
-        .padding(.horizontal, 6)
-        .padding(.vertical, 2)
+        .padding(.horizontal, TTSpacing.xs)
+        .padding(.vertical, TTSpacing.xxxs)
         .background(Capsule().fill(Color.ttSurface.opacity(0.6)))
     }
     
@@ -1129,7 +1133,7 @@ struct DeviceView: View {
         Group {
             if !captureVM.screenshotHistory.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 5) {
+                    HStack(spacing: TTSpacing.tight) {
                         ForEach(captureVM.screenshotHistory.prefix(15)) { item in
                             let selected = captureVM.selectedHistoryItem?.id == item.id
                             Button(action: { captureVM.selectItem(item) }) {
@@ -1157,7 +1161,7 @@ struct DeviceView: View {
     
     // MARK: - Device Info Content
     private func deviceInfoContent(device: DeviceSession) -> some View {
-        VStack(spacing: 6) {
+        VStack(spacing: TTSpacing.xs) {
             infoRow(icon: "iphone", label: "Model", value: device.deviceModelString)
             infoRow(icon: "gear", label: "OS", value: device.osVersionString)
             infoRow(icon: "app.badge", label: "App", value: "\(device.appNameString) v\(device.deviceInfo?.appVersion ?? "—")")
@@ -1165,7 +1169,7 @@ struct DeviceView: View {
             infoRow(icon: AppIcon.devTools, label: "SDK", value: device.deviceInfo?.sdkVersion ?? "—")
             
             if device.isSimulator {
-                HStack(spacing: 6) {
+                HStack(spacing: TTSpacing.xs) {
                     Image(systemName: "desktopcomputer").font(.ttIcon(TTIcon.sm)).foregroundColor(.ttWarning).frame(width: 18)
                     Text("Simulator").font(TTFont.labelSmall).foregroundColor(.ttWarning)
                     Spacer()
@@ -1173,14 +1177,14 @@ struct DeviceView: View {
                 }
             }
             
-            HStack(spacing: 6) {
+            HStack(spacing: TTSpacing.xs) {
                 Image(systemName: "clock").font(.ttIcon(TTIcon.sm)).foregroundColor(.ttTextTertiary).frame(width: 18)
                 Text("Connected").font(TTFont.labelSmall).foregroundColor(.ttTextTertiary)
                 Spacer()
                 Text(device.connectedAt, style: .relative).font(TTFont.codeSmall).foregroundColor(.ttTextSecondary)
             }
         }
-        .padding(.top, 6)
+        .padding(.top, TTSpacing.xs)
     }
     
     private func screenResolutionText(for device: DeviceSession) -> String {
@@ -1189,7 +1193,7 @@ struct DeviceView: View {
     }
     
     private func infoRow(icon: String, label: String, value: String) -> some View {
-        HStack(spacing: 6) {
+        HStack(spacing: TTSpacing.xs) {
             Image(systemName: icon).font(.ttIcon(TTIcon.sm)).foregroundColor(.ttTextTertiary).frame(width: 18)
             Text(label).font(TTFont.labelSmall).foregroundColor(.ttTextTertiary)
             Spacer()
@@ -1199,7 +1203,7 @@ struct DeviceView: View {
     
     // MARK: - Appearance
     private var appearanceRow: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: TTSpacing.sm) {
             Image(systemName: darkModeOverride ? "moon.fill" : "sun.max.fill")
                 .font(.ttIcon(TTIcon.lg))
                 .foregroundColor(darkModeOverride ? .ttPrimary : .ttWarning)
@@ -1219,8 +1223,8 @@ struct DeviceView: View {
             .tint(.ttPrimary)
             .controlSize(.small)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.horizontal, TTSpacing.md)
+        .padding(.vertical, TTSpacing.sm)
         .background(
             RoundedRectangle(cornerRadius: 8)
                 .fill(Color.ttSurface.opacity(0.5))
@@ -1230,9 +1234,9 @@ struct DeviceView: View {
     
     // MARK: - Coming Soon
     private var comingSoonSection: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: TTSpacing.xxs) {
             ForEach([("rocket.fill", "App Lifecycle"), ("accessibility", "Accessibility"), ("hand.tap.fill", "Touch Overlay")], id: \.1) { icon, title in
-                HStack(spacing: 6) {
+                HStack(spacing: TTSpacing.xs) {
                     Image(systemName: icon).font(.ttIcon(TTIcon.sm)).foregroundColor(.ttTextTertiary).frame(width: 18)
                     Text(title).font(TTFont.labelSmall).foregroundColor(.ttTextTertiary)
                     Spacer()
@@ -1241,8 +1245,8 @@ struct DeviceView: View {
                 .opacity(0.4)
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.horizontal, TTSpacing.md)
+        .padding(.vertical, TTSpacing.sm)
         .background(
             RoundedRectangle(cornerRadius: 8)
                 .fill(Color.ttSurface.opacity(0.3))
@@ -1256,7 +1260,7 @@ struct DeviceView: View {
             Divider().background(Color.ttBorder.opacity(0.3))
             
             if captureVM.screenshotHistory.isEmpty {
-                VStack(spacing: 12) {
+                VStack(spacing: TTSpacing.md) {
                     Spacer()
                     Image(systemName: "photo.stack")
                         .font(TTFont.displayLarge)
@@ -1283,7 +1287,7 @@ struct DeviceView: View {
     
     // MARK: - Gallery Toolbar
     private var galleryToolbar: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: TTSpacing.xs) {
             Text("SCREENSHOTS")
                 .font(TTFont.sidebarHeader)
                 .foregroundColor(.ttTextSecondary)
@@ -1292,8 +1296,8 @@ struct DeviceView: View {
             Text("\(captureVM.screenshotHistory.count)")
                 .font(TTFont.badge)
                 .foregroundColor(.ttPrimary)
-                .padding(.horizontal, 5)
-                .padding(.vertical, 1)
+                .padding(.horizontal, TTSpacing.tight)
+                .padding(.vertical, TTSpacing.hairline)
                 .background(Capsule().fill(Color.ttPrimary.opacity(0.15)))
             
             Spacer()
@@ -1332,8 +1336,8 @@ struct DeviceView: View {
             .buttonStyle(.plain)
             .help("Multi-select")
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
+        .padding(.horizontal, TTSpacing.inputPaddingH)
+        .padding(.vertical, TTSpacing.sm)
     }
     
     // MARK: - Gallery Content
@@ -1347,12 +1351,12 @@ struct DeviceView: View {
     }
     
     private var galleryGrid: some View {
-        LazyVGrid(columns: [GridItem(.adaptive(minimum: 90, maximum: 130), spacing: 6)], spacing: 6) {
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 90, maximum: 130), spacing: TTSpacing.xs)], spacing: TTSpacing.xs) {
             ForEach(captureVM.sortedHistory) { item in
                 galleryGridItem(item)
             }
         }
-        .padding(10)
+        .padding(TTSpacing.inputPaddingH)
     }
     
     private func galleryGridItem(_ item: ScreenshotItem) -> some View {
@@ -1362,7 +1366,7 @@ struct DeviceView: View {
         return Button(action: {
             captureVM.isMultiSelectMode ? captureVM.toggleSelection(item.id) : captureVM.selectItem(item)
         }) {
-            VStack(spacing: 3) {
+            VStack(spacing: TTSpacing.inlineGapSmall) {
                 ZStack(alignment: .topTrailing) {
                     Image(nsImage: item.image)
                         .resizable()
@@ -1381,7 +1385,7 @@ struct DeviceView: View {
                             .font(.ttIcon(TTIcon.xxl))
                             .foregroundColor(isChecked ? .ttPrimary : .white.opacity(0.7))
                             .shadow(color: .black.opacity(0.5), radius: 2)
-                            .padding(4)
+                            .padding(TTSpacing.xxs)
                     }
                 }
                 
@@ -1409,7 +1413,7 @@ struct DeviceView: View {
         return Button(action: {
             captureVM.isMultiSelectMode ? captureVM.toggleSelection(item.id) : captureVM.selectItem(item)
         }) {
-            HStack(spacing: 8) {
+            HStack(spacing: TTSpacing.sm) {
                 if captureVM.isMultiSelectMode {
                     Image(systemName: isChecked ? "checkmark.circle.fill" : "circle")
                         .font(.ttIcon(TTIcon.xl))
@@ -1422,11 +1426,11 @@ struct DeviceView: View {
                     .frame(width: 36, height: 52)
                     .clipShape(RoundedRectangle(cornerRadius: 4))
                 
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: TTSpacing.xxxs) {
                     Text(item.formattedDateTime)
                         .font(TTFont.labelSmall)
                         .foregroundColor(isSelected ? .ttPrimary : .ttTextPrimary)
-                    HStack(spacing: 6) {
+                    HStack(spacing: TTSpacing.xs) {
                         Text(item.resolutionText).font(TTFont.codeSmall).foregroundColor(.ttTextTertiary)
                         Text("•").foregroundColor(.ttTextTertiary)
                         Text(item.fileSizeEstimate).font(TTFont.codeSmall).foregroundColor(.ttTextTertiary)
@@ -1435,8 +1439,8 @@ struct DeviceView: View {
                 
                 Spacer()
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 4)
+            .padding(.horizontal, TTSpacing.inputPaddingH)
+            .padding(.vertical, TTSpacing.xxs)
             .background(
                 RoundedRectangle(cornerRadius: 4)
                     .fill(isSelected ? Color.ttPrimary.opacity(0.08) : Color.clear)
@@ -1473,7 +1477,7 @@ struct DeviceView: View {
     
     // MARK: - Gallery Footer
     private var galleryFooter: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: TTSpacing.xs) {
             if captureVM.isMultiSelectMode {
                 Button(action: { captureVM.selectAll() }) {
                     Text("All").font(TTFont.labelSmall)
@@ -1524,8 +1528,8 @@ struct DeviceView: View {
                 .frame(width: 24)
             }
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
+        .padding(.horizontal, TTSpacing.inputPaddingH)
+        .padding(.vertical, TTSpacing.xs)
         .background(Color.ttBackground)
         .overlay(Rectangle().fill(Color.ttBorder.opacity(0.3)).frame(height: 1), alignment: .top)
     }

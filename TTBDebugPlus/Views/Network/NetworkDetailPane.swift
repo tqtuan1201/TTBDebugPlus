@@ -51,7 +51,7 @@ struct NetworkDetailPaneView: View {
             case .headers:
                 ScrollView {
                     headersContent
-                        .padding(16)
+                        .padding(TTSpacing.lg)
                 }
             case .view:
                 viewContent
@@ -62,7 +62,7 @@ struct NetworkDetailPaneView: View {
             case .cookies:
                 ScrollView {
                     cookiesContent
-                        .padding(16)
+                        .padding(TTSpacing.lg)
                 }
             }
         }
@@ -75,9 +75,9 @@ struct NetworkDetailPaneView: View {
     
     // MARK: - Summary Header
     private var requestSummaryHeader: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: TTSpacing.sm) {
             // Row 1: Method + Status + URL
-            HStack(spacing: 8) {
+            HStack(spacing: TTSpacing.sm) {
                 HTTPMethodBadge(method: request.method)
                 StatusCodeBadge(code: request.statusCode)
                 
@@ -100,7 +100,7 @@ struct NetworkDetailPaneView: View {
             }
             
             // Row 2: Meta info pills
-            HStack(spacing: 12) {
+            HStack(spacing: TTSpacing.md) {
                 metaInfoPill(icon: "clock", text: request.formattedTime, color: request.durationMs > 1000 ? .ttWarning : .ttTextTertiary)
                 metaInfoPill(icon: "arrow.down.circle", text: request.formattedSize, color: .ttTextTertiary)
                 metaInfoPill(icon: "desktopcomputer", text: request.sourceDeviceName, color: Color.forDevice(request.sourceDeviceId))
@@ -112,8 +112,8 @@ struct NetworkDetailPaneView: View {
                     .foregroundColor(.ttTextMuted)
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
+        .padding(.horizontal, TTSpacing.lg)
+        .padding(.vertical, TTSpacing.inputPaddingH)
         .background(
             LinearGradient(
                 colors: [Color.forStatusCode(request.statusCode).opacity(0.06), Color.clear],
@@ -128,7 +128,7 @@ struct NetworkDetailPaneView: View {
     }
     
     private func metaInfoPill(icon: String, text: String, color: Color) -> some View {
-        HStack(spacing: 4) {
+        HStack(spacing: TTSpacing.xxs) {
             Image(systemName: icon)
                 .font(.ttIcon(TTIcon.xs))
                 .foregroundColor(color)
@@ -143,21 +143,21 @@ struct NetworkDetailPaneView: View {
         HStack(spacing: 0) {
             ForEach(availableTabs, id: \.self) { tab in
                 Button(action: { withAnimation(.easeInOut(duration: 0.12)) { selectedTab = tab } }) {
-                    HStack(spacing: 4) {
+                    HStack(spacing: TTSpacing.xxs) {
                         Text(tab.rawValue)
                             .font(TTFont.tabLabel)
                         if tab == .cookies && request.hasCookies {
                             Text("\(request.parsedCookies.count)")
                                 .font(.ttIcon(TTIcon.xs))
                                 .foregroundColor(.ttTextPrimary)
-                                .padding(.horizontal, 5)
-                                .padding(.vertical, 1)
+                                .padding(.horizontal, TTSpacing.tight)
+                                .padding(.vertical, TTSpacing.hairline)
                                 .background(Capsule().fill(Color.ttPrimary.opacity(0.6)))
                         }
                     }
                     .foregroundColor(selectedTab == tab ? .ttPrimary : .ttTextTertiary)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 10)
+                    .padding(.horizontal, TTSpacing.chromeInsetH)
+                    .padding(.vertical, TTSpacing.inputPaddingH)
                 }
                 .buttonStyle(.plain)
                 .overlay(
@@ -179,7 +179,7 @@ struct NetworkDetailPaneView: View {
     
     // MARK: - Headers Tab
     private var headersContent: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: TTSpacing.lg) {
             // General Information Card
             sectionCard(title: "GENERAL INFORMATION", icon: "info.circle") {
                 VStack(alignment: .leading, spacing: 0) {
@@ -192,7 +192,7 @@ struct NetworkDetailPaneView: View {
                             .font(TTFont.codeSmall)
                             .foregroundColor(.ttTextTertiary)
                             .frame(width: 130, alignment: .leading)
-                        HStack(spacing: 6) {
+                        HStack(spacing: TTSpacing.xs) {
                             Circle().fill(Color.forStatusCode(request.statusCode)).frame(width: 7, height: 7)
                             Text("\(request.statusCode)")
                                 .font(TTFont.codeMedium.bold())
@@ -203,8 +203,8 @@ struct NetworkDetailPaneView: View {
                         }
                         Spacer()
                     }
-                    .padding(.vertical, 6)
-                    .padding(.horizontal, 12)
+                    .padding(.vertical, TTSpacing.xs)
+                    .padding(.horizontal, TTSpacing.md)
                     .background(Color.ttSurface.opacity(0.15))
                     
                     infoRow(label: "Remote Address", value: request.remoteAddress)
@@ -218,7 +218,7 @@ struct NetworkDetailPaneView: View {
             // Bearer-token JWT decode action (when an Authorization header carries a JWT)
             if let bearerJWT, let onDecodeJWT {
                 sectionCard(title: "JWT", icon: AppIcon.jwt) {
-                    HStack(spacing: 10) {
+                    HStack(spacing: TTSpacing.inputPaddingH) {
                         Image(systemName: AppIcon.jwt)
                             .font(.ttIcon(TTIcon.md))
                             .foregroundColor(.ttPrimaryLight)
@@ -229,7 +229,7 @@ struct NetworkDetailPaneView: View {
                         Button {
                             onDecodeJWT(bearerJWT, "Network — \(request.method) \(request.urlPath)")
                         } label: {
-                            HStack(spacing: 4) {
+                            HStack(spacing: TTSpacing.xxs) {
                                 Image(systemName: "arrow.up.forward.app").font(.ttIcon(TTIcon.sm))
                                 Text("Decode JWT").font(TTFont.labelSmall)
                             }
@@ -281,7 +281,7 @@ struct NetworkDetailPaneView: View {
             HStack(spacing: 0) {
                 Spacer()
                 Button(action: { onSaveAsTemplate(json, source) }) {
-                    HStack(spacing: 3) {
+                    HStack(spacing: TTSpacing.inlineGapSmall) {
                         Image(systemName: AppIcon.saveTemplate)
                             .font(.ttIcon(TTIcon.sm))
                         Text("Save as Template")
@@ -292,8 +292,8 @@ struct NetworkDetailPaneView: View {
                 .buttonStyle(.ttGhost)
                 .help("Save this JSON to the Template Library")
             }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
+            .padding(.horizontal, TTSpacing.sm)
+            .padding(.vertical, TTSpacing.xxs)
         }
     }
     
@@ -358,7 +358,7 @@ struct NetworkDetailPaneView: View {
                             responseHeadersExpanded.toggle()
                         }
                     }) {
-                        HStack(spacing: 6) {
+                        HStack(spacing: TTSpacing.xs) {
                             Image(systemName: responseHeadersExpanded ? "chevron.down" : "chevron.right")
                                 .font(.ttIcon(TTIcon.xs))
                                 .foregroundColor(.ttTextTertiary)
@@ -372,13 +372,13 @@ struct NetworkDetailPaneView: View {
                             Text("\(request.responseHeaders.count)")
                                 .font(.ttIcon(TTIcon.xs))
                                 .foregroundColor(.ttTextTertiary)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 1)
+                                .padding(.horizontal, TTSpacing.xs)
+                                .padding(.vertical, TTSpacing.hairline)
                                 .background(Capsule().fill(Color.ttSurface.opacity(0.6)))
                             Spacer()
                         }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
+                        .padding(.horizontal, TTSpacing.md)
+                        .padding(.vertical, TTSpacing.sm)
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
@@ -401,8 +401,8 @@ struct NetworkDetailPaneView: View {
                     RoundedRectangle(cornerRadius: 8)
                         .stroke(Color.ttBorder.opacity(0.2), lineWidth: 1)
                 )
-                .padding(.horizontal, 12)
-                .padding(.top, 8)
+                .padding(.horizontal, TTSpacing.md)
+                .padding(.top, TTSpacing.sm)
             }
             
             // Response Body — fills remaining space
@@ -441,10 +441,10 @@ struct NetworkDetailPaneView: View {
                     subtitle: "No cookies were sent or received with this request"
                 )
             } else {
-                VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: TTSpacing.lg) {
                     ForEach(request.parsedCookies) { cookie in
                         sectionCard(title: cookie.name, icon: "circle.fill") {
-                            VStack(alignment: .leading, spacing: 10) {
+                            VStack(alignment: .leading, spacing: TTSpacing.inputPaddingH) {
                                 // Value
                                 HStack(alignment: .top, spacing: 0) {
                                     Text("Value")
@@ -459,7 +459,7 @@ struct NetworkDetailPaneView: View {
                                 }
                                 
                                 // Attributes
-                                HStack(spacing: 8) {
+                                HStack(spacing: TTSpacing.sm) {
                                     if let domain = cookie.domain {
                                         cookieAttr(label: "Domain", value: domain)
                                     }
@@ -505,7 +505,7 @@ struct NetworkDetailPaneView: View {
     ) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             // Section header
-            HStack(spacing: 6) {
+            HStack(spacing: TTSpacing.xs) {
                 Image(systemName: icon)
                     .font(.ttIcon(TTIcon.xs))
                     .foregroundColor(.ttPrimary)
@@ -518,8 +518,8 @@ struct NetworkDetailPaneView: View {
                     Text("\(count)")
                         .font(.ttIcon(TTIcon.xs))
                         .foregroundColor(.ttTextTertiary)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 1)
+                        .padding(.horizontal, TTSpacing.xs)
+                        .padding(.vertical, TTSpacing.hairline)
                         .background(
                             Capsule().fill(Color.ttSurface.opacity(0.6))
                         )
@@ -527,8 +527,8 @@ struct NetworkDetailPaneView: View {
                 
                 Spacer()
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
+            .padding(.horizontal, TTSpacing.md)
+            .padding(.vertical, TTSpacing.sm)
             .background(Color.ttSurface.opacity(0.2))
             
             // Content
@@ -563,8 +563,8 @@ struct NetworkDetailPaneView: View {
             
             Spacer(minLength: 4)
         }
-        .padding(.vertical, 6)
-        .padding(.horizontal, 12)
+        .padding(.vertical, TTSpacing.xs)
+        .padding(.horizontal, TTSpacing.md)
     }
     
     // MARK: - Header Row (for Request/Response Headers)
@@ -600,8 +600,8 @@ struct NetworkDetailPaneView: View {
             .buttonStyle(.plain)
             .opacity(0.6)
         }
-        .padding(.vertical, 5)
-        .padding(.horizontal, 12)
+        .padding(.vertical, TTSpacing.tight)
+        .padding(.horizontal, TTSpacing.md)
         .background(Color.ttSurface.opacity(0.08))
         .overlay(
             Rectangle().fill(Color.ttBorder.opacity(0.08)).frame(height: 1),
@@ -611,7 +611,7 @@ struct NetworkDetailPaneView: View {
     
     // MARK: - Cookie Helpers
     private func cookieAttr(label: String, value: String) -> some View {
-        HStack(spacing: 4) {
+        HStack(spacing: TTSpacing.xxs) {
             Text(label + ":")
                 .font(TTFont.codeSmall)
                 .foregroundColor(.ttTextTertiary)
@@ -625,8 +625,8 @@ struct NetworkDetailPaneView: View {
         Text(label)
             .font(.ttIcon(TTIcon.xs))
             .foregroundColor(kind.foreground)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 2)
+            .padding(.horizontal, TTSpacing.xs)
+            .padding(.vertical, TTSpacing.xxxs)
             .background(
                 Capsule()
                     .fill(kind.background)

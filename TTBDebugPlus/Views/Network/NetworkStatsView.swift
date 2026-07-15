@@ -15,7 +15,7 @@ struct NetworkStatsView: View {
     
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: TTSpacing.xl) {
                 // Header
                 HStack {
                     Text("API Analytics")
@@ -28,18 +28,18 @@ struct NetworkStatsView: View {
                         .font(TTFont.labelMedium)
                         .foregroundColor(.ttTextTertiary)
                 }
-                .padding(.horizontal, 24)
-                .padding(.top, 20)
+                .padding(.horizontal, TTSpacing.xxl)
+                .padding(.top, TTSpacing.xl)
                 
                 // Summary Cards
-                HStack(spacing: 16) {
+                HStack(spacing: TTSpacing.lg) {
                     statCard(title: "TOTAL", value: "\(viewModel.filteredRequestCount)", icon: "arrow.up.arrow.down", color: .ttPrimary)
                     statCard(title: "FAILED", value: "\(viewModel.failedRequests)", icon: "xmark.circle", color: .ttError)
                     statCard(title: "AVG TIME", value: String(format: "%.0fms", viewModel.averageResponseTime), icon: "clock", color: .ttWarning)
                     statCard(title: "DATA", value: formatBytes(viewModel.totalDataTransferred), icon: "arrow.down.circle", color: .ttSuccess)
                     statCard(title: "ERROR RATE", value: String(format: "%.1f%%", viewModel.errorRate), icon: "exclamationmark.triangle", color: viewModel.errorRate > 10 ? .ttError : .ttSuccess)
                 }
-                .padding(.horizontal, 24)
+                .padding(.horizontal, TTSpacing.xxl)
                 
                 // Per-Device Breakdown
                 if viewModel.deviceDistribution.count > 1 {
@@ -69,7 +69,7 @@ struct NetworkStatsView: View {
                         }
                         .frame(height: CGFloat(max(viewModel.deviceDistribution.count * 40, 80)))
                     }
-                    .padding(.horizontal, 24)
+                    .padding(.horizontal, TTSpacing.xxl)
                 }
 
                 if viewModel.appDistribution.count > 1 {
@@ -99,11 +99,11 @@ struct NetworkStatsView: View {
                         }
                         .frame(height: CGFloat(max(viewModel.appDistribution.count * 40, 80)))
                     }
-                    .padding(.horizontal, 24)
+                    .padding(.horizontal, TTSpacing.xxl)
                 }
                 
                 // Charts Row
-                HStack(alignment: .top, spacing: 16) {
+                HStack(alignment: .top, spacing: TTSpacing.lg) {
                     // Method Distribution
                     chartCard(title: "HTTP Method Distribution") {
                         if !viewModel.methodDistribution.isEmpty {
@@ -150,7 +150,7 @@ struct NetworkStatsView: View {
                                         .foregroundStyle(colorForStatusGroup(item.color))
                                         .annotation(position: .overlay) {
                                             if item.count > 0 {
-                                                VStack(spacing: 1) {
+                                                VStack(spacing: TTSpacing.hairline) {
                                                     Text(item.range)
                                                         .font(TTFont.labelSmall)
                                                         .foregroundColor(.ttTextPrimary)
@@ -170,10 +170,10 @@ struct NetworkStatsView: View {
                         }
                     }
                 }
-                .padding(.horizontal, 24)
+                .padding(.horizontal, TTSpacing.xxl)
                 
                 // Response Time Distribution + Domain Distribution
-                HStack(alignment: .top, spacing: 16) {
+                HStack(alignment: .top, spacing: TTSpacing.lg) {
                     // Response Time Histogram
                     chartCard(title: "Response Time Distribution") {
                         if viewModel.filteredRequestCount > 0 {
@@ -225,9 +225,9 @@ struct NetworkStatsView: View {
                     // Top Domains
                     chartCard(title: "Top Domains") {
                         if !viewModel.domainDistribution.isEmpty {
-                            VStack(spacing: 6) {
+                            VStack(spacing: TTSpacing.xs) {
                                 ForEach(viewModel.domainDistribution, id: \.domain) { item in
-                                    HStack(spacing: 8) {
+                                    HStack(spacing: TTSpacing.sm) {
                                         Text(item.domain)
                                             .font(TTFont.codeMedium)
                                             .foregroundColor(.ttTextPrimary)
@@ -248,7 +248,7 @@ struct NetworkStatsView: View {
                                             .foregroundColor(.ttTextSecondary)
                                             .frame(width: 30, alignment: .trailing)
                                     }
-                                    .padding(.vertical, 3)
+                                    .padding(.vertical, TTSpacing.inlineGapSmall)
                                 }
                             }
                         } else {
@@ -256,19 +256,19 @@ struct NetworkStatsView: View {
                         }
                     }
                 }
-                .padding(.horizontal, 24)
+                .padding(.horizontal, TTSpacing.xxl)
                 
                 // Top Slowest Requests
                 if !viewModel.topSlowestRequests.isEmpty {
-                    VStack(alignment: .leading, spacing: 12) {
+                    VStack(alignment: .leading, spacing: TTSpacing.md) {
                         Text("SLOWEST REQUESTS")
                             .font(TTFont.sidebarHeader)
                             .foregroundColor(.ttTextSecondary)
                             .tracking(0.8)
                         
-                        VStack(spacing: 4) {
+                        VStack(spacing: TTSpacing.xxs) {
                             ForEach(viewModel.topSlowestRequests) { req in
-                                HStack(spacing: 12) {
+                                HStack(spacing: TTSpacing.md) {
                                     // Rank
                                     let rank = (viewModel.topSlowestRequests.firstIndex(where: { $0.id == req.id }) ?? 0) + 1
                                     Text("#\(rank)")
@@ -309,8 +309,8 @@ struct NetworkStatsView: View {
                                         .fontWeight(.medium)
                                         .frame(width: 60, alignment: .trailing)
                                 }
-                                .padding(.vertical, 6)
-                                .padding(.horizontal, 12)
+                                .padding(.vertical, TTSpacing.xs)
+                                .padding(.horizontal, TTSpacing.md)
                                 .background(
                                     RoundedRectangle(cornerRadius: 6)
                                         .fill(Color.ttSurface.opacity(0.3))
@@ -318,7 +318,7 @@ struct NetworkStatsView: View {
                             }
                         }
                     }
-                    .padding(.horizontal, 24)
+                    .padding(.horizontal, TTSpacing.xxl)
                 }
                 
                 Spacer(minLength: 20)
@@ -330,8 +330,8 @@ struct NetworkStatsView: View {
     // MARK: - Components
     
     private func statCard(title: String, value: String, icon: String, color: Color) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 6) {
+        VStack(alignment: .leading, spacing: TTSpacing.sm) {
+            HStack(spacing: TTSpacing.xs) {
                 Image(systemName: icon)
                     .font(.ttIcon(TTIcon.lg))
                     .foregroundColor(color)
@@ -346,7 +346,7 @@ struct NetworkStatsView: View {
                 .foregroundColor(.ttTextPrimary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(16)
+        .padding(TTSpacing.lg)
         .background(
             RoundedRectangle(cornerRadius: 12)
                 .fill(Color.ttSurface.opacity(0.3))
@@ -358,7 +358,7 @@ struct NetworkStatsView: View {
     }
     
     private func chartCard<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: TTSpacing.md) {
             Text(title)
                 .font(TTFont.sidebarHeader)
                 .foregroundColor(.ttTextSecondary)
@@ -367,7 +367,7 @@ struct NetworkStatsView: View {
             content()
         }
         .frame(maxWidth: .infinity)
-        .padding(16)
+        .padding(TTSpacing.lg)
         .background(
             RoundedRectangle(cornerRadius: 12)
                 .fill(Color.ttSurface.opacity(0.3))
@@ -379,7 +379,7 @@ struct NetworkStatsView: View {
     }
     
     private var emptyChart: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: TTSpacing.sm) {
             Image(systemName: "chart.bar.xaxis")
                 .font(TTFont.heading1)
                 .foregroundColor(.ttTextMuted)

@@ -92,17 +92,17 @@ struct JWTToolView: View {
     // MARK: - Sub-tool Header
 
     private var subToolHeader: some View {
-        HStack(spacing: 3) {
+        HStack(spacing: TTSpacing.inlineGapSmall) {
             ForEach(JWTSubTool.allCases) { tool in
                 Button {
                     withAnimation(.easeInOut(duration: 0.12)) { selectedTab = tool }
                 } label: {
-                    HStack(spacing: 5) {
+                    HStack(spacing: TTSpacing.tight) {
                         Image(systemName: tool.icon).font(.ttIcon(TTIcon.sm))
                         Text(tool.rawValue).font(TTFont.labelMedium)
                     }
                     .foregroundColor(selectedTab == tool ? .white : .ttTextTertiary)
-                    .padding(.horizontal, 12).padding(.vertical, 6)
+                    .padding(.horizontal, TTSpacing.md).padding(.vertical, TTSpacing.xs)
                     .background(
                         Capsule().fill(selectedTab == tool ? Color.ttPrimary.opacity(0.45) : Color.clear)
                     )
@@ -112,7 +112,7 @@ struct JWTToolView: View {
             }
             Spacer()
         }
-        .padding(.horizontal, 12).padding(.vertical, 6)
+        .padding(.horizontal, TTSpacing.md).padding(.vertical, TTSpacing.xs)
         .background(Color.ttSurface.opacity(0.08))
         .overlay(
             Rectangle().fill(Color.ttBorder.opacity(0.12)).frame(height: 1),
@@ -155,9 +155,9 @@ struct JWTToolView: View {
     // MARK: - Clipboard Banner
 
     private func clipboardBanner(_ candidate: String) -> some View {
-        HStack(spacing: 10) {
+        HStack(spacing: TTSpacing.inputPaddingH) {
             Image(systemName: "doc.on.clipboard")
-                .font(.system(size: 13)).foregroundColor(.ttPrimary)
+                .font(TTFont.bodyMedium).foregroundColor(.ttPrimary)
             Text("A JWT is on your clipboard.")
                 .font(TTFont.bodySmall).foregroundColor(.ttTextSecondary)
             Spacer()
@@ -170,11 +170,11 @@ struct JWTToolView: View {
             Button {
                 clipboardCandidate = nil
             } label: {
-                Image(systemName: "xmark").font(.system(size: 11)).foregroundColor(.ttTextTertiary)
+                Image(systemName: "xmark").font(TTFont.bodySmall).foregroundColor(.ttTextTertiary)
             }
             .buttonStyle(.plain)
         }
-        .padding(.horizontal, 14).padding(.vertical, 8)
+        .padding(.horizontal, TTSpacing.chromeInsetH).padding(.vertical, TTSpacing.sm)
         .background(Color.ttPrimary.opacity(0.08))
         .overlay(Rectangle().fill(Color.ttBorder.opacity(0.12)).frame(height: 1), alignment: .bottom)
     }

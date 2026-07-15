@@ -46,7 +46,7 @@ struct CaseConverterToolView: View {
     
     private var controlsPanel: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: TTSpacing.chromeInsetH) {
                 headerBlock
                 
                 sectionCard(title: "Conversion", icon: selectedMode.icon) {
@@ -65,7 +65,7 @@ struct CaseConverterToolView: View {
                 }
                 
                 sectionCard(title: "Actions", icon: "wand.and.stars") {
-                    HStack(spacing: 8) {
+                    HStack(spacing: TTSpacing.sm) {
                         actionButton(title: "Paste", icon: "doc.on.clipboard", disabled: false) {
                             pasteFromClipboard()
                         }
@@ -75,7 +75,7 @@ struct CaseConverterToolView: View {
                         }
                     }
                     
-                    HStack(spacing: 8) {
+                    HStack(spacing: TTSpacing.sm) {
                         actionButton(title: isCopied ? "Copied" : "Copy", icon: isCopied ? "checkmark.circle.fill" : "doc.on.doc", disabled: outputText.isEmpty) {
                             copyOutput()
                         }
@@ -86,24 +86,24 @@ struct CaseConverterToolView: View {
                     }
                 }
             }
-            .padding(16)
+            .padding(TTSpacing.lg)
         }
         .background(Color.ttSurface.opacity(0.08))
     }
     
     private var headerBlock: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: TTSpacing.sm) {
             ZStack {
                 RoundedRectangle(cornerRadius: TTRadius.md)
                     .fill(Color.ttPrimary.opacity(0.16))
                     .frame(width: 44, height: 44)
                 
                 Image(systemName: "textformat.abc")
-                    .font(.system(size: 20, weight: .semibold))
+                    .font(TTFont.heading2)
                     .foregroundColor(.ttPrimaryLight)
             }
             
-            VStack(alignment: .leading, spacing: 5) {
+            VStack(alignment: .leading, spacing: TTSpacing.tight) {
                 Text("Case Converter")
                     .font(TTFont.heading2)
                     .foregroundColor(.ttTextPrimary)
@@ -117,14 +117,14 @@ struct CaseConverterToolView: View {
     }
     
     private var modeGrid: some View {
-        LazyVGrid(columns: [GridItem(.adaptive(minimum: 132), spacing: 8)], spacing: 8) {
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 132), spacing: TTSpacing.sm)], spacing: TTSpacing.sm) {
             ForEach(CaseConversionMode.allCases) { mode in
                 Button(action: {
                     withAnimation(.easeInOut(duration: 0.12)) {
                         selectedMode = mode
                     }
                 }) {
-                    HStack(spacing: 6) {
+                    HStack(spacing: TTSpacing.xs) {
                         Image(systemName: mode.icon)
                             .font(.ttIcon(TTIcon.md))
                         Text(mode.rawValue)
@@ -133,8 +133,8 @@ struct CaseConverterToolView: View {
                     }
                     .foregroundColor(selectedMode == mode ? .white : .ttTextSecondary)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 7)
-                    .padding(.horizontal, 8)
+                    .padding(.vertical, TTSpacing.rowVertical)
+                    .padding(.horizontal, TTSpacing.sm)
                     .background(
                         RoundedRectangle(cornerRadius: TTRadius.sm)
                             .fill(selectedMode == mode ? Color.ttPrimary.opacity(0.55) : Color.ttSurface.opacity(0.42))
@@ -148,7 +148,7 @@ struct CaseConverterToolView: View {
     
     private var editorPanel: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 10) {
+            HStack(spacing: TTSpacing.inputPaddingH) {
                 Label(selectedMode.rawValue, systemImage: selectedMode.icon)
                     .font(TTFont.labelLarge)
                     .foregroundColor(.ttTextPrimary)
@@ -158,8 +158,8 @@ struct CaseConverterToolView: View {
                 Text("\(inputWords) words")
                     .font(TTFont.badge)
                     .foregroundColor(.ttTextMuted)
-                    .padding(.horizontal, 7)
-                    .padding(.vertical, 3)
+                    .padding(.horizontal, TTSpacing.rowVertical)
+                    .padding(.vertical, TTSpacing.inlineGapSmall)
                     .background(
                         RoundedRectangle(cornerRadius: TTRadius.xs)
                             .fill(Color.ttSurface.opacity(0.35))
@@ -169,8 +169,8 @@ struct CaseConverterToolView: View {
                     Label(isCopied ? "Copied" : "Copy", systemImage: isCopied ? "checkmark.circle.fill" : "doc.on.doc")
                         .font(TTFont.labelSmall)
                         .foregroundColor(isCopied ? .ttSuccess : .ttTextSecondary)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
+                        .padding(.horizontal, TTSpacing.inputPaddingH)
+                        .padding(.vertical, TTSpacing.xs)
                         .background(
                             RoundedRectangle(cornerRadius: TTRadius.sm)
                                 .fill(isCopied ? Color.ttSuccess.opacity(0.1) : Color.ttSurface.opacity(0.35))
@@ -180,8 +180,8 @@ struct CaseConverterToolView: View {
                 .disabled(outputText.isEmpty)
                 .help("Copy converted text")
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .padding(.horizontal, TTSpacing.lg)
+            .padding(.vertical, TTSpacing.md)
             .background(Color.ttSurface.opacity(0.1))
             
             Divider().background(Color.ttBorder.opacity(0.3))
@@ -197,7 +197,7 @@ struct CaseConverterToolView: View {
     }
     
     private var textInputPane: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: TTSpacing.inputPaddingH) {
             paneHeader(title: "Input", icon: "square.and.pencil", count: inputCharacters)
             
             TextEditor(text: $inputText)
@@ -205,14 +205,14 @@ struct CaseConverterToolView: View {
                 .foregroundColor(.ttTextPrimary)
                 .scrollContentBackground(.hidden)
                 .background(Color.clear)
-                .padding(10)
+                .padding(TTSpacing.inputPaddingH)
                 .overlay(alignment: .topLeading) {
                     if inputText.isEmpty {
                         Text("Paste or type text to convert...")
                             .font(TTFont.codeMedium)
                             .foregroundColor(.ttTextMuted)
-                            .padding(.horizontal, 15)
-                            .padding(.vertical, 18)
+                            .padding(.horizontal, TTSpacing.chromeInsetH)
+                            .padding(.vertical, TTSpacing.xl)
                             .allowsHitTesting(false)
                     }
                 }
@@ -225,12 +225,12 @@ struct CaseConverterToolView: View {
                         )
                 )
         }
-        .padding(16)
+        .padding(TTSpacing.lg)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
     private var textOutputPane: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: TTSpacing.inputPaddingH) {
             paneHeader(title: "Output", icon: "text.alignleft", count: outputCharacters)
             
             ScrollView {
@@ -239,7 +239,7 @@ struct CaseConverterToolView: View {
                     .foregroundColor(outputText.isEmpty ? .ttTextMuted : .ttTextPrimary)
                     .textSelection(.enabled)
                     .frame(maxWidth: .infinity, alignment: .topLeading)
-                    .padding(14)
+                    .padding(TTSpacing.chromeInsetH)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(
@@ -251,7 +251,7 @@ struct CaseConverterToolView: View {
                     )
             )
         }
-        .padding(16)
+        .padding(TTSpacing.lg)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
@@ -260,14 +260,14 @@ struct CaseConverterToolView: View {
         icon: String,
         @ViewBuilder content: () -> Content
     ) -> some View {
-        VStack(alignment: .leading, spacing: 11) {
+        VStack(alignment: .leading, spacing: TTSpacing.md) {
             Label(title, systemImage: icon)
                 .font(TTFont.labelLarge)
                 .foregroundColor(.ttTextSecondary)
             
             content()
         }
-        .padding(13)
+        .padding(TTSpacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: TTRadius.md)
@@ -280,7 +280,7 @@ struct CaseConverterToolView: View {
     }
     
     private func paneHeader(title: String, icon: String, count: Int) -> some View {
-        HStack(spacing: 8) {
+        HStack(spacing: TTSpacing.sm) {
             Label(title, systemImage: icon)
                 .font(TTFont.labelLarge)
                 .foregroundColor(.ttTextSecondary)
@@ -318,7 +318,7 @@ struct CaseConverterToolView: View {
                 .font(TTFont.labelSmall)
                 .foregroundColor(disabled ? .ttTextMuted : .ttTextSecondary)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 8)
+                .padding(.vertical, TTSpacing.sm)
                 .background(
                     RoundedRectangle(cornerRadius: TTRadius.sm)
                         .fill(disabled ? Color.ttSurface.opacity(0.18) : Color.ttSurface.opacity(0.42))

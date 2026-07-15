@@ -23,15 +23,15 @@ struct GuideContainerView: View {
                             selectedGuideTab = tab
                         }
                     }) {
-                        HStack(spacing: 6) {
+                        HStack(spacing: TTSpacing.xs) {
                             Image(systemName: tab.icon)
                                 .font(.ttIcon(TTIcon.lg))
                             Text(tab.rawValue)
                                 .font(TTFont.tabLabel)
                         }
                         .foregroundColor(selectedGuideTab == tab ? .ttPrimary : .ttTextSecondary)
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 12)
+                        .padding(.horizontal, TTSpacing.xl)
+                        .padding(.vertical, TTSpacing.md)
                     }
                     .buttonStyle(.plain)
                     .overlay(

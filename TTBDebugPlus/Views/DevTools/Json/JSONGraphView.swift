@@ -53,7 +53,7 @@ struct JSONGraphView: View {
                     Spacer()
                     graphToolbar
                 }
-                .padding(12)
+                .padding(TTSpacing.md)
                 Spacer()
             }
         }
@@ -163,32 +163,32 @@ struct JSONGraphView: View {
         
         return VStack(alignment: .leading, spacing: 0) {
             // Header
-            HStack(spacing: 6) {
+            HStack(spacing: TTSpacing.xs) {
                 // Type badge
                 Text(node.valueType.badge)
-                    .font(.system(size: max(9, 10 * nodeScale), weight: .bold, design: .monospaced))
+                    .font(TTFont.graph(base: 10, nodeScale: nodeScale, minimum: 9, weight: .bold, design: .monospaced))
                     .foregroundColor(.ttTextOnAccent)
                 
                 Text(node.label)
-                    .font(.system(size: max(9, 11 * nodeScale), weight: .semibold))
+                    .font(TTFont.graph(base: 11, nodeScale: nodeScale, minimum: 9, weight: .semibold))
                     .foregroundColor(.ttTextOnAccent)
                     .lineLimit(1)
                 
                 Spacer()
                 
                 if !node.childIds.isEmpty {
-                    HStack(spacing: 2) {
+                    HStack(spacing: TTSpacing.xxxs) {
                         Text("\(node.childIds.count)")
-                            .font(.system(size: max(7, 8 * nodeScale), weight: .bold, design: .monospaced))
+                            .font(TTFont.graph(base: 8, nodeScale: nodeScale, minimum: 7, weight: .bold, design: .monospaced))
                             .foregroundColor(.ttTextOnAccent.opacity(0.85))
                         Image(systemName: collapsedNodeIds.contains(node.id) ? "chevron.right" : "chevron.down")
-                            .font(.system(size: max(7, 8 * nodeScale), weight: .bold))
+                            .font(TTFont.graph(base: 8, nodeScale: nodeScale, minimum: 7, weight: .bold))
                             .foregroundColor(.ttTextOnAccent.opacity(0.85))
                     }
                 }
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
+            .padding(.horizontal, TTSpacing.inputPaddingH)
+            .padding(.vertical, TTSpacing.xs)
             .background(
                 node.headerColor.opacity(0.85)
                     .overlay(
@@ -205,7 +205,7 @@ struct JSONGraphView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     let visibleEntries = Array(node.entries.prefix(8))
                     ForEach(Array(visibleEntries.enumerated()), id: \.offset) { _, entry in
-                        HStack(spacing: 4) {
+                        HStack(spacing: TTSpacing.xxs) {
                             Text(entry.key)
                                 .foregroundColor(.ttJsonKey)
                             Text(":")
@@ -214,24 +214,24 @@ struct JSONGraphView: View {
                                 .foregroundColor(entry.type.badgeColor)
                                 .lineLimit(1)
                         }
-                        .font(.system(size: max(8, 10 * nodeScale), design: .monospaced))
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 3)
+                        .font(TTFont.graph(base: 10, nodeScale: nodeScale, minimum: 8, design: .monospaced))
+                        .padding(.horizontal, TTSpacing.inputPaddingH)
+                        .padding(.vertical, TTSpacing.inlineGapSmall)
                     }
                     
                     if node.entries.count > 8 {
-                        HStack(spacing: 3) {
+                        HStack(spacing: TTSpacing.inlineGapSmall) {
                             Image(systemName: "ellipsis")
-                                .font(.system(size: max(7, 8 * nodeScale)))
+                                .font(TTFont.graph(base: 8, nodeScale: nodeScale, minimum: 7))
                             Text("+\(node.entries.count - 8) more")
-                                .font(.system(size: max(7, 9 * nodeScale), design: .monospaced))
+                                .font(TTFont.graph(base: 9, nodeScale: nodeScale, minimum: 7, design: .monospaced))
                         }
                         .foregroundColor(.ttTextTertiary)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 3)
+                        .padding(.horizontal, TTSpacing.inputPaddingH)
+                        .padding(.vertical, TTSpacing.inlineGapSmall)
                     }
                 }
-                .padding(.vertical, 4)
+                .padding(.vertical, TTSpacing.xxs)
             }
         }
         .frame(width: max(120, node.size.width * scale))
@@ -339,7 +339,7 @@ struct JSONGraphView: View {
     
     // MARK: - Graph Toolbar
     private var graphToolbar: some View {
-        HStack(spacing: 5) {
+        HStack(spacing: TTSpacing.tight) {
             // Zoom controls
             Button(action: {
                 withAnimation(.easeInOut(duration: 0.2)) {
@@ -348,13 +348,13 @@ struct JSONGraphView: View {
                 saveViewportState()
             }) {
                 Image(systemName: "minus.magnifyingglass")
-                    .font(.system(size: 12))
+                    .font(TTFont.bodyMedium)
             }
             .buttonStyle(.ttGhost)
             .help("Zoom Out")
             
             Text("\(Int(scale * 100))%")
-                .font(.system(size: 10, weight: .medium, design: .monospaced))
+                .font(TTFont.codeSmall)
                 .foregroundColor(.ttTextTertiary)
                 .frame(width: 44)
                 .monospacedDigit()
@@ -366,7 +366,7 @@ struct JSONGraphView: View {
                 saveViewportState()
             }) {
                 Image(systemName: "plus.magnifyingglass")
-                    .font(.system(size: 12))
+                    .font(TTFont.bodyMedium)
             }
             .buttonStyle(.ttGhost)
             .help("Zoom In")
@@ -381,7 +381,7 @@ struct JSONGraphView: View {
                 saveViewportState()
             }) {
                 Image(systemName: "arrow.up.left.and.arrow.down.right")
-                    .font(.system(size: 12))
+                    .font(TTFont.bodyMedium)
             }
             .buttonStyle(.ttGhost)
             .help("Fit to Window")
@@ -395,7 +395,7 @@ struct JSONGraphView: View {
                 saveViewportState()
             }) {
                 Image(systemName: "arrow.counterclockwise")
-                    .font(.system(size: 12))
+                    .font(TTFont.bodyMedium)
             }
             .buttonStyle(.ttGhost)
             .help("Reset View")
@@ -417,7 +417,7 @@ struct JSONGraphView: View {
                 }
             }) {
                 Image(systemName: collapsedNodeIds.isEmpty ? "rectangle.compress.vertical" : "rectangle.expand.vertical")
-                    .font(.system(size: 12))
+                    .font(TTFont.bodyMedium)
             }
             .buttonStyle(.ttGhost)
             .help(collapsedNodeIds.isEmpty ? "Collapse All" : "Expand All")
@@ -425,20 +425,20 @@ struct JSONGraphView: View {
             Divider().frame(height: 16)
             
             // Node count badge
-            HStack(spacing: 3) {
+            HStack(spacing: TTSpacing.inlineGapSmall) {
                 Circle()
                     .fill(Color.ttPrimary.opacity(0.5))
                     .frame(width: 5, height: 5)
                 Text("\(layout.nodes.count)")
-                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                    .font(TTFont.badge)
                     .foregroundColor(.ttTextSecondary)
                 Text("nodes")
-                    .font(.system(size: 9, weight: .medium))
+                    .font(TTFont.badge)
                     .foregroundColor(.ttTextMuted)
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 7)
+        .padding(.horizontal, TTSpacing.md)
+        .padding(.vertical, TTSpacing.rowVertical)
         .background(
             RoundedRectangle(cornerRadius: 8)
                 .fill(Color.ttSurface.opacity(0.92))
@@ -452,7 +452,7 @@ struct JSONGraphView: View {
     
     // MARK: - Loading
     private var loadingOverlay: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: TTSpacing.chromeInsetH) {
             ProgressView()
                 .scaleEffect(0.8)
                 .tint(.ttPrimary)
@@ -465,13 +465,13 @@ struct JSONGraphView: View {
     
     // MARK: - Empty State
     private var emptyState: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: TTSpacing.chromeInsetH) {
             ZStack {
                 Circle()
                     .fill(Color.ttSurface.opacity(0.5))
                     .frame(width: 64, height: 64)
                 Image(systemName: "point.3.connected.trianglepath.dotted")
-                    .font(.system(size: 28))
+                    .font(TTFont.displayMedium)
                     .foregroundColor(.ttTextMuted)
             }
             Text("No Graph Data")

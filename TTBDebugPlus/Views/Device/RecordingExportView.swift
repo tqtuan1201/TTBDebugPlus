@@ -61,14 +61,14 @@ struct RecordingExportView: View {
     
     // MARK: - Header
     private var header: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: TTSpacing.md) {
             // Icon + title
-            HStack(spacing: 8) {
+            HStack(spacing: TTSpacing.sm) {
                 Image(systemName: "film.stack")
                     .font(.ttIcon(TTIcon.xxl))
                     .foregroundColor(.ttPrimary)
                 
-                VStack(alignment: .leading, spacing: 1) {
+                VStack(alignment: .leading, spacing: TTSpacing.hairline) {
                     Text("Recording Session")
                         .font(TTFont.heading3)
                         .foregroundColor(.ttTextPrimary)
@@ -85,7 +85,7 @@ struct RecordingExportView: View {
             
             // Stats chips
             if hasFrames {
-                HStack(spacing: 8) {
+                HStack(spacing: TTSpacing.sm) {
                     statChip(icon: "photo.stack", text: "\(frameCount) frames")
                     statChip(icon: "clock", text: formattedDuration)
                     statChip(icon: "timer", text: String(format: "%.1fs", captureVM.recordingSession.interval))
@@ -107,14 +107,14 @@ struct RecordingExportView: View {
             .buttonStyle(.plain)
             .help("Close")
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 14)
+        .padding(.horizontal, TTSpacing.xl)
+        .padding(.vertical, TTSpacing.chromeInsetH)
         .background(Color.ttSurface.opacity(0.5))
     }
     
     // MARK: - Empty State
     private var emptyState: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: TTSpacing.md) {
             Spacer()
             Image(systemName: "film.stack")
                 .font(TTFont.displayLarge)
@@ -141,7 +141,7 @@ struct RecordingExportView: View {
                     .aspectRatio(contentMode: .fit)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
                     .shadow(color: .black.opacity(0.3), radius: 10, y: 4)
-                    .padding(20)
+                    .padding(TTSpacing.xl)
             }
             
             // Frame counter badge
@@ -150,21 +150,21 @@ struct RecordingExportView: View {
                     Spacer()
                     HStack {
                         Spacer()
-                        HStack(spacing: 6) {
+                        HStack(spacing: TTSpacing.xs) {
                             Image(systemName: "photo")
                                 .font(.ttIcon(TTIcon.sm))
                             Text("Frame \(safeFrameIndex + 1) / \(frameCount)")
                                 .font(TTFont.codeMedium)
                         }
                         .foregroundColor(.ttTextPrimary)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
+                        .padding(.horizontal, TTSpacing.md)
+                        .padding(.vertical, TTSpacing.xs)
                         .background(
                             Capsule()
                                 .fill(.ultraThinMaterial)
                                 .overlay(Capsule().stroke(Color.white.opacity(0.15), lineWidth: 1))
                         )
-                        .padding(16)
+                        .padding(TTSpacing.lg)
                     }
                 }
             }
@@ -174,10 +174,10 @@ struct RecordingExportView: View {
     
     // MARK: - Timeline Scrubber
     private var timelineScrubber: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: TTSpacing.inputPaddingH) {
             // Scrubber slider — only render when we have ≥2 frames
             if frameCount >= 2 {
-                HStack(spacing: 10) {
+                HStack(spacing: TTSpacing.inputPaddingH) {
                     // Back button
                     Button(action: { currentFrameIndex = max(0, currentFrameIndex - 1) }) {
                         Image(systemName: "chevron.left")
@@ -215,7 +215,7 @@ struct RecordingExportView: View {
             if hasFrames {
                 ScrollViewReader { proxy in
                     ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 4) {
+                        HStack(spacing: TTSpacing.xxs) {
                             ForEach(Array(captureVM.recordingSession.frames.enumerated()), id: \.element.id) { index, frame in
                                 let isSelected = safeFrameIndex == index
                                 Button(action: { currentFrameIndex = index }) {
@@ -234,7 +234,7 @@ struct RecordingExportView: View {
                                 .id(index)
                             }
                         }
-                        .padding(.horizontal, 4)
+                        .padding(.horizontal, TTSpacing.xxs)
                     }
                     .frame(height: 68)
                     .onChange(of: currentFrameIndex) { _, newIndex in
@@ -245,28 +245,28 @@ struct RecordingExportView: View {
                 }
             }
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 12)
+        .padding(.horizontal, TTSpacing.xl)
+        .padding(.vertical, TTSpacing.md)
         .background(Color.ttSurface.opacity(0.3))
     }
     
     // MARK: - Export Options
     private var exportOptions: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: TTSpacing.chromeInsetH) {
             // Speed control
-            HStack(spacing: 10) {
+            HStack(spacing: TTSpacing.inputPaddingH) {
                 Text("GIF Speed")
                     .font(TTFont.labelMedium)
                     .foregroundColor(.ttTextSecondary)
                 
-                HStack(spacing: 6) {
+                HStack(spacing: TTSpacing.xs) {
                     ForEach([0.5, 1.0, 2.0, 3.0], id: \.self) { speed in
                         Button(action: { gifSpeed = speed }) {
                             Text("\(speed, specifier: "%.1f")×")
                                 .font(TTFont.labelSmall)
                                 .foregroundColor(gifSpeed == speed ? .white : .ttTextSecondary)
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 5)
+                                .padding(.horizontal, TTSpacing.inputPaddingH)
+                                .padding(.vertical, TTSpacing.tight)
                                 .background(
                                     RoundedRectangle(cornerRadius: 6)
                                         .fill(gifSpeed == speed ? Color.ttPrimary : Color.ttSurface)
@@ -289,15 +289,15 @@ struct RecordingExportView: View {
                     Text(String(format: "~%.1fs GIF", estDuration))
                         .font(TTFont.codeSmall)
                         .foregroundColor(.ttTextMuted)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
+                        .padding(.horizontal, TTSpacing.sm)
+                        .padding(.vertical, TTSpacing.inlineGapSmall)
                         .background(Capsule().fill(Color.ttSurface.opacity(0.6)))
                 }
             }
             
             // Export progress
             if !exportProgress.isEmpty {
-                HStack(spacing: 8) {
+                HStack(spacing: TTSpacing.sm) {
                     ProgressView()
                         .controlSize(.small)
                         .scaleEffect(0.8)
@@ -306,14 +306,14 @@ struct RecordingExportView: View {
                         .foregroundColor(.ttPrimary)
                     Spacer()
                 }
-                .padding(.vertical, 4)
+                .padding(.vertical, TTSpacing.xxs)
             }
             
             // Action buttons
-            HStack(spacing: 12) {
+            HStack(spacing: TTSpacing.md) {
                 // Discard
                 Button(action: { showDiscardConfirm = true }) {
-                    HStack(spacing: 6) {
+                    HStack(spacing: TTSpacing.xs) {
                         Image(systemName: "trash")
                             .font(.ttIcon(TTIcon.lg))
                         Text("Discard")
@@ -327,7 +327,7 @@ struct RecordingExportView: View {
                 
                 // Image Sequence
                 Button(action: exportImageSequence) {
-                    HStack(spacing: 6) {
+                    HStack(spacing: TTSpacing.xs) {
                         Image(systemName: "photo.stack")
                             .font(.ttIcon(TTIcon.lg))
                         Text("Image Sequence")
@@ -339,7 +339,7 @@ struct RecordingExportView: View {
                 
                 // Export GIF
                 Button(action: exportGIF) {
-                    HStack(spacing: 6) {
+                    HStack(spacing: TTSpacing.xs) {
                         Image(systemName: "film")
                             .font(.ttIcon(TTIcon.lg))
                         Text("Export GIF")
@@ -350,8 +350,8 @@ struct RecordingExportView: View {
                 .disabled(isExporting || frameCount < 2)
             }
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 16)
+        .padding(.horizontal, TTSpacing.xl)
+        .padding(.vertical, TTSpacing.lg)
         .background(Color.ttSurface.opacity(0.5))
     }
     
@@ -377,13 +377,13 @@ struct RecordingExportView: View {
     }
     
     private func statChip(icon: String, text: String) -> some View {
-        HStack(spacing: 4) {
+        HStack(spacing: TTSpacing.xxs) {
             Image(systemName: icon).font(.ttIcon(TTIcon.sm))
             Text(text).font(TTFont.codeSmall)
         }
         .foregroundColor(.ttTextTertiary)
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
+        .padding(.horizontal, TTSpacing.sm)
+        .padding(.vertical, TTSpacing.xxs)
         .background(
             Capsule()
                 .fill(Color.ttSurface.opacity(0.8))

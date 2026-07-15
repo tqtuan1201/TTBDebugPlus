@@ -3,6 +3,7 @@
 //  TTBDebugPlus
 //
 //  Created by TuanTruong on 2026-03-27.
+//  2026-07-15: Phase 2 — spacing/typography tokens.
 //
 
 import SwiftUI
@@ -13,47 +14,47 @@ struct EmptyStateView: View {
     let subtitle: String
     var actionTitle: String? = nil
     var action: (() -> Void)? = nil
-    
+
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: TTSpacing.xl) {
             Spacer()
-            
+
             // Icon
             ZStack {
                 Circle()
                     .fill(Color.ttSurface)
-                    .frame(width: 80, height: 80)
-                
+                    .frame(width: TTSpacing.emptyStateIcon, height: TTSpacing.emptyStateIcon)
+
                 Image(systemName: icon)
-                    .font(.system(size: 32, weight: .light))
+                    .font(TTFont.lightDisplay(base: 32))
                     .foregroundColor(.ttTextSecondary)
             }
-            
+
             // Text
-            VStack(spacing: 8) {
+            VStack(spacing: TTSpacing.sm) {
                 Text(title)
                     .font(TTFont.heading2)
                     .foregroundColor(.ttTextPrimary)
-                
+
                 Text(subtitle)
                     .font(TTFont.bodyMedium)
                     .foregroundColor(.ttTextSecondary)
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: 400)
             }
-            
+
             // Action Button
             if let actionTitle = actionTitle, let action = action {
                 Button(action: action) {
-                    HStack {
+                    HStack(spacing: TTSpacing.xs) {
                         Image(systemName: "plus.circle.fill")
                         Text(actionTitle)
                     }
                 }
                 .buttonStyle(.ttPrimary)
-                .padding(.top, 8)
+                .padding(.top, TTSpacing.sm)
             }
-            
+
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

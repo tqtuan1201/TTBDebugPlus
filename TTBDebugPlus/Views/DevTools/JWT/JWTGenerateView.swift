@@ -38,7 +38,7 @@ struct JWTGenerateView: View {
 
     private var editorPanel: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: TTSpacing.chromeInsetH) {
                 JWTSectionCard(title: "Header", icon: "number") {
                     JWTMonoEditor(text: $headerText, placeholder: "{ \"alg\": …, \"typ\": \"JWT\" }")
                         .frame(height: 90)
@@ -50,7 +50,7 @@ struct JWTGenerateView: View {
                     title: "Payload",
                     icon: "doc.text",
                     accessory: AnyView(
-                        HStack(spacing: 6) {
+                        HStack(spacing: TTSpacing.xs) {
                             miniButton("iat", "clock") { insertClaim("iat", Int(Date().timeIntervalSince1970)) }
                             miniButton("exp +1h", "clock.badge") {
                                 insertClaim("exp", Int(Date().addingTimeInterval(3600).timeIntervalSince1970))
@@ -63,7 +63,7 @@ struct JWTGenerateView: View {
                 }
 
                 JWTSectionCard(title: "Signing Key", icon: "lock") {
-                    HStack(spacing: 10) {
+                    HStack(spacing: TTSpacing.inputPaddingH) {
                         Text("Algorithm").font(TTFont.bodySmall).foregroundColor(.ttTextSecondary)
                         Picker("", selection: $algorithm) {
                             ForEach(JWTAlgorithm.signable) { Text($0.rawValue).tag($0) }
@@ -92,7 +92,7 @@ struct JWTGenerateView: View {
                     JWTActionButton(title: "Generate Token", icon: "hammer", prominent: true) { generate() }
                 }
             }
-            .padding(16)
+            .padding(TTSpacing.lg)
         }
         .background(Color.ttSurface.opacity(0.08))
     }
@@ -108,14 +108,14 @@ struct JWTGenerateView: View {
                           subtitle: "Fill in the header and payload, choose an algorithm and key, then Generate.")
         } else {
             ScrollView {
-                VStack(alignment: .leading, spacing: 14) {
+                VStack(alignment: .leading, spacing: TTSpacing.chromeInsetH) {
                     JWTSectionCard(
                         title: "Generated Token",
                         icon: "key.horizontal",
                         accessory: AnyView(JWTCopyButton(text: output))
                     ) {
                         JWTColorizedToken(token: output)
-                        HStack(spacing: 8) {
+                        HStack(spacing: TTSpacing.sm) {
                             JWTActionButton(title: "Open in Decoder", icon: "arrow.up.forward.app", prominent: true) {
                                 onSendToDecoder(output)
                             }
@@ -129,7 +129,7 @@ struct JWTGenerateView: View {
                         }
                     }
                 }
-                .padding(16)
+                .padding(TTSpacing.lg)
             }
         }
     }

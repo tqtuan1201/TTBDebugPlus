@@ -28,7 +28,7 @@ struct JWTVerifyView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: TTSpacing.chromeInsetH) {
                 JWTSectionCard(
                     title: "Encoded Token",
                     icon: "key.horizontal",
@@ -36,7 +36,7 @@ struct JWTVerifyView: View {
                 ) {
                     JWTMonoEditor(text: $token, placeholder: "Paste the JWT to verify…")
                         .frame(height: 110)
-                    HStack(spacing: 8) {
+                    HStack(spacing: TTSpacing.sm) {
                         JWTActionButton(title: "Paste", icon: "doc.on.clipboard") { paste() }
                         JWTActionButton(title: "Clear", icon: "xmark.circle", disabled: token.isEmpty) {
                             token = ""; result = nil
@@ -45,7 +45,7 @@ struct JWTVerifyView: View {
                 }
 
                 JWTSectionCard(title: "Signing Key", icon: "lock") {
-                    HStack(spacing: 10) {
+                    HStack(spacing: TTSpacing.inputPaddingH) {
                         Text("Algorithm").font(TTFont.bodySmall).foregroundColor(.ttTextSecondary)
                         Picker("", selection: $algorithm) {
                             ForEach(JWTAlgorithm.allCases.filter { $0 != .none }) { alg in
@@ -87,7 +87,7 @@ struct JWTVerifyView: View {
                     securityCard(for: decoded)
                 }
             }
-            .padding(16)
+            .padding(TTSpacing.lg)
         }
         .background(Color.ttBackground)
         .onAppear(perform: syncAlgorithm)
@@ -100,18 +100,18 @@ struct JWTVerifyView: View {
     // MARK: - Result
 
     private func resultBanner(_ result: JWTVerificationResult) -> some View {
-        HStack(spacing: 12) {
+        HStack(spacing: TTSpacing.md) {
             Image(systemName: result.icon)
-                .font(.system(size: 22))
+                .font(TTFont.heading2)
                 .foregroundColor(result.color)
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: TTSpacing.inlineGapSmall) {
                 Text(result.title).font(TTFont.heading3).foregroundColor(result.color)
                 Text(result.message).font(TTFont.bodySmall).foregroundColor(.ttTextSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 0)
         }
-        .padding(14)
+        .padding(TTSpacing.chromeInsetH)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: TTRadius.md)
@@ -126,7 +126,7 @@ struct JWTVerifyView: View {
     private func securityCard(for decoded: DecodedJWT) -> some View {
         let findings = JWTSecurityAnalyzer.analyze(decoded, hmacSecret: algorithm.isSymmetric ? keyMaterial : nil)
         return JWTSectionCard(title: "Security Analysis", icon: "shield.lefthalf.filled") {
-            VStack(spacing: 8) {
+            VStack(spacing: TTSpacing.sm) {
                 ForEach(findings) { JWTFindingRowView(finding: $0) }
             }
         }

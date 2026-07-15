@@ -71,7 +71,7 @@ struct ColorPickerToolView: View {
             .help("Sample any on-screen pixel")
         }
         .padding(.horizontal, TTSpacing.sectionPadding)
-        .padding(.vertical, 10)
+        .padding(.vertical, TTSpacing.inputPaddingH)
         .background(Color.ttSurface.opacity(0.25))
     }
 
@@ -86,7 +86,7 @@ struct ColorPickerToolView: View {
             Spacer()
         }
         .padding(.horizontal, TTSpacing.sectionPadding)
-        .padding(.vertical, 6)
+        .padding(.vertical, TTSpacing.xs)
         .background(TTBannerKind.success.background)
         .transition(reduceMotion ? .opacity : TTAnimation.fadeIn)
         .accessibilityLabel(status)
@@ -107,7 +107,7 @@ struct ColorPickerToolView: View {
                         )
                         .accessibilityLabel("Selected color preview \(viewModel.normalizedHex)")
 
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: TTSpacing.xxs) {
                         Text(viewModel.normalizedHex)
                             .font(TTFont.codeLarge)
                             .foregroundColor(.ttTextPrimary)

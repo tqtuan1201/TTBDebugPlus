@@ -70,7 +70,7 @@ struct TemplateDetailView: View {
 
     private func header(_ template: JSONTemplate) -> some View {
         HStack(alignment: .top, spacing: TTSpacing.sm) {
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: TTSpacing.xxs) {
                 Text(template.name)
                     .font(TTFont.heading2)
                     .foregroundColor(.ttTextPrimary)
@@ -138,7 +138,7 @@ struct TemplateDetailView: View {
                         .font(TTFont.badge)
                         .foregroundColor(Color(hex: tag.colorHex))
                         .padding(.horizontal, TTSpacing.xs)
-                        .padding(.vertical, 2)
+                        .padding(.vertical, TTSpacing.xxxs)
                         .background(Capsule().fill(Color(hex: tag.colorHex).opacity(0.15)))
                 }
             }
@@ -161,7 +161,7 @@ struct TemplateDetailView: View {
         VStack(spacing: TTSpacing.md) {
             Spacer()
             Image(systemName: AppIcon.templateLibrary)
-                .font(.system(size: 40, weight: .light))
+                .font(TTFont.lightDisplay(base: 40))
                 .foregroundColor(.ttTextMuted)
             Text("Select a template")
                 .font(TTFont.heading3)

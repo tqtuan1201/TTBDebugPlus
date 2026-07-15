@@ -11,11 +11,11 @@ import SwiftUI
 struct CardView<Content: View>: View {
     var title: String? = nil
     var titleTrailing: AnyView? = nil
-    var padding: CGFloat = 16
+    var padding: CGFloat = TTSpacing.cardPadding
     @ViewBuilder let content: () -> Content
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: TTSpacing.md) {
             if let title = title {
                 HStack {
                     Text(title)
@@ -35,13 +35,13 @@ struct CardView<Content: View>: View {
         }
         .padding(padding)
         .background(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: TTRadius.lg)
                 .fill(Color.ttSurface.opacity(0.75))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 12)
+                    RoundedRectangle(cornerRadius: TTRadius.lg)
                         .stroke(Color.ttBorder.opacity(0.5), lineWidth: 1)
                 )
-                .shadow(color: .black.opacity(0.12), radius: 6, y: 3)
+                .shadow(color: .black.opacity(0.12), radius: TTSpacing.xs, y: TTSpacing.inlineGapSmall)
         )
     }
 }
@@ -64,8 +64,8 @@ struct StatusBadge: View {
             Text(text)
                 .font(TTFont.badge)
                 .foregroundColor(.ttTextOnAccent)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 3)
+                .padding(.horizontal, TTSpacing.badgePaddingH)
+                .padding(.vertical, TTSpacing.badgePaddingV)
                 .background(
                     Capsule().fill(kind?.border ?? color)
                 )
@@ -75,8 +75,8 @@ struct StatusBadge: View {
             Text(text)
                 .font(TTFont.badge)
                 .foregroundColor(kind?.foreground ?? color)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 3)
+                .padding(.horizontal, TTSpacing.badgePaddingH)
+                .padding(.vertical, TTSpacing.badgePaddingV)
                 .background(
                     Capsule()
                         .fill(kind?.background ?? color.opacity(0.14))
@@ -89,10 +89,10 @@ struct StatusBadge: View {
             TTStatusPill(text: text, kind: kind ?? .info)
             
         case .dot:
-            HStack(spacing: 6) {
+            HStack(spacing: TTSpacing.xs) {
                 Circle()
                     .fill(kind?.border ?? color)
-                    .frame(width: 6, height: 6)
+                    .frame(width: TTSpacing.xs, height: TTSpacing.xs)
                 Text(text)
                     .font(TTFont.labelSmall)
                     .foregroundColor(.ttTextSecondary)
@@ -109,10 +109,10 @@ struct HTTPMethodBadge: View {
         Text(method.uppercased())
             .font(TTFont.badge)
             .foregroundColor(.ttTextOnAccent)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 2)
+            .padding(.horizontal, TTSpacing.xs)
+            .padding(.vertical, TTSpacing.xxxs)
             .background(
-                RoundedRectangle(cornerRadius: 4)
+                RoundedRectangle(cornerRadius: TTRadius.xs)
                     .fill(Color.forHTTPMethod(method))
             )
     }
@@ -128,8 +128,8 @@ struct StatusCodeBadge: View {
             .font(TTFont.badge)
             .fontWeight(.bold)
             .foregroundColor(kind.foreground)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 2)
+            .padding(.horizontal, TTSpacing.xs)
+            .padding(.vertical, TTSpacing.xxxs)
             .background(
                 Capsule()
                     .fill(kind.background)
@@ -158,7 +158,8 @@ struct LogLevelBadge: View {
     
     var body: some View {
         Image(systemName: iconName)
-            .font(.system(size: 12, weight: .semibold))
+            .font(.ttIcon(TTIcon.lg))
+            .fontWeight(.semibold)
             .foregroundColor(level.lowercased() == "debug" ? .ttTextTertiary : kind.foreground)
             .accessibilityLabel(level)
     }
@@ -179,14 +180,14 @@ struct ConnectionIndicator: View {
     var label: String? = nil
     
     var body: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: TTSpacing.xs) {
             Circle()
                 .fill(isConnected ? Color.ttSuccess : Color.ttError)
-                .frame(width: 8, height: 8)
+                .frame(width: TTSpacing.sm, height: TTSpacing.sm)
                 .overlay(
                     Circle()
                         .fill(isConnected ? Color.ttSuccess : Color.ttError)
-                        .frame(width: 8, height: 8)
+                        .frame(width: TTSpacing.sm, height: TTSpacing.sm)
                         .blur(radius: isConnected ? 4 : 0)
                         .opacity(isConnected ? 0.5 : 0)
                 )
@@ -225,20 +226,20 @@ struct DeviceBadge: View {
             // Dot-only mode for narrow layouts
             Circle()
                 .fill(deviceColor)
-                .frame(width: 6, height: 6)
+                .frame(width: TTSpacing.xs, height: TTSpacing.xs)
                 .help(deviceName)
         } else {
-            HStack(spacing: 4) {
+            HStack(spacing: TTSpacing.xxs) {
                 Circle()
                     .fill(deviceColor)
-                    .frame(width: 6, height: 6)
+                    .frame(width: TTSpacing.xs, height: TTSpacing.xs)
                 Text(shortName)
                     .font(TTFont.codeSmall)
                     .foregroundColor(deviceColor)
                     .lineLimit(1)
             }
-            .padding(.horizontal, 6)
-            .padding(.vertical, 2)
+            .padding(.horizontal, TTSpacing.xs)
+            .padding(.vertical, TTSpacing.xxxs)
             .background(
                 Capsule()
                     .fill(deviceColor.opacity(0.12))

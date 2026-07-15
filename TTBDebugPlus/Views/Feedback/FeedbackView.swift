@@ -20,7 +20,7 @@ struct FeedbackView: View {
             VStack(spacing: 0) {
                 // Header
                 HStack {
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: TTSpacing.xxxs) {
                         Text("Feedback Reports")
                             .font(TTFont.heading2)
                             .foregroundColor(.ttTextPrimary)
@@ -32,14 +32,14 @@ struct FeedbackView: View {
                     Spacer()
                     
                     Button(action: { showForm.toggle() }) {
-                        HStack(spacing: 4) {
+                        HStack(spacing: TTSpacing.xxs) {
                             Image(systemName: "plus")
                             Text("New Report")
                         }
                     }
                     .buttonStyle(.ttPrimaryCompact)
                 }
-                .padding(16)
+                .padding(TTSpacing.lg)
                 
                 Divider().background(Color.ttBorder)
                 
@@ -94,9 +94,9 @@ struct FeedbackView: View {
     
     // MARK: - Feedback Form
     private var feedbackForm: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: TTSpacing.md) {
             // Title
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: TTSpacing.xxs) {
                 Text("ISSUE TITLE")
                     .font(TTFont.sidebarHeader)
                     .foregroundColor(.ttTextTertiary)
@@ -106,7 +106,7 @@ struct FeedbackView: View {
                     .textFieldStyle(.plain)
                     .font(TTFont.bodyMedium)
                     .foregroundColor(.ttTextPrimary)
-                    .padding(10)
+                    .padding(TTSpacing.inputPaddingH)
                     .background(
                         RoundedRectangle(cornerRadius: 8)
                             .fill(Color.ttSurface)
@@ -115,7 +115,7 @@ struct FeedbackView: View {
             }
             
             // Description
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: TTSpacing.xxs) {
                 Text("DESCRIPTION")
                     .font(TTFont.sidebarHeader)
                     .foregroundColor(.ttTextTertiary)
@@ -125,7 +125,7 @@ struct FeedbackView: View {
                     .font(TTFont.bodyMedium)
                     .foregroundColor(.ttTextPrimary)
                     .scrollContentBackground(.hidden)
-                    .padding(8)
+                    .padding(TTSpacing.sm)
                     .frame(minHeight: 80, maxHeight: 200)
                     .background(
                         RoundedRectangle(cornerRadius: 8)
@@ -135,22 +135,22 @@ struct FeedbackView: View {
             }
             
             // Tag selector
-            HStack(spacing: 8) {
+            HStack(spacing: TTSpacing.sm) {
                 Text("TAG:")
                     .font(TTFont.labelSmall)
                     .foregroundColor(.ttTextTertiary)
                 
                 ForEach(FeedbackTag.allCases, id: \.self) { tag in
                     Button(action: { viewModel.formTag = tag }) {
-                        HStack(spacing: 4) {
+                        HStack(spacing: TTSpacing.xxs) {
                             Image(systemName: tag.icon)
                                 .font(.ttIcon(TTIcon.sm))
                             Text(tag.rawValue)
                                 .font(TTFont.labelSmall)
                         }
                         .foregroundColor(viewModel.formTag == tag ? .white : .ttTextSecondary)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 8)
+                        .padding(.horizontal, TTSpacing.chromeInsetH)
+                        .padding(.vertical, TTSpacing.sm)
                         .background(
                             Capsule()
                                 .fill(viewModel.formTag == tag ? tag.color : Color.clear)
@@ -166,7 +166,7 @@ struct FeedbackView: View {
             // Screenshot attachment
             if !viewModel.formScreenshots.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
+                    HStack(spacing: TTSpacing.sm) {
                         ForEach(Array(viewModel.formScreenshots.enumerated()), id: \.offset) { index, image in
                             ZStack(alignment: .topTrailing) {
                                 Image(nsImage: image)
@@ -206,7 +206,7 @@ struct FeedbackView: View {
                     viewModel.submitReport(deviceName: deviceName)
                     showForm = false
                 }) {
-                    HStack(spacing: 4) {
+                    HStack(spacing: TTSpacing.xxs) {
                         Image(systemName: "paperplane.fill")
                         Text("Submit Report")
                     }
@@ -215,29 +215,29 @@ struct FeedbackView: View {
                 .disabled(viewModel.formTitle.isEmpty)
             }
         }
-        .padding(16)
+        .padding(TTSpacing.lg)
         .background(Color.ttSurface.opacity(0.3))
     }
     
     // MARK: - Feedback Detail
     private func feedbackDetail(_ report: FeedbackReport) -> some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: TTSpacing.xl) {
                 // Title + Meta
                 HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 6) {
+                    VStack(alignment: .leading, spacing: TTSpacing.xs) {
                         Text(report.title)
                             .font(TTFont.heading2)
                             .foregroundColor(.ttTextPrimary)
                         
-                        HStack(spacing: 8) {
+                        HStack(spacing: TTSpacing.sm) {
                             StatusBadge(text: report.tag.rawValue, color: report.tag.color)
                             Text(report.relativeTime)
                                 .font(TTFont.labelSmall)
                                 .foregroundColor(.ttTextTertiary)
                             Text("•")
                                 .foregroundColor(.ttTextTertiary)
-                            HStack(spacing: 4) {
+                            HStack(spacing: TTSpacing.xxs) {
                                 Image(systemName: AppIcon.device)
                                     .font(.ttIcon(TTIcon.sm))
                                 Text(report.deviceName)
@@ -268,7 +268,7 @@ struct FeedbackView: View {
                 if !report.screenshots.isEmpty {
                     CardView(title: "SCREENSHOTS (\(report.screenshots.count))") {
                         ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 12) {
+                            HStack(spacing: TTSpacing.md) {
                                 ForEach(Array(report.screenshots.enumerated()), id: \.offset) { _, image in
                                     Image(nsImage: image)
                                         .resizable()
@@ -286,11 +286,11 @@ struct FeedbackView: View {
                 }
                 
                 // Actions
-                HStack(spacing: 12) {
+                HStack(spacing: TTSpacing.md) {
                     Button(action: {
                         viewModel.exportReport(report)
                     }) {
-                        HStack(spacing: 4) {
+                        HStack(spacing: TTSpacing.xxs) {
                             Image(systemName: "arrow.down.doc")
                             Text("Export Markdown")
                         }
@@ -300,7 +300,7 @@ struct FeedbackView: View {
                     Button(action: {
                         viewModel.shareReport(report)
                     }) {
-                        HStack(spacing: 4) {
+                        HStack(spacing: TTSpacing.xxs) {
                             Image(systemName: "doc.on.doc")
                             Text("Copy Report")
                         }
@@ -312,7 +312,7 @@ struct FeedbackView: View {
                     Button(action: {
                         viewModel.toggleResolve(report)
                     }) {
-                        HStack(spacing: 4) {
+                        HStack(spacing: TTSpacing.xxs) {
                             Image(systemName: report.isResolved ? "arrow.uturn.backward" : "checkmark.circle")
                             Text(report.isResolved ? "Reopen" : "Mark Resolved")
                         }
@@ -320,7 +320,7 @@ struct FeedbackView: View {
                     .buttonStyle(.ttPrimary)
                 }
             }
-            .padding(20)
+            .padding(TTSpacing.xl)
         }
         .background(Color.ttBackground)
     }
@@ -332,7 +332,7 @@ struct FeedbackReportRow: View {
     var isSelected: Bool = false
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: TTSpacing.xs) {
             HStack {
                 // Status dot
                 Circle()
@@ -351,10 +351,10 @@ struct FeedbackReportRow: View {
                     .foregroundColor(.ttTextTertiary)
             }
             
-            HStack(spacing: 8) {
+            HStack(spacing: TTSpacing.sm) {
                 StatusBadge(text: report.tag.rawValue, color: report.tag.color, style: .filled)
                 
-                HStack(spacing: 3) {
+                HStack(spacing: TTSpacing.inlineGapSmall) {
                     Image(systemName: AppIcon.device)
                         .font(.ttIcon(TTIcon.xs))
                     Text(report.deviceName)
@@ -363,7 +363,7 @@ struct FeedbackReportRow: View {
                 .foregroundColor(.ttTextTertiary)
                 
                 if !report.screenshots.isEmpty {
-                    HStack(spacing: 3) {
+                    HStack(spacing: TTSpacing.inlineGapSmall) {
                         Image(systemName: "paperclip")
                             .font(.ttIcon(TTIcon.xs))
                         Text("\(report.screenshots.count)")
@@ -375,8 +375,8 @@ struct FeedbackReportRow: View {
                 Spacer()
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
+        .padding(.horizontal, TTSpacing.lg)
+        .padding(.vertical, TTSpacing.inputPaddingH)
         .background(isSelected ? Color.ttPrimary.opacity(0.12) : Color.clear)
         .overlay(
             Rectangle().fill(Color.ttBorder.opacity(0.15)).frame(height: 1),

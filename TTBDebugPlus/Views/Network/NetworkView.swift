@@ -29,18 +29,18 @@ struct NetworkView: View {
         VStack(spacing: 0) {
             // View mode segmented control
             HStack(spacing: 0) {
-                HStack(spacing: 2) {
+                HStack(spacing: TTSpacing.xxxs) {
                     ForEach(NetworkViewMode.allCases, id: \.self) { mode in
                         Button(action: { withAnimation(.easeInOut(duration: 0.2)) { viewMode = mode } }) {
-                            HStack(spacing: 5) {
+                            HStack(spacing: TTSpacing.tight) {
                                 Image(systemName: mode == .requests ? "list.bullet" : "chart.bar.xaxis")
                                     .font(.ttIcon(TTIcon.md))
                                 Text(mode.rawValue)
                                     .font(TTFont.tabLabel)
                             }
                             .foregroundColor(viewMode == mode ? .white : .ttTextSecondary)
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 7)
+                            .padding(.horizontal, TTSpacing.chromeInsetH)
+                            .padding(.vertical, TTSpacing.rowVertical)
                             .background(
                                 RoundedRectangle(cornerRadius: 6)
                                     .fill(viewMode == mode ? Color.ttPrimary.opacity(0.6) : Color.clear)
@@ -49,7 +49,7 @@ struct NetworkView: View {
                         .buttonStyle(.plain)
                     }
                 }
-                .padding(3)
+                .padding(TTSpacing.inlineGapSmall)
                 .background(
                     RoundedRectangle(cornerRadius: 8)
                         .fill(Color.ttSurface.opacity(0.6))
@@ -67,8 +67,8 @@ struct NetworkView: View {
                     appFilterPicker
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
+            .padding(.horizontal, TTSpacing.lg)
+            .padding(.vertical, TTSpacing.sm)
             .background(Color.ttBackground)
             .overlay(
                 Rectangle().fill(Color.ttBorder.opacity(0.3)).frame(height: 1),
@@ -130,7 +130,7 @@ struct NetworkView: View {
                 }
             }
         } label: {
-            HStack(spacing: 6) {
+            HStack(spacing: TTSpacing.xs) {
                 if let deviceId = viewModel.selectedDeviceFilter,
                    let device = viewModel.availableDevices.first(where: { $0.id == deviceId }) {
                     Circle()
@@ -150,8 +150,8 @@ struct NetworkView: View {
                     .font(.ttIcon(TTIcon.xxs))
                     .foregroundColor(.ttTextTertiary)
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 5)
+            .padding(.horizontal, TTSpacing.inputPaddingH)
+            .padding(.vertical, TTSpacing.tight)
             .background(
                 RoundedRectangle(cornerRadius: 6)
                     .fill(Color.ttSurface)
@@ -188,7 +188,7 @@ struct NetworkView: View {
                 }
             }
         } label: {
-            HStack(spacing: 6) {
+            HStack(spacing: TTSpacing.xs) {
                 Image(systemName: "app.badge")
                     .font(.ttIcon(TTIcon.md))
                     .foregroundColor(viewModel.selectedAppFilter == nil ? .ttTextTertiary : .ttPrimary)
@@ -202,8 +202,8 @@ struct NetworkView: View {
                     .font(.ttIcon(TTIcon.xxs))
                     .foregroundColor(.ttTextTertiary)
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 5)
+            .padding(.horizontal, TTSpacing.inputPaddingH)
+            .padding(.vertical, TTSpacing.tight)
             .background(
                 RoundedRectangle(cornerRadius: 6)
                     .fill(Color.ttSurface)
@@ -259,9 +259,9 @@ struct NetworkView: View {
     // MARK: - Filter Bar
     private var networkFilterBar: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 6) {
+            HStack(spacing: TTSpacing.xs) {
             // Search field with inline scope
-            HStack(spacing: 6) {
+            HStack(spacing: TTSpacing.xs) {
                 Image(systemName: "magnifyingglass")
                     .font(.ttIcon(TTIcon.md))
                     .foregroundColor(.ttTextTertiary)
@@ -296,8 +296,8 @@ struct NetworkView: View {
                     Text(viewModel.searchScope.rawValue)
                         .font(TTFont.labelSmall)
                         .foregroundColor(.ttTextTertiary)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
+                        .padding(.horizontal, TTSpacing.xs)
+                        .padding(.vertical, TTSpacing.xxxs)
                         .background(
                             RoundedRectangle(cornerRadius: 4)
                                 .fill(Color.ttSurface.opacity(0.6))
@@ -306,8 +306,8 @@ struct NetworkView: View {
                 .menuStyle(.borderlessButton)
                 .fixedSize()
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 5)
+            .padding(.horizontal, TTSpacing.inputPaddingH)
+            .padding(.vertical, TTSpacing.tight)
             .background(
                 RoundedRectangle(cornerRadius: 6)
                     .fill(Color.ttSurface)
@@ -333,7 +333,7 @@ struct NetworkView: View {
                     }
                 }
             } label: {
-                HStack(spacing: 4) {
+                HStack(spacing: TTSpacing.xxs) {
                     if viewModel.selectedStatusFilter != .all {
                         Circle()
                             .fill(statusFilterColor(viewModel.selectedStatusFilter))
@@ -346,8 +346,8 @@ struct NetworkView: View {
                         .font(.ttIcon(TTIcon.xxxs))
                         .foregroundColor(.ttTextTertiary)
                 }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 5)
+                .padding(.horizontal, TTSpacing.sm)
+                .padding(.vertical, TTSpacing.tight)
                 .background(
                     RoundedRectangle(cornerRadius: 6)
                         .fill(viewModel.selectedStatusFilter != .all ? statusFilterColor(viewModel.selectedStatusFilter).opacity(0.1) : Color.clear)
@@ -373,7 +373,7 @@ struct NetworkView: View {
                     }
                 }
             } label: {
-                HStack(spacing: 4) {
+                HStack(spacing: TTSpacing.xxs) {
                     if let method = viewModel.selectedMethodFilter {
                         Circle().fill(Color.forHTTPMethod(method)).frame(width: 6, height: 6)
                         Text(method)
@@ -388,8 +388,8 @@ struct NetworkView: View {
                         .font(.ttIcon(TTIcon.xxxs))
                         .foregroundColor(.ttTextTertiary)
                 }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 5)
+                .padding(.horizontal, TTSpacing.sm)
+                .padding(.vertical, TTSpacing.tight)
                 .background(
                     RoundedRectangle(cornerRadius: 6)
                         .fill((viewModel.selectedMethodFilter.map { Color.forHTTPMethod($0).opacity(0.1) }) ?? Color.clear)
@@ -416,7 +416,7 @@ struct NetworkView: View {
                     }
                 }
             } label: {
-                HStack(spacing: 4) {
+                HStack(spacing: TTSpacing.xxs) {
                     Image(systemName: "globe")
                         .font(.ttIcon(TTIcon.xs))
                         .foregroundColor(viewModel.selectedDomainFilter == nil ? .ttTextTertiary : .ttPrimary)
@@ -428,8 +428,8 @@ struct NetworkView: View {
                         .font(.ttIcon(TTIcon.xxxs))
                         .foregroundColor(.ttTextTertiary)
                 }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 5)
+                .padding(.horizontal, TTSpacing.sm)
+                .padding(.vertical, TTSpacing.tight)
                 .background(
                     RoundedRectangle(cornerRadius: 6)
                         .fill(viewModel.selectedDomainFilter == nil ? Color.clear : Color.ttPrimary.opacity(0.08))
@@ -452,7 +452,7 @@ struct NetworkView: View {
                     }
                 }
             } label: {
-                HStack(spacing: 4) {
+                HStack(spacing: TTSpacing.xxs) {
                     Image(systemName: "timer")
                         .font(.ttIcon(TTIcon.xs))
                         .foregroundColor(viewModel.selectedDurationFilter == .all ? .ttTextTertiary : .ttWarning)
@@ -463,8 +463,8 @@ struct NetworkView: View {
                         .font(.ttIcon(TTIcon.xxxs))
                         .foregroundColor(.ttTextTertiary)
                 }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 5)
+                .padding(.horizontal, TTSpacing.sm)
+                .padding(.vertical, TTSpacing.tight)
                 .background(
                     RoundedRectangle(cornerRadius: 6)
                         .fill(viewModel.selectedDurationFilter == .all ? Color.clear : Color.ttWarning.opacity(0.1))
@@ -494,15 +494,15 @@ struct NetworkView: View {
             // Active filters indicator
             if hasActiveFilters {
                 Button(action: clearAllFilters) {
-                    HStack(spacing: 3) {
+                    HStack(spacing: TTSpacing.inlineGapSmall) {
                         Image(systemName: "xmark.circle.fill")
                             .font(.ttIcon(TTIcon.xs))
                         Text("Clear")
                             .font(TTFont.labelSmall)
                     }
                     .foregroundColor(.ttTextTertiary)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 3)
+                    .padding(.horizontal, TTSpacing.xs)
+                    .padding(.vertical, TTSpacing.inlineGapSmall)
                     .background(
                         Capsule().fill(Color.ttSurface.opacity(0.5))
                     )
@@ -544,8 +544,8 @@ struct NetworkView: View {
             .help("Clear all requests")
             .accessibilityLabel("Clear All Requests")
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
+            .padding(.horizontal, TTSpacing.md)
+            .padding(.vertical, TTSpacing.xs)
         }
         .background(Color.ttSurface.opacity(0.15))
         .overlay(
@@ -609,13 +609,13 @@ struct NetworkView: View {
                 .frame(width: 70, alignment: .trailing)
             Text("WATERFALL")
                 .frame(width: 100, alignment: .leading)
-                .padding(.leading, 12)
+                .padding(.leading, TTSpacing.md)
         }
         .font(TTFont.sidebarHeader)
         .foregroundColor(.ttTextSecondary)
         .tracking(0.8)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
+        .padding(.horizontal, TTSpacing.lg)
+        .padding(.vertical, TTSpacing.sm)
         .background(Color.ttSurface.opacity(0.3))
         .overlay(
             Rectangle().fill(Color.ttBorder.opacity(0.3)).frame(height: 1),
@@ -716,7 +716,7 @@ struct NetworkView: View {
     
     // MARK: - Bottom Bar
     private var networkBottomBar: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: TTSpacing.md) {
             // Request count
             Text("\(viewModel.filteredEntries.count) of \(viewModel.totalRequests) requests")
                 .font(TTFont.labelSmall)
@@ -726,7 +726,7 @@ struct NetworkView: View {
             
             // HAR export
             Button(action: exportHAR) {
-                HStack(spacing: 4) {
+                HStack(spacing: TTSpacing.xxs) {
                     Image(systemName: showHARExported ? "checkmark.circle.fill" : "doc.text")
                     Text(showHARExported ? "Exported!" : "HAR")
                 }
@@ -737,7 +737,7 @@ struct NetworkView: View {
             
             // Postman export
             Button(action: exportPostman) {
-                HStack(spacing: 4) {
+                HStack(spacing: TTSpacing.xxs) {
                     Image(systemName: showPostmanExported ? "checkmark.circle.fill" : "shippingbox")
                     Text(showPostmanExported ? "Exported!" : "Postman")
                 }
@@ -748,7 +748,7 @@ struct NetworkView: View {
             
             // cURL export
             Button(action: copyCURL) {
-                HStack(spacing: 4) {
+                HStack(spacing: TTSpacing.xxs) {
                     Image(systemName: showCURLCopied ? "checkmark.circle.fill" : "square.and.arrow.up")
                     Text(showCURLCopied ? "Copied!" : "Share cURL")
                 }
@@ -758,8 +758,8 @@ struct NetworkView: View {
             .disabled(viewModel.selectedEntry == nil)
             .opacity(viewModel.selectedEntry == nil ? 0.5 : 1.0)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
+        .padding(.horizontal, TTSpacing.lg)
+        .padding(.vertical, TTSpacing.sm)
         .background(Color.ttBackground)
         .overlay(
             Rectangle().fill(Color.ttBorder.opacity(0.3)).frame(height: 1),

@@ -25,7 +25,7 @@ struct NetworkInterfaceMenuButton: View {
     var body: some View {
         Button(action: { showPopover.toggle() }) {
             Image(systemName: "network.badge.shield.half.filled")
-                .font(.system(size: 11, weight: .medium))
+                .font(TTFont.labelMedium)
                 .foregroundColor(activeCount > 0 ? .ttPrimary : .ttTextTertiary)
                 .frame(width: 28, height: 28)
                 .background(
@@ -62,9 +62,9 @@ struct NetworkInterfaceMenuView: View {
         VStack(alignment: .leading, spacing: 0) {
 
             // Header
-            HStack(spacing: 8) {
+            HStack(spacing: TTSpacing.sm) {
                 Image(systemName: "network.badge.shield.half.filled")
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(TTFont.labelLarge)
                     .foregroundColor(.ttPrimary)
                 Text("Network Interfaces")
                     .font(TTFont.heading3)
@@ -72,7 +72,7 @@ struct NetworkInterfaceMenuView: View {
                 Spacer()
                 Button(action: { connectionManager.rescanInterfaces() }) {
                     Image(systemName: "arrow.clockwise")
-                        .font(.system(size: 11, weight: .medium))
+                        .font(TTFont.labelMedium)
                         .foregroundColor(.ttPrimary)
                 }
                 .buttonStyle(.plain)
@@ -81,22 +81,22 @@ struct NetworkInterfaceMenuView: View {
                     .font(TTFont.codeSmall)
                     .foregroundColor(.ttTextTertiary)
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 14)
-            .padding(.bottom, 10)
+            .padding(.horizontal, TTSpacing.lg)
+            .padding(.top, TTSpacing.chromeInsetH)
+            .padding(.bottom, TTSpacing.inputPaddingH)
 
             Divider().background(Color.ttBorder)
 
             // Interface list
             if connectionManager.activeInterfaces.isEmpty {
-                HStack(spacing: 8) {
+                HStack(spacing: TTSpacing.sm) {
                     Image(systemName: "wifi.slash")
                         .foregroundColor(.ttTextMuted)
                     Text("No interfaces detected")
                         .font(TTFont.bodySmall)
                         .foregroundColor(.ttTextTertiary)
                 }
-                .padding(16)
+                .padding(TTSpacing.lg)
             } else {
                 VStack(spacing: 0) {
                     ForEach(connectionManager.activeInterfaces) { iface in
@@ -110,7 +110,7 @@ struct NetworkInterfaceMenuView: View {
                         if iface.id != connectionManager.activeInterfaces.last?.id {
                             Divider()
                                 .background(Color.ttBorder.opacity(0.5))
-                                .padding(.leading, 52)
+                                .padding(.leading, TTSpacing.menuRowIndent)
                         }
                     }
                 }
@@ -119,7 +119,7 @@ struct NetworkInterfaceMenuView: View {
             Divider().background(Color.ttBorder)
 
             // Footer summary
-            HStack(spacing: 6) {
+            HStack(spacing: TTSpacing.xs) {
                 // Bonjour status dot
                 Circle()
                     .fill(connectionManager.isServerRunning ? Color.ttSuccess : Color.ttError)
@@ -170,8 +170,8 @@ struct NetworkInterfaceMenuView: View {
                 .foregroundColor(.ttError)
                 .buttonStyle(.plain)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 10)
+            .padding(.horizontal, TTSpacing.lg)
+            .padding(.vertical, TTSpacing.inputPaddingH)
         }
         .frame(width: 340)
         .background(Color.ttSurface)
@@ -187,7 +187,7 @@ struct InterfaceMenuRow: View {
     let onToggle: (Bool) -> Void
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: TTSpacing.md) {
 
             // Toggle
             Toggle("", isOn: Binding(
@@ -200,13 +200,13 @@ struct InterfaceMenuRow: View {
 
             // Interface icon
             Image(systemName: interface.kind.icon)
-                .font(.system(size: 13, weight: .medium))
+                .font(TTFont.sidebarItem)
                 .foregroundColor(isEnabled ? kindColor : .ttTextMuted)
                 .frame(width: 18)
 
             // Name + IP
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 6) {
+            VStack(alignment: .leading, spacing: TTSpacing.xxxs) {
+                HStack(spacing: TTSpacing.xs) {
                     Text(interface.name)
                         .font(TTFont.codeMedium)
                         .foregroundColor(isEnabled ? .ttTextPrimary : .ttTextTertiary)
@@ -215,8 +215,8 @@ struct InterfaceMenuRow: View {
                     Text(interface.kind.rawValue.uppercased())
                         .font(TTFont.badge)
                         .foregroundColor(isEnabled ? kindColor : .ttTextMuted)
-                        .padding(.horizontal, 5)
-                        .padding(.vertical, 2)
+                        .padding(.horizontal, TTSpacing.tight)
+                        .padding(.vertical, TTSpacing.xxxs)
                         .background(
                             Capsule().fill((isEnabled ? kindColor : Color.ttTextMuted).opacity(0.12))
                         )
@@ -232,16 +232,16 @@ struct InterfaceMenuRow: View {
             // Bonjour port — high-contrast soft pills
             if isEnabled {
                 if let port {
-                    VStack(alignment: .trailing, spacing: 3) {
+                    VStack(alignment: .trailing, spacing: TTSpacing.inlineGapSmall) {
                         Text(":" + String(port))
                             .font(TTFont.codeSmall)
                             .foregroundColor(TTBannerKind.success.foreground)
                         TTStatusPill(text: "Advertising", kind: .success)
                     }
                 } else {
-                    VStack(alignment: .trailing, spacing: 3) {
+                    VStack(alignment: .trailing, spacing: TTSpacing.inlineGapSmall) {
                         Image(systemName: "clock")
-                            .font(.system(size: 11, weight: .semibold))
+                            .font(TTFont.labelMedium)
                             .foregroundColor(TTBannerKind.warning.foreground)
                         TTStatusPill(text: "Waiting", kind: .warning)
                     }
@@ -252,8 +252,8 @@ struct InterfaceMenuRow: View {
                     .foregroundColor(.ttTextMuted)
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
+        .padding(.horizontal, TTSpacing.lg)
+        .padding(.vertical, TTSpacing.inputPaddingH)
         .opacity(isEnabled ? 1.0 : 0.6)
         .animation(.easeInOut(duration: 0.2), value: isEnabled)
     }

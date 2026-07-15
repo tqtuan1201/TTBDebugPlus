@@ -77,6 +77,7 @@
 		701182D0B93C5CEBFEE5129A /* JWTDecodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57C75075787F06B9162A4200 /* JWTDecodeView.swift */; };
 		70185CABD6134321D4469370 /* TabBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED3B8119893E5A4C8A3D7320 /* TabBarView.swift */; };
 		7121E26286AACFDB668DD1DF /* DeviceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0762C5965C85E62C567E17E /* DeviceView.swift */; };
+		72CB2F57ADB537308819EB0D /* DesignSystemMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F7CF4A87AEA92EA1589CE33 /* DesignSystemMetrics.swift */; };
 		78549D9834E61F5C2EC5BC14 /* OnlineJsonEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62CB05B234E7A66FD53E3A06 /* OnlineJsonEditorView.swift */; };
 		7B642CC3B786400921DC873F /* AnnotationHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADE4D893FD0591101C27A442 /* AnnotationHelpers.swift */; };
 		7D2625748C647A807A5AD977 /* HARExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BE9974877106CE044CA2948 /* HARExporter.swift */; };
@@ -145,6 +146,7 @@
 		E3C818568AB07094BE1715CD /* StatusBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12026A31EDDBF567F323400B /* StatusBarView.swift */; };
 		E49AC4723AE9F94C6090983A /* CardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE14765C953B017C5C763950 /* CardView.swift */; };
 		E4F6FD4EF40003379F6A18DE /* JWTSecurityAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB736FB600A7FC52FF898CAD /* JWTSecurityAnalyzer.swift */; };
+		E9398E6F68CFE920B416660D /* DesignSystemConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A355BDEFB38E9F8E494AB8B /* DesignSystemConfig.swift */; };
 		EA8B14D93250FB5F19458853 /* FeedbackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FE72CBBAAC8497A746D8E00 /* FeedbackView.swift */; };
 		EB743CEB6D71EA14F97217ED /* PerformanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8114B980F6C0236A519DA3F9 /* PerformanceView.swift */; };
 		ECC7B8636630B5C005BAF564 /* TemplateRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0BEA34294D42C7E816632B /* TemplateRowView.swift */; };
@@ -241,6 +243,7 @@
 		7791F089A3C1E0B34C8406E1 /* SavedToken.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedToken.swift; sourceTree = "<group>"; };
 		78C7B934BBBA0E971AFF6CFD /* LocalServerStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalServerStore.swift; sourceTree = "<group>"; };
 		7D81A159222000FDF2AF3EF0 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		7F7CF4A87AEA92EA1589CE33 /* DesignSystemMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystemMetrics.swift; sourceTree = "<group>"; };
 		7FD9869FC346578B563ABDEF /* RelayServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RelayServer.swift; sourceTree = "<group>"; };
 		80B29FAC5DD2726C8485490A /* MenuBarDeviceRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarDeviceRow.swift; sourceTree = "<group>"; };
 		8114B980F6C0236A519DA3F9 /* PerformanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerformanceView.swift; sourceTree = "<group>"; };
@@ -258,6 +261,7 @@
 		96AC0A5DD040F25EDF470569 /* PaletteHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaletteHistoryView.swift; sourceTree = "<group>"; };
 		9884682B51A64EDEED95DE08 /* JSONGraphModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONGraphModels.swift; sourceTree = "<group>"; };
 		9966C3F1D10AA6DA0E592555 /* IntegrationGuideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntegrationGuideView.swift; sourceTree = "<group>"; };
+		9A355BDEFB38E9F8E494AB8B /* DesignSystemConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystemConfig.swift; sourceTree = "<group>"; };
 		9B17DB1E3155455C6F8FCBFD /* JWTSharedComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JWTSharedComponents.swift; sourceTree = "<group>"; };
 		9C1A1A705C0D65BA6AE9F18E /* ColorSamplerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorSamplerService.swift; sourceTree = "<group>"; };
 		9ED6724E8A5F9819203BA100 /* JWTCompareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JWTCompareView.swift; sourceTree = "<group>"; };
@@ -818,6 +822,8 @@
 				EE14765C953B017C5C763950 /* CardView.swift */,
 				3DA50E018F6F0556C69671F1 /* Colors.swift */,
 				566321A1A79812AAC75DC2C9 /* DateFormatters.swift */,
+				9A355BDEFB38E9F8E494AB8B /* DesignSystemConfig.swift */,
+				7F7CF4A87AEA92EA1589CE33 /* DesignSystemMetrics.swift */,
 				6878FD5144F9AB0002DA41BA /* IconSizes.swift */,
 				BFF3CA8E4A977DBC0139EDFE /* Radius.swift */,
 				AC65C33E1ECEA86A9ACDFEDB /* Shadows.swift */,
@@ -1056,6 +1062,8 @@
 				B41D866E5D19F68D8EE549D6 /* ContentView.swift in Sources */,
 				81617086399686DCB0936DA2 /* DateFormatters.swift in Sources */,
 				58E1AE1C50A844B2BBDB2ACF /* DebugMessage.swift in Sources */,
+				E9398E6F68CFE920B416660D /* DesignSystemConfig.swift in Sources */,
+				72CB2F57ADB537308819EB0D /* DesignSystemMetrics.swift in Sources */,
 				3E5220AD0F4C1D8F8B1E7068 /* DesignTokenMatcher.swift in Sources */,
 				DB86143B9F006A12566FAA0B /* DevToolsView.swift in Sources */,
 				67630A5C27F7482E13F952B9 /* DeviceSession.swift in Sources */,

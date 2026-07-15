@@ -90,7 +90,7 @@ struct JWTCompareView: View {
     }
 
     private func tokenInput(title: String, binding: Binding<String>, tint: Color) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: TTSpacing.sm) {
             HStack {
                 Label(title, systemImage: "key.horizontal")
                     .font(TTFont.labelLarge).foregroundColor(tint)
@@ -105,14 +105,14 @@ struct JWTCompareView: View {
                 }
                 .buttonStyle(.plain)
                 Button { binding.wrappedValue = "" } label: {
-                    Image(systemName: "xmark.circle").font(.system(size: 12)).foregroundColor(.ttTextTertiary)
+                    Image(systemName: "xmark.circle").font(TTFont.bodyMedium).foregroundColor(.ttTextTertiary)
                 }
                 .buttonStyle(.plain)
                 .disabled(binding.wrappedValue.isEmpty)
             }
             JWTMonoEditor(text: binding, placeholder: "Paste \(title)…")
         }
-        .padding(14)
+        .padding(TTSpacing.chromeInsetH)
         .frame(maxWidth: .infinity)
     }
 
@@ -127,7 +127,7 @@ struct JWTCompareView: View {
                           subtitle: "Paste two JWTs above to see a claim-by-claim diff.")
         } else {
             ScrollView {
-                VStack(alignment: .leading, spacing: 14) {
+                VStack(alignment: .leading, spacing: TTSpacing.chromeInsetH) {
                     JWTSectionCard(title: "Header", icon: "number") {
                         diffLine(key: "alg",
                                  valueA: a?.rawAlgorithm, valueB: b?.rawAlgorithm,
@@ -154,13 +154,13 @@ struct JWTCompareView: View {
                         }
                     }
                 }
-                .padding(16)
+                .padding(TTSpacing.lg)
             }
         }
     }
 
     private var legend: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: TTSpacing.sm) {
             legendChip("changed", .ttWarning)
             legendChip("only A", .ttError)
             legendChip("only B", .ttSuccess)
@@ -170,7 +170,7 @@ struct JWTCompareView: View {
     private func legendChip(_ text: String, _ color: Color) -> some View {
         Text(text)
             .font(TTFont.badge).foregroundColor(color)
-            .padding(.horizontal, 6).padding(.vertical, 2)
+            .padding(.horizontal, TTSpacing.xs).padding(.vertical, TTSpacing.xxxs)
             .background(Capsule().fill(color.opacity(0.14)))
     }
 
@@ -184,7 +184,7 @@ struct JWTCompareView: View {
     }
 
     private func diffLine(key: String, valueA: String?, valueB: String?, status: ClaimStatus) -> some View {
-        HStack(alignment: .top, spacing: 10) {
+        HStack(alignment: .top, spacing: TTSpacing.inputPaddingH) {
             Text(status.label)
                 .font(TTFont.codeSmall).foregroundColor(status.color)
                 .frame(width: 14)
@@ -202,7 +202,7 @@ struct JWTCompareView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .textSelection(.enabled)
         }
-        .padding(.vertical, 6)
+        .padding(.vertical, TTSpacing.xs)
         .overlay(
             Rectangle().fill(Color.ttBorder.opacity(0.1)).frame(height: 1),
             alignment: .bottom

@@ -700,37 +700,47 @@ struct AnnotatedImageRender: View {
 
 // MARK: - Screenshot Info Footer Banner
 /// Dark banner appended below a screenshot when exporting "Copy + Info".
-/// Rendered to an image via ImageRenderer, so it must use only static SwiftUI.
+/// Rendered via ImageRenderer — reads applied design metrics at render time
+/// (export raster `scale` × Settings font/spacing scales).
 struct ScreenshotInfoFooterView: View {
     let info: DeviceInfoSnapshot
     let timestamp: Date
+    /// Raster / image export scale (independent of app density).
     var scale: CGFloat = 1.0
     var appTitle: String = "TTBDebugPlus"
 
+    /// Composite: export scale × applied design metrics (Phase 5).
+    private var fontMul: CGFloat {
+        DesignSystemConfig.shared.exportFontScale(exportScale: scale)
+    }
+    private var spaceMul: CGFloat {
+        DesignSystemConfig.shared.exportSpacingScale(exportScale: scale)
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 8 * scale) {
+        VStack(alignment: .leading, spacing: 8 * spaceMul) {
             // Row 1 — brand · capture time · device-type badge
-            HStack(alignment: .center, spacing: 10 * scale) {
+            HStack(alignment: .center, spacing: 10 * spaceMul) {
                 Image(systemName: AppIcon.app)
-                    .font(.system(size: 19 * scale, weight: .semibold))
+                    .font(.system(size: 19 * fontMul, weight: .semibold))
                     .foregroundColor(.ttError)
                 Text(appTitle)
-                    .font(.system(size: 15 * scale, weight: .bold))
+                    .font(.system(size: 15 * fontMul, weight: .bold))
                     .foregroundColor(.white)
                 Text(info.formattedStamp(timestamp))
-                    .font(.system(size: 12 * scale, weight: .regular).monospacedDigit())
+                    .font(.system(size: 12 * fontMul, weight: .regular).monospacedDigit())
                     .foregroundColor(.white.opacity(0.55))
 
-                Spacer(minLength: 8 * scale)
+                Spacer(minLength: 8 * spaceMul)
 
                 Text(info.isSimulator ? "SIMULATOR" : "REAL DEVICE")
-                    .font(.system(size: 11 * scale, weight: .bold))
-                    .tracking(0.8 * scale)
+                    .font(.system(size: 11 * fontMul, weight: .bold))
+                    .tracking(0.8 * fontMul)
                     .foregroundColor(info.isSimulator ? .ttWarning : .ttSuccess)
-                    .padding(.horizontal, 9 * scale)
-                    .padding(.vertical, 4 * scale)
+                    .padding(.horizontal, 9 * spaceMul)
+                    .padding(.vertical, 4 * spaceMul)
                     .background(
-                        RoundedRectangle(cornerRadius: 5 * scale)
+                        RoundedRectangle(cornerRadius: 5 * spaceMul)
                             .fill((info.isSimulator ? Color.ttWarning : Color.ttSuccess).opacity(0.16))
                     )
             }
@@ -740,8 +750,8 @@ struct ScreenshotInfoFooterView: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(.horizontal, 22 * scale)
-        .padding(.vertical, 15 * scale)
+        .padding(.horizontal, 22 * spaceMul)
+        .padding(.vertical, 15 * spaceMul)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(nsColor: NSColor(calibratedWhite: 0.11, alpha: 1.0)))
     }
@@ -754,15 +764,15 @@ struct ScreenshotInfoFooterView: View {
         for (i, pair) in pairs.enumerated() {
             if i > 0 {
                 result = result + Text("   ·   ")
-                    .font(.system(size: 13 * scale))
+                    .font(.system(size: 13 * fontMul))
                     .foregroundColor(.white.opacity(0.3))
             }
             result = result
                 + Text("\(pair.label)  ")
-                    .font(.system(size: 11 * scale, weight: .semibold))
+                    .font(.system(size: 11 * fontMul, weight: .semibold))
                     .foregroundColor(.white.opacity(0.5))
                 + Text(pair.value)
-                    .font(.system(size: 13 * scale, weight: .medium))
+                    .font(.system(size: 13 * fontMul, weight: .medium))
                     .foregroundColor(.white.opacity(0.95))
         }
         return result

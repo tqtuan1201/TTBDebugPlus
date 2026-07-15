@@ -17,12 +17,13 @@ struct JSONAutoFixPreviewSheet: View {
     var body: some View {
         VStack(spacing: 0) {
             // Header
-            HStack(spacing: 12) {
+            HStack(spacing: TTSpacing.md) {
                 Image(systemName: result.isValidAfterRepair ? "wrench.and.screwdriver.fill" : "exclamationmark.triangle.fill")
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(.ttIcon(TTIcon.xxxl))
+                    .fontWeight(.semibold)
                     .foregroundColor(result.isValidAfterRepair ? .ttPrimary : .ttWarning)
 
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: TTSpacing.xxxs) {
                     Text("Preview Auto Fix")
                         .font(TTFont.heading2)
                         .foregroundColor(.ttTextPrimary)
@@ -40,7 +41,7 @@ struct JSONAutoFixPreviewSheet: View {
                     .keyboardShortcut(.cancelAction)
 
                 Button(action: onApply) {
-                    HStack(spacing: 6) {
+                    HStack(spacing: TTSpacing.xs) {
                         Image(systemName: "checkmark.circle.fill")
                         Text("Apply Fix")
                     }
@@ -50,41 +51,41 @@ struct JSONAutoFixPreviewSheet: View {
                 // Only allow apply when result is valid JSON
                 .disabled(!result.canSafelyApply && !result.isValidAfterRepair)
             }
-            .padding(16)
+            .padding(TTSpacing.lg)
             .background(Color.ttSurface.opacity(0.35))
             .overlay(Rectangle().fill(Color.ttBorder.opacity(0.25)).frame(height: 1), alignment: .bottom)
 
             // Fix list
             if !result.fixes.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
+                    HStack(spacing: TTSpacing.sm) {
                         ForEach(result.fixes) { fix in
-                            HStack(spacing: 6) {
+                            HStack(spacing: TTSpacing.xs) {
                                 Image(systemName: "sparkles")
-                                    .font(.system(size: 10, weight: .semibold))
+                                    .font(TTFont.labelSmall)
                                 Text(fix.description)
                                     .font(TTFont.labelSmall)
                             }
                             .foregroundColor(.ttPrimary)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
+                            .padding(.horizontal, TTSpacing.inputPaddingH)
+                            .padding(.vertical, TTSpacing.xs)
                             .background(
                                 Capsule().fill(Color.ttPrimary.opacity(0.12))
                             )
                         }
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 10)
+                    .padding(.horizontal, TTSpacing.lg)
+                    .padding(.vertical, TTSpacing.inputPaddingH)
                 }
                 .background(Color.ttBackground)
                 .overlay(Rectangle().fill(Color.ttBorder.opacity(0.15)).frame(height: 1), alignment: .bottom)
             }
 
             // Stats row
-            HStack(spacing: 16) {
+            HStack(spacing: TTSpacing.lg) {
                 stat(title: "Original", value: byteString(result.original))
                 stat(title: "Repaired", value: byteString(result.repaired))
-                HStack(spacing: 6) {
+                HStack(spacing: TTSpacing.xs) {
                     Circle()
                         .fill(result.isValidAfterRepair ? Color.ttSuccess : Color.ttError)
                         .frame(width: 7, height: 7)
@@ -100,18 +101,18 @@ struct JSONAutoFixPreviewSheet: View {
                 .pickerStyle(.segmented)
                 .frame(width: 200)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 10)
+            .padding(.horizontal, TTSpacing.lg)
+            .padding(.vertical, TTSpacing.inputPaddingH)
 
             if let msg = result.validationMessage, !result.isValidAfterRepair {
-                HStack(spacing: 8) {
+                HStack(spacing: TTSpacing.sm) {
                     Image(systemName: "info.circle")
                     Text(msg)
                         .font(TTFont.bodySmall)
                 }
                 .foregroundColor(.ttWarning)
-                .padding(.horizontal, 16)
-                .padding(.bottom, 8)
+                .padding(.horizontal, TTSpacing.lg)
+                .padding(.bottom, TTSpacing.sm)
             }
 
             // Diff-ish preview
@@ -121,7 +122,7 @@ struct JSONAutoFixPreviewSheet: View {
                     .foregroundColor(.ttTextPrimary)
                     .textSelection(.enabled)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(16)
+                    .padding(TTSpacing.lg)
             }
             .background(Color.ttBackground)
         }
@@ -130,7 +131,7 @@ struct JSONAutoFixPreviewSheet: View {
     }
 
     private func stat(title: String, value: String) -> some View {
-        HStack(spacing: 4) {
+        HStack(spacing: TTSpacing.xxs) {
             Text(title)
                 .font(TTFont.labelSmall)
                 .foregroundColor(.ttTextTertiary)

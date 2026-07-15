@@ -45,16 +45,16 @@ struct JSONDiffView: View {
                 .frame(minHeight: 160, idealHeight: inputHeight, maxHeight: .infinity)
                 
                 // Separator with drag hint
-                HStack(spacing: 6) {
+                HStack(spacing: TTSpacing.xs) {
                     Rectangle().fill(Color.ttBorder.opacity(0.2)).frame(height: 1)
                     Text("DIFF RESULTS")
-                        .font(.system(size: 9, weight: .bold, design: .monospaced))
+                        .font(TTFont.badge)
                         .foregroundColor(.ttTextMuted)
                         .tracking(1.5)
                     Rectangle().fill(Color.ttBorder.opacity(0.2)).frame(height: 1)
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 6)
+                .padding(.horizontal, TTSpacing.lg)
+                .padding(.vertical, TTSpacing.xs)
                 .background(Color.ttSurface.opacity(0.15))
                 
                 // Diff results — fills remaining space
@@ -88,7 +88,7 @@ struct JSONDiffView: View {
     
     // MARK: - Header
     private var diffHeader: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: TTSpacing.md) {
             // Icon with glow
             ZStack {
                 Circle()
@@ -107,7 +107,7 @@ struct JSONDiffView: View {
             
             if let result = diffResult {
                 // Stats badges
-                HStack(spacing: 10) {
+                HStack(spacing: TTSpacing.inputPaddingH) {
                     statBadge(count: result.stats.added, label: "Added", color: .ttSuccess, icon: "plus.circle.fill")
                     statBadge(count: result.stats.removed, label: "Removed", color: .ttError, icon: "minus.circle.fill")
                     statBadge(count: result.stats.changed, label: "Changed", color: .ttWarning, icon: "arrow.triangle.2.circlepath")
@@ -117,7 +117,7 @@ struct JSONDiffView: View {
                 
                 // Navigate diffs
                 if result.stats.hasChanges {
-                    HStack(spacing: 4) {
+                    HStack(spacing: TTSpacing.xxs) {
                         Button(action: { navigateDiff(-1) }) {
                             Image(systemName: "chevron.up")
                                 .font(.ttIcon(TTIcon.sm))
@@ -140,7 +140,7 @@ struct JSONDiffView: View {
             
             // Compare button
             Button(action: executeDiff) {
-                HStack(spacing: 5) {
+                HStack(spacing: TTSpacing.tight) {
                     Image(systemName: "arrow.triangle.2.circlepath")
                         .font(.ttIcon(TTIcon.md))
                     Text("Compare")
@@ -150,13 +150,13 @@ struct JSONDiffView: View {
             .buttonStyle(.ttPrimaryCompact)
             .disabled(leftJSON.isEmpty || rightJSON.isEmpty)
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
+        .padding(.horizontal, TTSpacing.chromeInsetH)
+        .padding(.vertical, TTSpacing.inputPaddingH)
         .background(Color.ttSurface.opacity(0.15))
     }
     
     private func statBadge(count: Int, label: String, color: Color, icon: String) -> some View {
-        HStack(spacing: 4) {
+        HStack(spacing: TTSpacing.xxs) {
             Image(systemName: icon)
                 .font(.ttIcon(TTIcon.xs))
                 .foregroundColor(color)
@@ -164,11 +164,11 @@ struct JSONDiffView: View {
                 .font(TTFont.badge)
                 .foregroundColor(color)
             Text(label)
-                .font(.system(size: 9, weight: .medium))
+                .font(TTFont.badge)
                 .foregroundColor(.ttTextTertiary)
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 3)
+        .padding(.horizontal, TTSpacing.sm)
+        .padding(.vertical, TTSpacing.inlineGapSmall)
         .background(
             Capsule()
                 .fill(color.opacity(0.08))
@@ -179,14 +179,14 @@ struct JSONDiffView: View {
     private func diffInputPane(title: String, text: Binding<String>, side: DiffSide) -> some View {
         VStack(spacing: 0) {
             // Pane header
-            HStack(spacing: 8) {
+            HStack(spacing: TTSpacing.sm) {
                 // Side indicator dot
                 Circle()
                     .fill(side == .left ? Color.ttError.opacity(0.6) : Color.ttSuccess.opacity(0.6))
                     .frame(width: 6, height: 6)
                 
                 Text(title)
-                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                    .font(TTFont.badge)
                     .foregroundColor(.ttTextSecondary)
                     .tracking(0.6)
                 
@@ -195,26 +195,26 @@ struct JSONDiffView: View {
                 // Character count
                 if !text.wrappedValue.isEmpty {
                     Text("\(text.wrappedValue.count) chars")
-                        .font(.system(size: 9, weight: .medium, design: .monospaced))
+                        .font(TTFont.badge)
                         .foregroundColor(.ttTextMuted)
                 }
                 
                 // Action buttons
-                HStack(spacing: 2) {
+                HStack(spacing: TTSpacing.xxxs) {
                     Button(action: {
                         if let str = NSPasteboard.general.string(forType: .string) {
                             text.wrappedValue = str
                         }
                     }) {
-                        HStack(spacing: 3) {
+                        HStack(spacing: TTSpacing.inlineGapSmall) {
                             Image(systemName: "doc.on.clipboard")
                                 .font(.ttIcon(TTIcon.xs))
                             Text("Paste")
-                                .font(.system(size: 9, weight: .medium))
+                                .font(TTFont.badge)
                         }
                         .foregroundColor(.ttTextTertiary)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 3)
+                        .padding(.horizontal, TTSpacing.xs)
+                        .padding(.vertical, TTSpacing.inlineGapSmall)
                         .background(
                             RoundedRectangle(cornerRadius: 4)
                                 .fill(Color.ttSurface.opacity(hoveredSide == side ? 0.6 : 0))
@@ -232,8 +232,8 @@ struct JSONDiffView: View {
                     }
                 }
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 7)
+            .padding(.horizontal, TTSpacing.md)
+            .padding(.vertical, TTSpacing.rowVertical)
             .background(Color.ttSurface.opacity(0.25))
             .overlay(
                 Rectangle().fill(Color.ttBorder.opacity(0.15)).frame(height: 1),
@@ -242,7 +242,7 @@ struct JSONDiffView: View {
             
             // Text input — fills all remaining space
             TextEditor(text: text)
-                .font(Font.system(size: 12, weight: .regular, design: .monospaced))
+                .font(TTFont.codeMedium)
                 .scrollContentBackground(.hidden)
                 .foregroundColor(.ttTextPrimary)
                 .background(Color.ttBackground.opacity(0.5))
@@ -251,12 +251,12 @@ struct JSONDiffView: View {
                     // Placeholder
                     Group {
                         if text.wrappedValue.isEmpty {
-                            VStack(spacing: 6) {
+                            VStack(spacing: TTSpacing.xs) {
                                 Image(systemName: side == .left ? "doc.text" : "doc.text.fill")
-                                    .font(.system(size: 20))
+                                    .font(TTFont.heading2)
                                     .foregroundColor(.ttTextMuted.opacity(0.5))
                                 Text("Paste JSON here")
-                                    .font(.system(size: 11, weight: .medium))
+                                    .font(TTFont.labelMedium)
                                     .foregroundColor(.ttTextMuted.opacity(0.5))
                             }
                         }
@@ -283,7 +283,7 @@ struct JSONDiffView: View {
     @ViewBuilder
     private var diffResultsView: some View {
         if isComputing {
-            VStack(spacing: 10) {
+            VStack(spacing: TTSpacing.inputPaddingH) {
                 ProgressView()
                     .scaleEffect(0.7)
                     .tint(.ttPrimary)
@@ -294,13 +294,13 @@ struct JSONDiffView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if let result = diffResult {
             if !result.stats.hasChanges && result.error == nil {
-                VStack(spacing: 10) {
+                VStack(spacing: TTSpacing.inputPaddingH) {
                     ZStack {
                         Circle()
                             .fill(Color.ttSuccess.opacity(0.08))
                             .frame(width: 56, height: 56)
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 28))
+                            .font(TTFont.displayMedium)
                             .foregroundColor(.ttSuccess)
                     }
                     Text("Identical")
@@ -312,13 +312,13 @@ struct JSONDiffView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if let error = result.error {
-                VStack(spacing: 10) {
+                VStack(spacing: TTSpacing.inputPaddingH) {
                     ZStack {
                         Circle()
                             .fill(Color.ttWarning.opacity(0.08))
                             .frame(width: 56, height: 56)
                         Image(systemName: "exclamationmark.triangle.fill")
-                            .font(.system(size: 28))
+                            .font(TTFont.displayMedium)
                             .foregroundColor(.ttWarning)
                     }
                     Text("Parse Error")
@@ -333,13 +333,13 @@ struct JSONDiffView: View {
                 diffNodesList(result.nodes)
             }
         } else {
-            VStack(spacing: 14) {
+            VStack(spacing: TTSpacing.chromeInsetH) {
                 ZStack {
                     Circle()
                         .fill(Color.ttSurface.opacity(0.5))
                         .frame(width: 56, height: 56)
                     Image(systemName: AppIcon.jsonDiff)
-                        .font(.system(size: 24))
+                        .font(TTFont.heading1)
                         .foregroundColor(.ttTextMuted)
                 }
                 Text("Ready to Compare")
@@ -350,11 +350,11 @@ struct JSONDiffView: View {
                     .foregroundColor(.ttTextTertiary)
                 
                 // Keyboard shortcut hint
-                HStack(spacing: 4) {
+                HStack(spacing: TTSpacing.xxs) {
                     KeyboardShortcutBadge(key: "⌘")
                     KeyboardShortcutBadge(key: "V")
                     Text("to paste")
-                        .font(.system(size: 9, weight: .medium))
+                        .font(TTFont.badge)
                         .foregroundColor(.ttTextMuted)
                 }
             }
@@ -379,8 +379,8 @@ struct JSONDiffView: View {
                             Rectangle()
                                 .fill(Color.ttBorder.opacity(0.08))
                                 .frame(width: 1)
-                                .padding(.leading, 12)
-                                .padding(.trailing, 4)
+                                .padding(.leading, TTSpacing.md)
+                                .padding(.trailing, TTSpacing.xxs)
                         }
                         
                         // Type icon
@@ -402,9 +402,9 @@ struct JSONDiffView: View {
                         // Values
                         switch node.type {
                         case .added:
-                            HStack(spacing: 4) {
+                            HStack(spacing: TTSpacing.xxs) {
                                 Text("+")
-                                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                    .font(TTFont.badge)
                                     .foregroundColor(.ttSuccess)
                                 Text(node.rightValue ?? "")
                                     .font(TTFont.codeMedium)
@@ -413,9 +413,9 @@ struct JSONDiffView: View {
                                     .textSelection(.enabled)
                             }
                         case .removed:
-                            HStack(spacing: 4) {
+                            HStack(spacing: TTSpacing.xxs) {
                                 Text("−")
-                                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                    .font(TTFont.badge)
                                     .foregroundColor(.ttError)
                                 Text(node.leftValue ?? "")
                                     .font(TTFont.codeMedium)
@@ -425,7 +425,7 @@ struct JSONDiffView: View {
                                     .textSelection(.enabled)
                             }
                         case .changed(let old, let new):
-                            HStack(spacing: 6) {
+                            HStack(spacing: TTSpacing.xs) {
                                 Text(old)
                                     .font(TTFont.codeMedium)
                                     .foregroundColor(.ttError)
@@ -446,8 +446,8 @@ struct JSONDiffView: View {
                         
                         Spacer()
                     }
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 7)
+                    .padding(.horizontal, TTSpacing.chromeInsetH)
+                    .padding(.vertical, TTSpacing.rowVertical)
                     .background(diffRowBackground(node.type))
                     .overlay(
                         Rectangle().fill(Color.ttBorder.opacity(0.06)).frame(height: 1),
@@ -508,10 +508,10 @@ private struct KeyboardShortcutBadge: View {
     
     var body: some View {
         Text(key)
-            .font(.system(size: 9, weight: .semibold, design: .monospaced))
+            .font(TTFont.badge)
             .foregroundColor(.ttTextTertiary)
-            .padding(.horizontal, 5)
-            .padding(.vertical, 2)
+            .padding(.horizontal, TTSpacing.tight)
+            .padding(.vertical, TTSpacing.xxxs)
             .background(
                 RoundedRectangle(cornerRadius: 3)
                     .fill(Color.ttSurface.opacity(0.5))

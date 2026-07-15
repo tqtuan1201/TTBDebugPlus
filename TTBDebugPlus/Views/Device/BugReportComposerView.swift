@@ -34,7 +34,7 @@ struct BugReportComposerView: View {
             
             // Form
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: TTSpacing.xl) {
                     titleSection
                     severityAndTagsSection
                     screenshotsSection
@@ -43,7 +43,7 @@ struct BugReportComposerView: View {
                     notesSection
                     environmentSection
                 }
-                .padding(24)
+                .padding(TTSpacing.xxl)
             }
             
             Divider().background(Color.ttBorder)
@@ -87,14 +87,14 @@ struct BugReportComposerView: View {
             .buttonStyle(.plain)
             .keyboardShortcut(.escape, modifiers: [])
         }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 16)
+        .padding(.horizontal, TTSpacing.xxl)
+        .padding(.vertical, TTSpacing.lg)
         .background(Color.ttSurface.opacity(0.5))
     }
     
     // MARK: - Title
     private var titleSection: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: TTSpacing.xs) {
             sectionLabel("Title")
             TextField("Brief description of the issue", text: $report.title)
                 .textFieldStyle(.roundedBorder)
@@ -105,21 +105,21 @@ struct BugReportComposerView: View {
     
     // MARK: - Severity & Tags
     private var severityAndTagsSection: some View {
-        HStack(alignment: .top, spacing: 24) {
+        HStack(alignment: .top, spacing: TTSpacing.xxl) {
             // Severity
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: TTSpacing.xs) {
                 sectionLabel("Severity")
-                HStack(spacing: 6) {
+                HStack(spacing: TTSpacing.xs) {
                     ForEach(Severity.allCases, id: \.self) { severity in
                         Button(action: { report.severity = severity }) {
-                            HStack(spacing: 4) {
+                            HStack(spacing: TTSpacing.xxs) {
                                 Text(severity.emoji)
                                     .font(.ttIcon(TTIcon.lg))
                                 Text(severity.rawValue)
                                     .font(TTFont.labelSmall)
                             }
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
+                            .padding(.horizontal, TTSpacing.inputPaddingH)
+                            .padding(.vertical, TTSpacing.xs)
                             .background(
                                 RoundedRectangle(cornerRadius: 6)
                                     .fill(report.severity == severity ? Color.ttPrimary.opacity(0.15) : Color.ttSurface)
@@ -136,9 +136,9 @@ struct BugReportComposerView: View {
             }
             
             // Tags
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: TTSpacing.xs) {
                 sectionLabel("Tags")
-                FlowLayout(spacing: 6) {
+                FlowLayout(spacing: TTSpacing.xs) {
                     ForEach(ReportTag.allCases, id: \.self) { tag in
                         Button(action: {
                             if report.tags.contains(tag) {
@@ -147,14 +147,14 @@ struct BugReportComposerView: View {
                                 report.tags.insert(tag)
                             }
                         }) {
-                            HStack(spacing: 4) {
+                            HStack(spacing: TTSpacing.xxs) {
                                 Text(tag.icon)
                                     .font(.ttIcon(TTIcon.md))
                                 Text(tag.label)
                                     .font(TTFont.labelSmall)
                             }
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 5)
+                            .padding(.horizontal, TTSpacing.sm)
+                            .padding(.vertical, TTSpacing.tight)
                             .background(
                                 RoundedRectangle(cornerRadius: 6)
                                     .fill(report.tags.contains(tag) ? Color.ttPrimary.opacity(0.15) : Color.ttSurface)
@@ -174,17 +174,17 @@ struct BugReportComposerView: View {
     
     // MARK: - Screenshots
     private var screenshotsSection: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: TTSpacing.xs) {
             sectionLabel("Screenshots (\(screenshots.count))")
             
             if screenshots.isEmpty {
                 Text("No screenshots attached")
                     .font(TTFont.bodySmall)
                     .foregroundColor(.ttTextTertiary)
-                    .padding(.vertical, 8)
+                    .padding(.vertical, TTSpacing.sm)
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
+                    HStack(spacing: TTSpacing.sm) {
                         ForEach(0..<screenshots.count, id: \.self) { i in
                             Image(nsImage: screenshots[i])
                                 .resizable()
@@ -204,11 +204,11 @@ struct BugReportComposerView: View {
     
     // MARK: - Reproduction Steps
     private var reproStepsSection: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: TTSpacing.xs) {
             sectionLabel("Reproduction Steps")
             
             ForEach(report.reproSteps.indices, id: \.self) { i in
-                HStack(spacing: 8) {
+                HStack(spacing: TTSpacing.sm) {
                     // Step number
                     Text("\(i + 1).")
                         .font(TTFont.codeMedium)
@@ -237,7 +237,7 @@ struct BugReportComposerView: View {
             Button(action: {
                 report.reproSteps.append("")
             }) {
-                HStack(spacing: 4) {
+                HStack(spacing: TTSpacing.xxs) {
                     Image(systemName: "plus.circle")
                     Text("Add Step")
                 }
@@ -249,14 +249,14 @@ struct BugReportComposerView: View {
     
     // MARK: - Expected / Actual
     private var expectedActualSection: some View {
-        HStack(alignment: .top, spacing: 16) {
-            VStack(alignment: .leading, spacing: 6) {
+        HStack(alignment: .top, spacing: TTSpacing.lg) {
+            VStack(alignment: .leading, spacing: TTSpacing.xs) {
                 sectionLabel("Expected Result")
                 TextEditor(text: $report.expectedResult)
                     .font(TTFont.bodyMedium)
                     .frame(minHeight: 60, maxHeight: 120)
                     .scrollContentBackground(.hidden)
-                    .padding(8)
+                    .padding(TTSpacing.sm)
                     .background(
                         RoundedRectangle(cornerRadius: 8)
                             .fill(Color.ttSurface)
@@ -267,13 +267,13 @@ struct BugReportComposerView: View {
                     )
             }
             
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: TTSpacing.xs) {
                 sectionLabel("Actual Result")
                 TextEditor(text: $report.actualResult)
                     .font(TTFont.bodyMedium)
                     .frame(minHeight: 60, maxHeight: 120)
                     .scrollContentBackground(.hidden)
-                    .padding(8)
+                    .padding(TTSpacing.sm)
                     .background(
                         RoundedRectangle(cornerRadius: 8)
                             .fill(Color.ttSurface)
@@ -288,13 +288,13 @@ struct BugReportComposerView: View {
     
     // MARK: - Notes
     private var notesSection: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: TTSpacing.xs) {
             sectionLabel("Additional Notes")
             TextEditor(text: $report.notes)
                 .font(TTFont.bodyMedium)
                 .frame(minHeight: 60, maxHeight: 120)
                 .scrollContentBackground(.hidden)
-                .padding(8)
+                .padding(TTSpacing.sm)
                 .background(
                     RoundedRectangle(cornerRadius: 8)
                         .fill(Color.ttSurface)
@@ -308,10 +308,10 @@ struct BugReportComposerView: View {
     
     // MARK: - Environment
     private var environmentSection: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: TTSpacing.xs) {
             sectionLabel("Environment (auto-filled)")
             
-            VStack(spacing: 4) {
+            VStack(spacing: TTSpacing.xxs) {
                 envRow("Device", report.deviceInfo.deviceName)
                 envRow("OS", report.deviceInfo.osVersion)
                 envRow("App", "\(report.deviceInfo.appName) v\(report.deviceInfo.appVersion)")
@@ -321,7 +321,7 @@ struct BugReportComposerView: View {
                     envRow("Type", "Simulator")
                 }
             }
-            .padding(12)
+            .padding(TTSpacing.md)
             .background(
                 RoundedRectangle(cornerRadius: 8)
                     .fill(Color.ttSurface.opacity(0.5))
@@ -350,14 +350,14 @@ struct BugReportComposerView: View {
     
     // MARK: - Footer
     private var footer: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: TTSpacing.sm) {
             // Copy as… (Markdown / Slack / Jira)
             Menu {
                 Button(action: { copyText(.markdown) }) { Label("Copy as Markdown", systemImage: "doc.plaintext") }
                 Button(action: { copyText(.slack) }) { Label("Copy for Slack", systemImage: "bubble.left.and.bubble.right") }
                 Button(action: { copyText(.jira) }) { Label("Copy for Jira", systemImage: "ladybug") }
             } label: {
-                HStack(spacing: 6) {
+                HStack(spacing: TTSpacing.xs) {
                     Image(systemName: "doc.on.clipboard")
                     Text("Copy as…")
                 }
@@ -368,7 +368,7 @@ struct BugReportComposerView: View {
             
             // Save Report
             Button(action: saveReport) {
-                HStack(spacing: 6) {
+                HStack(spacing: TTSpacing.xs) {
                     Image(systemName: "square.and.arrow.down")
                     Text("Save Report")
                 }
@@ -380,7 +380,7 @@ struct BugReportComposerView: View {
             
             // Share
             Button(action: shareReport) {
-                HStack(spacing: 6) {
+                HStack(spacing: TTSpacing.xs) {
                     Image(systemName: "square.and.arrow.up")
                     Text("Share")
                 }
@@ -388,8 +388,8 @@ struct BugReportComposerView: View {
             .buttonStyle(.ttPrimary)
             .disabled(report.title.isEmpty)
         }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 12)
+        .padding(.horizontal, TTSpacing.xxl)
+        .padding(.vertical, TTSpacing.md)
         .background(Color.ttSurface.opacity(0.5))
     }
     
@@ -402,21 +402,21 @@ struct BugReportComposerView: View {
     }
     
     private func toastView(text: String, icon: String) -> some View {
-        HStack(spacing: 6) {
+        HStack(spacing: TTSpacing.xs) {
             Image(systemName: icon)
                 .foregroundColor(.ttSuccess)
             Text(text)
                 .font(TTFont.labelMedium)
                 .foregroundColor(.ttTextPrimary)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
+        .padding(.horizontal, TTSpacing.lg)
+        .padding(.vertical, TTSpacing.inputPaddingH)
         .background(
             RoundedRectangle(cornerRadius: 8)
                 .fill(Color.ttSurface)
                 .shadow(color: .black.opacity(0.3), radius: 8, y: 4)
         )
-        .padding(.top, 8)
+        .padding(.top, TTSpacing.sm)
         .transition(.move(edge: .top).combined(with: .opacity))
     }
     

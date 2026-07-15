@@ -19,27 +19,27 @@ struct TutorialGuideView: View {
                 header
 
                 prerequisiteBanner
-                    .padding(.horizontal, 32)
-                    .padding(.bottom, 24)
+                    .padding(.horizontal, TTSpacing.xxxl)
+                    .padding(.bottom, TTSpacing.xxl)
 
                 methodPicker
-                    .padding(.horizontal, 32)
-                    .padding(.bottom, 24)
+                    .padding(.horizontal, TTSpacing.xxxl)
+                    .padding(.bottom, TTSpacing.xxl)
 
                 if let method = selectedMethod {
                     walkthrough(for: method)
-                        .padding(.horizontal, 32)
-                        .padding(.bottom, 24)
+                        .padding(.horizontal, TTSpacing.xxxl)
+                        .padding(.bottom, TTSpacing.xxl)
                         .transition(.opacity)
                 }
 
                 verificationSection
-                    .padding(.horizontal, 32)
-                    .padding(.bottom, 24)
+                    .padding(.horizontal, TTSpacing.xxxl)
+                    .padding(.bottom, TTSpacing.xxl)
 
                 commonIssuesSection
-                    .padding(.horizontal, 32)
-                    .padding(.bottom, 40)
+                    .padding(.horizontal, TTSpacing.xxxl)
+                    .padding(.bottom, TTSpacing.xxxxl)
             }
         }
         .background(Color.ttBackground)
@@ -48,7 +48,7 @@ struct TutorialGuideView: View {
     // MARK: - Header
 
     private var header: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: TTSpacing.inputPaddingH) {
             ZStack {
                 RoundedRectangle(cornerRadius: 10)
                     .fill(Color.ttPrimary.opacity(0.12))
@@ -57,7 +57,7 @@ struct TutorialGuideView: View {
                     .font(.ttIcon(TTIcon.xxl))
                     .foregroundColor(.ttPrimary)
             }
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: TTSpacing.xxxs) {
                 Text("Connect Your iPhone")
                     .font(TTFont.displayMedium)
                     .foregroundColor(.ttTextPrimary)
@@ -66,9 +66,9 @@ struct TutorialGuideView: View {
                     .foregroundColor(.ttTextSecondary)
             }
         }
-        .padding(.horizontal, 32)
-        .padding(.top, 24)
-        .padding(.bottom, 20)
+        .padding(.horizontal, TTSpacing.xxxl)
+        .padding(.top, TTSpacing.xxl)
+        .padding(.bottom, TTSpacing.xl)
     }
 
     private var prerequisiteBanner: some View {
@@ -82,13 +82,13 @@ struct TutorialGuideView: View {
     // MARK: - Method Picker
 
     private var methodPicker: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: TTSpacing.md) {
             Text("CHOOSE HOW TO CONNECT")
                 .font(TTFont.sidebarHeader)
                 .foregroundColor(.ttTextSecondary)
                 .tracking(1.2)
 
-            HStack(spacing: 16) {
+            HStack(spacing: TTSpacing.lg) {
                 methodCard(
                     method: .bonjour,
                     icon: "antenna.radiowaves.left.and.right",
@@ -114,9 +114,9 @@ struct TutorialGuideView: View {
                 selectedMethod = isSelected ? nil : method
             }
         }) {
-            VStack(spacing: 10) {
+            VStack(spacing: TTSpacing.inputPaddingH) {
                 Image(systemName: icon)
-                    .font(.system(size: 32, weight: .light))
+                    .font(TTFont.lightDisplay(base: 32))
                     .foregroundColor(tint)
                 Text(title)
                     .font(TTFont.heading3)
@@ -126,11 +126,11 @@ struct TutorialGuideView: View {
                     .foregroundColor(.ttTextTertiary)
                     .multilineTextAlignment(.center)
                 Image(systemName: isSelected ? "chevron.up" : "chevron.down")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(TTFont.labelMedium)
                     .foregroundColor(.ttTextTertiary)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 20)
+            .padding(.vertical, TTSpacing.xl)
             .background(
                 RoundedRectangle(cornerRadius: 12)
                     .fill(isSelected ? tint.opacity(0.1) : Color.ttSurface.opacity(0.75))
@@ -149,7 +149,7 @@ struct TutorialGuideView: View {
     private func walkthrough(for method: TutorialMethod) -> some View {
         CardView(title: method == .bonjour ? "BONJOUR — 3 STEPS" : "RELAY — 3 STEPS") {
             let methodSteps = steps(for: method)
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: TTSpacing.lg) {
                 ForEach(Array(methodSteps.enumerated()), id: \.offset) { index, step in
                     tutorialStepRow(number: index + 1, step: step)
                     if index < methodSteps.count - 1 {
@@ -161,7 +161,7 @@ struct TutorialGuideView: View {
     }
 
     private func tutorialStepRow(number: Int, step: TutorialStep) -> some View {
-        HStack(alignment: .top, spacing: 14) {
+        HStack(alignment: .top, spacing: TTSpacing.chromeInsetH) {
             ZStack {
                 Circle()
                     .fill(Color.ttPrimary)
@@ -170,7 +170,7 @@ struct TutorialGuideView: View {
                     .font(TTFont.codeMedium)
                     .foregroundColor(.ttTextOnAccent)
             }
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: TTSpacing.xxs) {
                 Text(step.title)
                     .font(TTFont.labelLarge)
                     .foregroundColor(.ttTextPrimary)
@@ -180,7 +180,7 @@ struct TutorialGuideView: View {
             }
             Spacer()
             Image(systemName: step.icon)
-                .font(.system(size: 20))
+                .font(TTFont.heading2)
                 .foregroundColor(.ttTextTertiary)
         }
     }
@@ -189,11 +189,11 @@ struct TutorialGuideView: View {
 
     private var verificationSection: some View {
         CardView(title: "HOW TO KNOW IT WORKED") {
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: TTSpacing.inputPaddingH) {
                 Text("Your device shows up in the sidebar with a green dot and a channel badge:")
                     .font(TTFont.bodySmall)
                     .foregroundColor(.ttTextSecondary)
-                HStack(spacing: 8) {
+                HStack(spacing: TTSpacing.sm) {
                     ChannelChip(channel: .bonjour, style: .compact)
                     ChannelChip(channel: .relay(isRemoteView: false), style: .compact)
                     ChannelChip(channel: .relay(isRemoteView: true), style: .compact)
@@ -208,7 +208,7 @@ struct TutorialGuideView: View {
     // MARK: - Common Issues
 
     private var commonIssuesSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: TTSpacing.md) {
             Text("COMMON ISSUES")
                 .font(TTFont.sidebarHeader)
                 .foregroundColor(.ttTextSecondary)

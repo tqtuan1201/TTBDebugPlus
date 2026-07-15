@@ -15,13 +15,13 @@ struct QuickNoteTextField: NSViewRepresentable {
     
     func makeNSView(context: Context) -> NSTextField {
         let field = NSTextField()
-        field.font = .systemFont(ofSize: 12, weight: .medium)
+        field.font = TTFont.nsSystem(ofSize: 12, weight: .medium)
         field.textColor = NSColor(Color.ttTextPrimary)
         field.placeholderAttributedString = NSAttributedString(
             string: placeholder,
             attributes: [
                 .foregroundColor: NSColor(Color.ttTextPlaceholder),
-                .font: NSFont.systemFont(ofSize: 12, weight: .medium)
+                .font: TTFont.nsSystem(ofSize: 12, weight: .medium)
             ]
         )
         field.backgroundColor = .clear

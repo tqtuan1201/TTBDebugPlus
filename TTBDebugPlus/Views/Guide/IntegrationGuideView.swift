@@ -21,8 +21,8 @@ struct IntegrationGuideView: View {
                 
                 // Connection status
                 connectionStatusBanner
-                    .padding(.horizontal, 32)
-                    .padding(.bottom, 24)
+                    .padding(.horizontal, TTSpacing.xxxl)
+                    .padding(.bottom, TTSpacing.xxl)
                 
                 // Steps
                 VStack(alignment: .leading, spacing: 0) {
@@ -40,13 +40,13 @@ struct IntegrationGuideView: View {
                         )
                     }
                 }
-                .padding(.horizontal, 32)
+                .padding(.horizontal, TTSpacing.xxxl)
                 
                 // Troubleshooting
                 troubleshootingSection
-                    .padding(.horizontal, 32)
-                    .padding(.top, 32)
-                    .padding(.bottom, 40)
+                    .padding(.horizontal, TTSpacing.xxxl)
+                    .padding(.top, TTSpacing.xxxl)
+                    .padding(.bottom, TTSpacing.xxxxl)
             }
         }
         .background(Color.ttBackground)
@@ -54,8 +54,8 @@ struct IntegrationGuideView: View {
     
     // MARK: - Header
     private var header: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 10) {
+        VStack(alignment: .leading, spacing: TTSpacing.sm) {
+            HStack(spacing: TTSpacing.inputPaddingH) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 10)
                         .fill(Color.ttPrimary.opacity(0.12))
@@ -65,7 +65,7 @@ struct IntegrationGuideView: View {
                         .foregroundColor(.ttPrimary)
                 }
                 
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: TTSpacing.xxxs) {
                     Text("iOS SDK Integration")
                         .font(TTFont.displayMedium)
                         .foregroundColor(.ttTextPrimary)
@@ -75,9 +75,9 @@ struct IntegrationGuideView: View {
                 }
             }
         }
-        .padding(.horizontal, 32)
-        .padding(.top, 24)
-        .padding(.bottom, 20)
+        .padding(.horizontal, TTSpacing.xxxl)
+        .padding(.top, TTSpacing.xxl)
+        .padding(.bottom, TTSpacing.xl)
     }
     
     // MARK: - Connection Status
@@ -85,7 +85,7 @@ struct IntegrationGuideView: View {
         let serverRunning = connectionManager.isServerRunning
         let hasDevices = !connectionManager.connectedDevices.isEmpty
         
-        return HStack(spacing: 16) {
+        return HStack(spacing: TTSpacing.lg) {
             statusItem(
                 icon: AppIcon.connectionHealth,
                 title: "Bonjour Server",
@@ -106,7 +106,7 @@ struct IntegrationGuideView: View {
             
             Spacer()
         }
-        .padding(16)
+        .padding(TTSpacing.lg)
         .background(
             RoundedRectangle(cornerRadius: 12)
                 .fill((serverRunning && hasDevices)
@@ -124,7 +124,7 @@ struct IntegrationGuideView: View {
     
     private func statusItem(icon: String, title: String, isOk: Bool, okText: String, failText: String) -> some View {
         let kind: TTBannerKind = isOk ? .success : .warning
-        return HStack(spacing: 10) {
+        return HStack(spacing: TTSpacing.inputPaddingH) {
             ZStack {
                 Circle()
                     .fill(kind.background)
@@ -135,8 +135,8 @@ struct IntegrationGuideView: View {
                     .foregroundColor(kind.foreground)
             }
             
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 6) {
+            VStack(alignment: .leading, spacing: TTSpacing.xxxs) {
+                HStack(spacing: TTSpacing.xs) {
                     Text(title)
                         .font(TTFont.labelLarge)
                         .foregroundColor(.ttTextPrimary)
@@ -304,7 +304,7 @@ struct IntegrationGuideView: View {
     /// spent effort removing elsewhere.
     private var troubleshootingSection: some View {
         CardView(title: "TROUBLESHOOTING (CODE & BUILD)") {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: TTSpacing.xl) {
                 TTBanner(
                     kind: .info,
                     message: "Having trouble actually connecting (device not appearing, permission errors, etc.)? See the Tutorial Guide tab — this section only covers code/build topics."
@@ -326,9 +326,9 @@ struct IntegrationGuideView: View {
     }
     
     private func troubleItem(errorLog: String, icon: String, iconColor: Color, title: String, explanation: String, solution: String) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: TTSpacing.inputPaddingH) {
             // Error log preview — high-contrast error surface
-            HStack(spacing: 6) {
+            HStack(spacing: TTSpacing.xs) {
                 Image(systemName: "terminal.fill")
                     .font(.ttIcon(TTIcon.sm))
                     .foregroundColor(TTBannerKind.error.foreground)
@@ -337,8 +337,8 @@ struct IntegrationGuideView: View {
                     .foregroundColor(TTBannerKind.error.foreground)
                     .lineLimit(1)
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
+            .padding(.horizontal, TTSpacing.inputPaddingH)
+            .padding(.vertical, TTSpacing.xs)
             .background(
                 RoundedRectangle(cornerRadius: 6)
                     .fill(TTBannerKind.error.background)
@@ -349,7 +349,7 @@ struct IntegrationGuideView: View {
             )
             
             // Title
-            HStack(spacing: 8) {
+            HStack(spacing: TTSpacing.sm) {
                 Image(systemName: icon)
                     .font(.ttIcon(TTIcon.xl))
                     .foregroundColor(iconColor)
@@ -359,24 +359,24 @@ struct IntegrationGuideView: View {
             }
             
             // Explanation
-            HStack(alignment: .top, spacing: 8) {
+            HStack(alignment: .top, spacing: TTSpacing.sm) {
                 Image(systemName: "info.circle")
                     .font(.ttIcon(TTIcon.md))
                     .foregroundColor(.ttPrimary)
-                    .padding(.top, 2)
+                    .padding(.top, TTSpacing.xxxs)
                 Text(explanation)
                     .font(TTFont.bodySmall)
                     .foregroundColor(.ttTextSecondary)
             }
-            .padding(.leading, 4)
+            .padding(.leading, TTSpacing.xxs)
             
             // Solution
-            HStack(alignment: .top, spacing: 8) {
+            HStack(alignment: .top, spacing: TTSpacing.sm) {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.ttIcon(TTIcon.md))
                     .foregroundColor(TTBannerKind.success.foreground)
-                    .padding(.top, 2)
-                VStack(alignment: .leading, spacing: 2) {
+                    .padding(.top, TTSpacing.xxxs)
+                VStack(alignment: .leading, spacing: TTSpacing.xxxs) {
                     Text("Solution:")
                         .font(TTFont.labelSmall)
                         .foregroundColor(TTBannerKind.success.foreground)
@@ -385,7 +385,7 @@ struct IntegrationGuideView: View {
                         .foregroundColor(.ttTextSecondary)
                 }
             }
-            .padding(10)
+            .padding(TTSpacing.inputPaddingH)
             .background(
                 RoundedRectangle(cornerRadius: 8)
                     .fill(TTBannerKind.success.background)
@@ -394,7 +394,7 @@ struct IntegrationGuideView: View {
                             .stroke(TTBannerKind.success.border.opacity(0.55), lineWidth: 1)
                     )
             )
-            .padding(.leading, 4)
+            .padding(.leading, TTSpacing.xxs)
         }
     }
     
@@ -421,7 +421,7 @@ struct StepView: View {
         VStack(alignment: .leading, spacing: 0) {
             // Step header
             Button(action: onToggle) {
-                HStack(spacing: 14) {
+                HStack(spacing: TTSpacing.chromeInsetH) {
                     // Step number + connector line
                     VStack(spacing: 0) {
                         ZStack {
@@ -438,7 +438,7 @@ struct StepView: View {
                         }
                     }
                     
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: TTSpacing.xxxs) {
                         Text(step.title)
                             .font(TTFont.heading3)
                             .foregroundColor(.ttTextPrimary)
@@ -456,16 +456,16 @@ struct StepView: View {
                 }
             }
             .buttonStyle(.plain)
-            .padding(.vertical, 14)
+            .padding(.vertical, TTSpacing.chromeInsetH)
             
             // Expanded content
             if isExpanded {
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: TTSpacing.md) {
                     // Code block
                     VStack(alignment: .leading, spacing: 0) {
                         // Code header
                         HStack {
-                            HStack(spacing: 6) {
+                            HStack(spacing: TTSpacing.xs) {
                                 Circle().fill(Color.ttError.opacity(0.8)).frame(width: 8, height: 8)
                                 Circle().fill(Color.ttWarning.opacity(0.8)).frame(width: 8, height: 8)
                                 Circle().fill(Color.ttSuccess.opacity(0.8)).frame(width: 8, height: 8)
@@ -478,7 +478,7 @@ struct StepView: View {
                                 .foregroundColor(.ttTextTertiary)
                             
                             Button(action: onCopy) {
-                                HStack(spacing: 4) {
+                                HStack(spacing: TTSpacing.xxs) {
                                     Image(systemName: isCopied ? "checkmark" : "doc.on.doc")
                                         .font(.ttIcon(TTIcon.md))
                                     Text(isCopied ? "Copied!" : "Copy")
@@ -488,8 +488,8 @@ struct StepView: View {
                             }
                             .buttonStyle(.plain)
                         }
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 8)
+                        .padding(.horizontal, TTSpacing.chromeInsetH)
+                        .padding(.vertical, TTSpacing.sm)
                         .background(Color(nsColor: NSColor(red: 0.12, green: 0.13, blue: 0.16, alpha: 1.0)))
                         
                         // Code content
@@ -498,7 +498,7 @@ struct StepView: View {
                                 .font(TTFont.codeMedium)
                                 .foregroundColor(.ttTextPrimary)
                                 .textSelection(.enabled)
-                                .padding(14)
+                                .padding(TTSpacing.chromeInsetH)
                         }
                         .background(Color(nsColor: NSColor(red: 0.09, green: 0.10, blue: 0.13, alpha: 1.0)))
                     }
@@ -510,7 +510,7 @@ struct StepView: View {
                     
                     // Note callout
                     if let note = step.note {
-                        HStack(spacing: 8) {
+                        HStack(spacing: TTSpacing.sm) {
                             Image(systemName: "lightbulb.fill")
                                 .font(.ttIcon(TTIcon.lg))
                                 .foregroundColor(.ttWarning)
@@ -518,8 +518,8 @@ struct StepView: View {
                                 .font(TTFont.bodySmall)
                                 .foregroundColor(.ttTextSecondary)
                         }
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 10)
+                        .padding(.horizontal, TTSpacing.chromeInsetH)
+                        .padding(.vertical, TTSpacing.inputPaddingH)
                         .background(
                             RoundedRectangle(cornerRadius: 8)
                                 .fill(Color.ttWarning.opacity(0.06))
@@ -530,15 +530,15 @@ struct StepView: View {
                         )
                     }
                 }
-                .padding(.leading, 46) // Align with step title
-                .padding(.bottom, 14)
+                .padding(.leading, TTSpacing.nestIndent) // Align with step title
+                .padding(.bottom, TTSpacing.chromeInsetH)
             }
             
             // Divider
             if step.number < 6 {
                 Divider()
                     .background(Color.ttBorder.opacity(0.3))
-                    .padding(.leading, 46)
+                    .padding(.leading, TTSpacing.nestIndent)
             }
         }
     }

@@ -11,6 +11,7 @@ import SwiftUI
 struct SettingsView: View {
     @Environment(AppState.self) var appState
     @Environment(ConnectionManager.self) var connectionManager
+    @Environment(DesignSystemConfig.self) private var designConfig
     @AppStorage("appAppearance") private var appearance: String = "system"
     @AppStorage("maxLogEntries") private var maxLogEntries: Int = 10000
     @AppStorage("autoCleanupDays") private var autoCleanupDays: Int = 30
@@ -24,6 +25,12 @@ struct SettingsView: View {
     @AppStorage("relayClientEnabled") private var relayClientEnabled: Bool = false
     @AppStorage("relayClientHost") private var relayClientHost: String = ""
     @AppStorage("relayClientPort") private var relayClientPort: Int = 51820
+
+    // Draft layout metrics — applied only when the user taps Apply.
+    @State private var draftFontScale: Double = 1.0
+    @State private var draftSpacingScale: Double = 1.0
+    @State private var draftLineHeightExtra: Double = 0
+    @State private var draftTextEmphasis: TTTextEmphasis = .regular
 
     var body: some View {
         TabView {
@@ -62,7 +69,7 @@ struct SettingsView: View {
                     Label("Privacy", systemImage: AppIcon.privacy)
                 }
         }
-        .frame(width: 560, height: 480)
+        .frame(width: 580, height: 620)
     }
 
     // MARK: - General
@@ -87,6 +94,8 @@ struct SettingsView: View {
                     .foregroundColor(.ttTextSecondary)
             }
 
+            typographySpacingSection
+
             Section("Keyboard Shortcuts") {
                 shortcutRow("Clear Console", "⌘K")
                 shortcutRow("Capture Screenshot", "⇧⌘C")
@@ -99,6 +108,252 @@ struct SettingsView: View {
         }
         .formStyle(.grouped)
         .padding()
+        .onAppear { loadLayoutDraftFromApplied() }
+        .onChange(of: designConfig.appliedRevision) { _, _ in
+            loadLayoutDraftFromApplied()
+        }
+    }
+
+    // MARK: - Typography & Spacing (draft → Apply)
+
+    private var typographySpacingSection: some View {
+        Section {
+            // Density presets
+            Picker("Density", selection: densityPresetBinding) {
+                ForEach(TTDensityPreset.allCases) { preset in
+                    Text(preset.title).tag(Optional(preset))
+                }
+                Text("Custom").tag(Optional<TTDensityPreset>.none)
+            }
+            .pickerStyle(.segmented)
+            .accessibilityLabel("UI density preset")
+            .accessibilityHint("Choose Compact, Default, Comfortable, or Large layout density")
+
+            if let preset = selectedDensityPreset {
+                Text(preset.detail)
+                    .font(.caption)
+                    .foregroundColor(.ttTextSecondary)
+                    .accessibilityLabel(preset.detail)
+            } else {
+                Text("Custom values — outside the named density presets.")
+                    .font(.caption)
+                    .foregroundColor(.ttTextSecondary)
+            }
+
+            // Text emphasis
+            Picker("Text Emphasis", selection: $draftTextEmphasis) {
+                ForEach(TTTextEmphasis.allCases) { emphasis in
+                    Text(emphasis.title).tag(emphasis)
+                }
+            }
+            .pickerStyle(.segmented)
+            .accessibilityLabel("Text emphasis")
+            .accessibilityHint("Regular keeps default weights; Medium slightly strengthens body and labels")
+            Text("Medium slightly strengthens label and body weights without changing sizes.")
+                .font(.caption)
+                .foregroundColor(.ttTextSecondary)
+
+            // Advanced sliders
+            VStack(alignment: .leading, spacing: TTSpacing.inputPaddingH) {
+                Text("Advanced")
+                    .font(.headline)
+
+                layoutSlider(
+                    title: "Font Size",
+                    value: $draftFontScale,
+                    range: fontScaleSliderRange,
+                    format: { String(format: "%.2f×", $0) }
+                )
+
+                layoutSlider(
+                    title: "Spacing",
+                    value: $draftSpacingScale,
+                    range: spacingScaleSliderRange,
+                    format: { String(format: "%.2f×", $0) }
+                )
+
+                layoutSlider(
+                    title: "Line Height",
+                    value: $draftLineHeightExtra,
+                    range: lineHeightSliderRange,
+                    format: { String(format: "+%.1f pt", $0) }
+                )
+            }
+            .padding(.vertical, TTSpacing.xxs)
+
+            // Live preview of draft (does not affect the rest of the app until Apply)
+            layoutPreviewCard
+
+            HStack {
+                Button("Reset to Default") {
+                    draftFontScale = Double(TTDensityPreset.default.fontScale)
+                    draftSpacingScale = Double(TTDensityPreset.default.spacingScale)
+                    draftLineHeightExtra = Double(TTDensityPreset.default.lineHeightExtra)
+                    draftTextEmphasis = .regular
+                }
+                .disabled(!hasLayoutDraftChanges && isDraftAtDefault)
+                .accessibilityLabel("Reset typography and spacing to default")
+                .accessibilityHint("Restores Default density and Regular text emphasis in the draft")
+
+                Spacer()
+
+                Button("Apply") {
+                    designConfig.apply(
+                        fontScale: CGFloat(draftFontScale),
+                        spacingScale: CGFloat(draftSpacingScale),
+                        lineHeightExtra: CGFloat(draftLineHeightExtra),
+                        textEmphasis: draftTextEmphasis
+                    )
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(!hasLayoutDraftChanges)
+                .keyboardShortcut(.defaultAction)
+                .accessibilityLabel("Apply typography and spacing")
+                .accessibilityHint("Applies draft layout metrics to the main window and menu bar")
+            }
+
+            if hasLayoutDraftChanges {
+                Text("Changes are not applied until you press Apply. Main window and menu bar update together.")
+                    .font(.caption)
+                    .foregroundColor(.ttWarning)
+            } else {
+                Text("Typography and spacing use the shared design system with safe min/max clamps to protect layout.")
+                    .font(.caption)
+                    .foregroundColor(.ttTextSecondary)
+            }
+        } header: {
+            Text("Typography & Spacing")
+        }
+    }
+
+    private var fontScaleSliderRange: ClosedRange<Double> {
+        Double(DesignSystemConfig.fontScaleRange.lowerBound)...Double(DesignSystemConfig.fontScaleRange.upperBound)
+    }
+
+    private var spacingScaleSliderRange: ClosedRange<Double> {
+        Double(DesignSystemConfig.spacingScaleRange.lowerBound)...Double(DesignSystemConfig.spacingScaleRange.upperBound)
+    }
+
+    private var lineHeightSliderRange: ClosedRange<Double> {
+        Double(DesignSystemConfig.lineHeightExtraRange.lowerBound)...Double(DesignSystemConfig.lineHeightExtraRange.upperBound)
+    }
+
+    private var selectedDensityPreset: TTDensityPreset? {
+        TTDensityPreset.allCases.first {
+            abs($0.fontScale - CGFloat(draftFontScale)) < 0.001
+                && abs($0.spacingScale - CGFloat(draftSpacingScale)) < 0.001
+                && abs($0.lineHeightExtra - CGFloat(draftLineHeightExtra)) < 0.001
+        }
+    }
+
+    private var densityPresetBinding: Binding<TTDensityPreset?> {
+        Binding(
+            get: { selectedDensityPreset },
+            set: { newValue in
+                guard let preset = newValue else { return }
+                draftFontScale = Double(preset.fontScale)
+                draftSpacingScale = Double(preset.spacingScale)
+                draftLineHeightExtra = Double(preset.lineHeightExtra)
+            }
+        )
+    }
+
+    private var hasLayoutDraftChanges: Bool {
+        abs(CGFloat(draftFontScale) - designConfig.fontScale) > 0.0005
+            || abs(CGFloat(draftSpacingScale) - designConfig.spacingScale) > 0.0005
+            || abs(CGFloat(draftLineHeightExtra) - designConfig.lineHeightExtra) > 0.0005
+            || draftTextEmphasis != designConfig.textEmphasis
+    }
+
+    private var isDraftAtDefault: Bool {
+        abs(draftFontScale - 1.0) < 0.0005
+            && abs(draftSpacingScale - 1.0) < 0.0005
+            && abs(draftLineHeightExtra) < 0.0005
+            && draftTextEmphasis == .regular
+    }
+
+    private func loadLayoutDraftFromApplied() {
+        draftFontScale = Double(designConfig.fontScale)
+        draftSpacingScale = Double(designConfig.spacingScale)
+        draftLineHeightExtra = Double(designConfig.lineHeightExtra)
+        draftTextEmphasis = designConfig.textEmphasis
+    }
+
+    private func layoutSlider(
+        title: String,
+        value: Binding<Double>,
+        range: ClosedRange<Double>,
+        format: @escaping (Double) -> String
+    ) -> some View {
+        VStack(alignment: .leading, spacing: TTSpacing.xxs) {
+            HStack {
+                Text(title)
+                Spacer()
+                Text(format(value.wrappedValue))
+                    .font(TTFont.codeMedium)
+                    .foregroundColor(.ttTextSecondary)
+                    .monospacedDigit()
+                    .accessibilityLabel("\(title) value \(format(value.wrappedValue))")
+            }
+            Slider(value: value, in: range, step: title == "Line Height" ? 0.5 : 0.01)
+                .accessibilityLabel(title)
+                .accessibilityValue(format(value.wrappedValue))
+                .accessibilityHint("Adjusts draft \(title.lowercased()); press Apply to commit")
+        }
+    }
+
+    /// Draft-only preview: temporarily scales sample metrics without mutating applied config.
+    private var layoutPreviewCard: some View {
+        let previewFont = Font.system(
+            size: DesignSystemConfig.shared.scaledFontPreview(
+                base: 13,
+                fontScale: CGFloat(draftFontScale)
+            ),
+            weight: draftTextEmphasis == .medium ? .medium : .regular
+        )
+        let previewCode = Font.system(
+            size: DesignSystemConfig.shared.scaledFontPreview(
+                base: 12,
+                fontScale: CGFloat(draftFontScale)
+            ),
+            weight: .regular,
+            design: .monospaced
+        )
+        let gap = max(4, 8 * CGFloat(draftSpacingScale))
+
+        return VStack(alignment: .leading, spacing: gap) {
+            Text("Preview")
+                .font(.caption)
+                .foregroundColor(.ttTextSecondary)
+            Text("Sidebar · Network · JSON")
+                .font(previewFont)
+                .lineSpacing(CGFloat(draftLineHeightExtra))
+                .foregroundColor(.ttTextPrimary)
+            Text("{ \"status\": 200 }")
+                .font(previewCode)
+                .lineSpacing(CGFloat(draftLineHeightExtra))
+                .foregroundColor(.ttTextSecondary)
+            HStack(spacing: gap) {
+                Text("GET")
+                    .font(.system(size: DesignSystemConfig.shared.scaledFontPreview(base: 10, fontScale: CGFloat(draftFontScale)), weight: .bold, design: .monospaced))
+                    .padding(.horizontal, max(6, 8 * CGFloat(draftSpacingScale)))
+                    .padding(.vertical, max(2, 3 * CGFloat(draftSpacingScale)))
+                    .background(RoundedRectangle(cornerRadius: 4).fill(Color.ttPrimary.opacity(0.2)))
+                Text("Label")
+                    .font(previewFont)
+                    .foregroundColor(.ttTextSecondary)
+            }
+        }
+        .padding(max(10, 12 * CGFloat(draftSpacingScale)))
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.ttSurface)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.ttBorder, lineWidth: 1)
+                )
+        )
     }
 
     // MARK: - Connection (read-only runtime facts — no dead steppers)
@@ -269,7 +524,7 @@ struct SettingsView: View {
         Group {
             if let ip = connectionManager.macLocalIP {
                 let pairingString = "ttbdebug://pair?type=relay&host=\(ip)&port=\(relayServerPort)&v=1"
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: TTSpacing.sm) {
                     Text("Scan to configure a relay-only app (Settings won't need editing again after this):")
                         .font(.caption)
                         .foregroundColor(.ttTextSecondary)
@@ -282,7 +537,7 @@ struct SettingsView: View {
                             .resizable()
                             .interpolation(.none)
                             .frame(width: 140, height: 140)
-                            .padding(6)
+                            .padding(TTSpacing.xs)
                             .background(RoundedRectangle(cornerRadius: 8).fill(Color.white))
                     }
 
@@ -291,7 +546,7 @@ struct SettingsView: View {
                         .foregroundColor(.ttTextTertiary)
                         .textSelection(.enabled)
                 }
-                .padding(.top, 4)
+                .padding(.top, TTSpacing.xxs)
             }
         }
     }
@@ -382,4 +637,5 @@ struct SettingsView: View {
         .environment(AppState())
         .environment(ConnectionManager())
         .environment(StorageManager())
+        .environment(DesignSystemConfig.shared)
 }

@@ -20,7 +20,7 @@ struct TemplateRowView: View {
                 .foregroundColor(.ttJsonKey)
                 .frame(width: 18)
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: TTSpacing.xxxs) {
                 HStack(spacing: TTSpacing.xxs) {
                     Text(template.name)
                         .font(TTFont.labelLarge)

@@ -34,7 +34,7 @@ struct WCAGContrastPanel: View {
     }
 
     private var ratioBlock: some View {
-        VStack(alignment: .trailing, spacing: 2) {
+        VStack(alignment: .trailing, spacing: TTSpacing.xxxs) {
             Text("Ratio")
                 .font(TTFont.labelSmall)
                 .foregroundColor(.ttTextTertiary)

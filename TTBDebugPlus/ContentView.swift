@@ -12,6 +12,7 @@ import SwiftUI
 struct ContentView: View {
     @Environment(AppState.self) var appState
     @Environment(ConnectionManager.self) var connectionManager
+    @Environment(DesignSystemConfig.self) private var designConfig
     @Environment(\.colorScheme) private var colorScheme
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
     /// One-time tip when launch lands with server stopped (tool-first default).
@@ -19,6 +20,8 @@ struct ContentView: View {
     @State private var showServerStoppedTip: Bool = false
 
     var body: some View {
+        // Establish dependency so Apply (layout metrics) re-evaluates TTFont/TTSpacing readers.
+        let _ = designConfig.appliedRevision
         NavigationSplitView(columnVisibility: $columnVisibility) {
             // MARK: - Sidebar
             // Keep server chrome (Start/Stop) outside any split-view list chrome.
@@ -118,7 +121,7 @@ struct ContentView: View {
             message: message,
             title: connectionManager.isLifecycleActive ? nil : "Tools ready",
             trailing: AnyView(
-                HStack(spacing: 8) {
+                HStack(spacing: TTSpacing.sm) {
                     if !connectionManager.isLifecycleActive {
                         Button("Start Server") {
                             connectionManager.startServer()
@@ -130,7 +133,8 @@ struct ContentView: View {
                         dismissServerBanners()
                     } label: {
                         Image(systemName: "xmark")
-                            .font(.system(size: 11, weight: .semibold))
+                            .font(.ttIcon(TTIcon.md))
+                            .fontWeight(.semibold)
                             .foregroundColor(TTBannerKind.info.foreground)
                     }
                     .buttonStyle(.plain)
@@ -159,15 +163,15 @@ struct ContentView: View {
 
     /// Title + tagline for the window chrome — design-system adaptive tokens.
     private var windowTitleLabel: some View {
-        VStack(alignment: .leading, spacing: 1) {
+        VStack(alignment: .leading, spacing: TTSpacing.hairline) {
             Text(AppBrand.name)
-                .font(.system(size: 13, weight: .semibold))
+                .font(TTFont.labelLarge)
                 .foregroundColor(.ttTextPrimary)
             Text(AppBrand.tagline)
-                .font(.system(size: 11, weight: .regular))
+                .font(TTFont.bodySmall)
                 .foregroundColor(.ttTextSecondary)
         }
-        .padding(.leading, 2)
+        .padding(.leading, TTSpacing.xxxs)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(AppBrand.name), \(AppBrand.tagline)")
     }

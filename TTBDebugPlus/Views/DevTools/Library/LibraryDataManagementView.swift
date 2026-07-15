@@ -75,7 +75,7 @@ struct LibraryDataManagementView: View {
 
     private var header: some View {
         HStack {
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: TTSpacing.xxxs) {
                 Text("Library Data Management")
                     .font(TTFont.heading3)
                     .foregroundColor(.ttTextPrimary)
@@ -156,7 +156,7 @@ struct LibraryDataManagementView: View {
         CardView(title: "DANGER ZONE") {
             VStack(alignment: .leading, spacing: TTSpacing.sm) {
                 HStack {
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: TTSpacing.xxxs) {
                         Text("Delete all templates")
                             .font(TTFont.labelLarge).foregroundColor(.ttTextPrimary)
                         Text("Keep projects, remove every template + version.")
@@ -168,7 +168,7 @@ struct LibraryDataManagementView: View {
                 }
                 SectionDivider()
                 HStack {
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: TTSpacing.xxxs) {
                         Text("Erase entire library")
                             .font(TTFont.labelLarge).foregroundColor(.ttError)
                         Text("Permanently remove everything.")

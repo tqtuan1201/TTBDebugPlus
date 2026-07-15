@@ -81,9 +81,9 @@ struct JSONWebViewComponent: View {
     
     // MARK: - Toolbar
     private var toolbarView: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: TTSpacing.xxs) {
             // Mode picker
-            HStack(spacing: 1) {
+            HStack(spacing: TTSpacing.hairline) {
                 ForEach(JSONDisplayMode.allCases) { mode in
                     Button(action: {
                         withAnimation(.easeInOut(duration: 0.12)) {
@@ -91,15 +91,15 @@ struct JSONWebViewComponent: View {
                             bridge.setMode(mode.jsMode)
                         }
                     }) {
-                        HStack(spacing: 3) {
+                        HStack(spacing: TTSpacing.inlineGapSmall) {
                             Image(systemName: mode.icon)
                                 .font(.ttIcon(TTIcon.sm))
                             Text(mode.rawValue)
                                 .font(TTFont.labelSmall)
                         }
                         .foregroundColor(displayMode == mode ? .white : .ttTextTertiary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
+                        .padding(.horizontal, TTSpacing.sm)
+                        .padding(.vertical, TTSpacing.xxs)
                         .background(
                             RoundedRectangle(cornerRadius: 4)
                                 .fill(displayMode == mode ? Color.ttPrimary.opacity(0.4) : Color.clear)
@@ -113,7 +113,7 @@ struct JSONWebViewComponent: View {
             
             // Search
             if isSearching {
-                HStack(spacing: 4) {
+                HStack(spacing: TTSpacing.xxs) {
                     Image(systemName: "magnifyingglass")
                         .font(.ttIcon(TTIcon.xs))
                         .foregroundColor(.ttTextTertiary)
@@ -148,8 +148,8 @@ struct JSONWebViewComponent: View {
                     }
                     .buttonStyle(.plain)
                 }
-                .padding(.horizontal, 6)
-                .padding(.vertical, 3)
+                .padding(.horizontal, TTSpacing.xs)
+                .padding(.vertical, TTSpacing.inlineGapSmall)
                 .background(
                     RoundedRectangle(cornerRadius: 5)
                         .fill(Color.ttSurface)
@@ -212,7 +212,7 @@ struct JSONWebViewComponent: View {
             
             // Copy
             Button(action: copyContent) {
-                HStack(spacing: 3) {
+                HStack(spacing: TTSpacing.inlineGapSmall) {
                     Image(systemName: isCopied ? "checkmark" : "doc.on.doc")
                         .font(.ttIcon(TTIcon.sm))
                     if isCopied {
@@ -231,7 +231,7 @@ struct JSONWebViewComponent: View {
                 Button(action: {
                     onOpenInEditor(jsonString)
                 }) {
-                    HStack(spacing: 3) {
+                    HStack(spacing: TTSpacing.inlineGapSmall) {
                         Image(systemName: "arrow.up.right.square")
                             .font(.ttIcon(TTIcon.sm))
                         Text("Editor")
@@ -245,7 +245,7 @@ struct JSONWebViewComponent: View {
             
             // Validation indicator
             if !bridge.isValid {
-                HStack(spacing: 3) {
+                HStack(spacing: TTSpacing.inlineGapSmall) {
                     Image(systemName: "xmark.circle.fill")
                         .font(.ttIcon(TTIcon.sm))
                         .foregroundColor(.ttError)
@@ -255,8 +255,8 @@ struct JSONWebViewComponent: View {
                 }
             }
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
+        .padding(.horizontal, TTSpacing.sm)
+        .padding(.vertical, TTSpacing.xxs)
         .background(Color.ttSurface.opacity(0.15))
         .overlay(
             Rectangle().fill(Color.ttBorder.opacity(0.2)).frame(height: 1),
@@ -266,7 +266,7 @@ struct JSONWebViewComponent: View {
     
     // MARK: - Status Bar
     private var statusBarView: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: TTSpacing.md) {
             // Size
             Text(formattedSize)
                 .font(TTFont.codeSmall)
@@ -291,15 +291,15 @@ struct JSONWebViewComponent: View {
                 Text("Read-Only")
                     .font(TTFont.codeSmall)
                     .foregroundColor(.ttTextMuted)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 1)
+                    .padding(.horizontal, TTSpacing.xs)
+                    .padding(.vertical, TTSpacing.hairline)
                     .background(
                         Capsule().fill(Color.ttSurface.opacity(0.5))
                     )
             }
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 3)
+        .padding(.horizontal, TTSpacing.inputPaddingH)
+        .padding(.vertical, TTSpacing.inlineGapSmall)
         .background(Color.ttSurface.opacity(0.1))
         .overlay(
             Rectangle().fill(Color.ttBorder.opacity(0.15)).frame(height: 1),

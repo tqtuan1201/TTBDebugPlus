@@ -4,6 +4,7 @@
 //
 //  Created by TuanTruong on 2026-03-27.
 //  Bottom status bar — increased height, conditional metrics
+//  2026-07-15: Phase 2 — spacing/typography tokens.
 //
 
 import SwiftUI
@@ -11,7 +12,7 @@ import SwiftUI
 struct StatusBarView: View {
     @Environment(AppState.self) var appState
     @Environment(ConnectionManager.self) var connectionManager
-    
+
     private var hasDevice: Bool {
         connectionManager.selectedDevice?.isOnline(relativeTo: connectionManager.uiNow) == true
     }
@@ -27,42 +28,42 @@ struct StatusBarView: View {
         if connectionManager.isLifecycleActive { return "STARTING" }
         return "OFFLINE"
     }
-    
+
     var body: some View {
         HStack(spacing: 0) {
             // Left side: Server status + device metrics
-            HStack(spacing: 16) {
+            HStack(spacing: TTSpacing.lg) {
                 // Server status (lifecycle + advertise honesty)
-                HStack(spacing: 6) {
+                HStack(spacing: TTSpacing.xs) {
                     Circle()
                         .fill(serverStatusColor)
-                        .frame(width: 6, height: 6)
+                        .frame(width: TTSpacing.xs, height: TTSpacing.xs)
                     Text(serverStatusText)
                         .font(TTFont.statusBar)
                         .foregroundColor(serverStatusColor)
                 }
-                
+
                 // Only show metrics when a device is connected (no more "--" values)
                 if hasDevice, let perf = connectionManager.selectedDevice?.latestPerformance {
                     // Divider
                     Rectangle()
                         .fill(Color.ttBorder.opacity(0.4))
-                        .frame(width: 1, height: 14)
-                    
+                        .frame(width: 1, height: TTIcon.xl)
+
                     // Memory
-                    HStack(spacing: 5) {
+                    HStack(spacing: TTSpacing.tight) {
                         Image(systemName: "memorychip")
-                            .font(.system(size: 10))
+                            .font(.ttIcon(TTIcon.sm))
                             .foregroundColor(.ttTextTertiary)
                         Text(String(format: "%.0f MB", perf.memoryUsedMB))
                             .font(TTFont.statusBar)
                             .foregroundColor(.ttTextSecondary)
                     }
-                    
+
                     // CPU
-                    HStack(spacing: 5) {
+                    HStack(spacing: TTSpacing.tight) {
                         Image(systemName: "cpu")
-                            .font(.system(size: 10))
+                            .font(.ttIcon(TTIcon.sm))
                             .foregroundColor(.ttTextTertiary)
                         Text(String(format: "%.1f%%", perf.cpuUsage))
                             .font(TTFont.statusBar)
@@ -70,26 +71,26 @@ struct StatusBarView: View {
                     }
                 }
             }
-            .padding(.leading, 16)
-            
+            .padding(.leading, TTSpacing.lg)
+
             Spacer()
-            
+
             // Right side: Connection + events
-            HStack(spacing: 12) {
+            HStack(spacing: TTSpacing.md) {
                 let totalEvents = connectionManager.totalAPILogs + connectionManager.totalConsoleLogs
                 if totalEvents > 0 {
                     Text("\(totalEvents.formatted()) events")
                         .font(TTFont.statusBar)
                         .foregroundColor(.ttTextTertiary)
-                    
+
                     Rectangle()
                         .fill(Color.ttBorder.opacity(0.4))
-                        .frame(width: 1, height: 14)
+                        .frame(width: 1, height: TTIcon.xl)
                 }
-                
+
                 if let device = connectionManager.selectedDevice,
                    device.isOnline(relativeTo: connectionManager.uiNow) {
-                    HStack(spacing: 6) {
+                    HStack(spacing: TTSpacing.xs) {
                         ConnectionIndicator(isConnected: true)
                         Text(device.displayName)
                             .font(TTFont.statusBar)
@@ -99,9 +100,9 @@ struct StatusBarView: View {
                     ConnectionIndicator(isConnected: false, label: "No device")
                 }
             }
-            .padding(.trailing, 16)
+            .padding(.trailing, TTSpacing.lg)
         }
-        .frame(height: 32)
+        .frame(height: TTSpacing.statusBarHeight)
         .background(Color.ttBackground)
         .overlay(
             Rectangle()

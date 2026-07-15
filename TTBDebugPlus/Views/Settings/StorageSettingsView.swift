@@ -151,7 +151,7 @@ struct StorageSettingsView: View {
     
     private func locationRow(title: String, path: String, action: @escaping () -> Void) -> some View {
         HStack {
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: TTSpacing.xxxs) {
                 Text(title)
                     .font(.body)
                 Text(path)
