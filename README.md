@@ -13,7 +13,7 @@ View logs, inspect network requests, export to Postman, analyze API performance,
 | **Platform** | macOS 14.0+ |
 | **Architecture** | SwiftUI + Bonjour (mDNS) + WebSocket |
 | **iOS SDK** | Included in [TTBaseUIKit](https://github.com/tqtuan1201/TTBaseUIKit) (v2.3.0+) |
-| **Download** | [Web Download](https://tqtuan1201.github.io/public/docs/ttbaseuikit/apps/TTBDebugPlus-Installer.dmg) · [Repo Installer](apps-build-dmg/TTBDebugPlus-Installer.dmg) (~5.8 MB) |
+| **Download** | [Web Download](https://tqtuan1201.github.io/public/docs/ttbaseuikit/apps/TTBDebugPlus-Installer.dmg) · [Repo Installer](apps-build-dmg/TTBDebugPlus-Installer.dmg) (v1.1.0 · ~8.1 MB) |
 | **Documentation** | [Official Docs](https://tqtuan1201.github.io/public/docs/ttbaseuikit/ttbdebugplus.html) |
 
 ---

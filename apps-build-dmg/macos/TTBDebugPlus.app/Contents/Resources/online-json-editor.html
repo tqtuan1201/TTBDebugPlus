@@ -12,25 +12,36 @@
 
 <style>
 /* ============================================
-   Minimal icon CSS — replaces FontAwesome
+   Icon set — crisp inline-SVG masks (Feather-style)
+   Color comes from `currentColor` via background-color,
+   so icons inherit each button's text color/hover state.
    ============================================ */
-.fas, .fa { font-style: normal; font-family: system-ui; display: inline-block; text-align: center; }
-.fa-code::before { content: '\276E/\276F'; font-size: 0.7em; }
-.fa-list::before { content: '\2630'; }
-.fa-file-alt::before { content: '\1F4C4'; }
-.fa-align-left::before { content: '\2261'; }
-.fa-chevron-left::before { content: '\276E'; }
-.fa-chevron-right::before { content: '\276F'; }
-.fa-compress-alt::before { content: '\2B0C'; }
-.fa-check-circle::before { content: '\2714'; }
-.fa-copy::before { content: '\2398'; }
-.fa-minus::before { content: '\2212'; }
-.fa-plus::before { content: '+'; }
-.fa-folder-open::before { content: '\1F4C2'; }
-.fa-expand::before { content: '\2922'; }
-.fa-compress::before { content: '\2921'; }
-.fa-search::before { content: '\1F50D'; }
-.fa-download::before { content: '\2B07'; }
+.fas, .fa {
+  font-style: normal;
+  display: inline-block;
+  width: 1em; height: 1em;
+  vertical-align: -0.125em;
+  background-color: currentColor;
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+  -webkit-mask-position: center; mask-position: center;
+  -webkit-mask-size: contain; mask-size: contain;
+}
+.fa-code { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='16 18 22 12 16 6'/%3E%3Cpolyline points='8 6 2 12 8 18'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='16 18 22 12 16 6'/%3E%3Cpolyline points='8 6 2 12 8 18'/%3E%3C/svg%3E"); }
+.fa-list { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='8' y1='6' x2='21' y2='6'/%3E%3Cline x1='8' y1='12' x2='21' y2='12'/%3E%3Cline x1='8' y1='18' x2='21' y2='18'/%3E%3Cline x1='3' y1='6' x2='3.01' y2='6'/%3E%3Cline x1='3' y1='12' x2='3.01' y2='12'/%3E%3Cline x1='3' y1='18' x2='3.01' y2='18'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='8' y1='6' x2='21' y2='6'/%3E%3Cline x1='8' y1='12' x2='21' y2='12'/%3E%3Cline x1='8' y1='18' x2='21' y2='18'/%3E%3Cline x1='3' y1='6' x2='3.01' y2='6'/%3E%3Cline x1='3' y1='12' x2='3.01' y2='12'/%3E%3Cline x1='3' y1='18' x2='3.01' y2='18'/%3E%3C/svg%3E"); }
+.fa-file-alt { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/%3E%3Cpolyline points='14 2 14 8 20 8'/%3E%3Cline x1='8' y1='13' x2='16' y2='13'/%3E%3Cline x1='8' y1='17' x2='16' y2='17'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/%3E%3Cpolyline points='14 2 14 8 20 8'/%3E%3Cline x1='8' y1='13' x2='16' y2='13'/%3E%3Cline x1='8' y1='17' x2='16' y2='17'/%3E%3C/svg%3E"); }
+.fa-align-left { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='17' y1='10' x2='3' y2='10'/%3E%3Cline x1='21' y1='6' x2='3' y2='6'/%3E%3Cline x1='21' y1='14' x2='3' y2='14'/%3E%3Cline x1='17' y1='18' x2='3' y2='18'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='17' y1='10' x2='3' y2='10'/%3E%3Cline x1='21' y1='6' x2='3' y2='6'/%3E%3Cline x1='21' y1='14' x2='3' y2='14'/%3E%3Cline x1='17' y1='18' x2='3' y2='18'/%3E%3C/svg%3E"); }
+.fa-chevron-left { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='15 18 9 12 15 6'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='15 18 9 12 15 6'/%3E%3C/svg%3E"); }
+.fa-chevron-right { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='9 18 15 12 9 6'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='9 18 15 12 9 6'/%3E%3C/svg%3E"); }
+.fa-compress-alt { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='4 14 10 14 10 20'/%3E%3Cpolyline points='20 10 14 10 14 4'/%3E%3Cline x1='14' y1='10' x2='21' y2='3'/%3E%3Cline x1='3' y1='21' x2='10' y2='14'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='4 14 10 14 10 20'/%3E%3Cpolyline points='20 10 14 10 14 4'/%3E%3Cline x1='14' y1='10' x2='21' y2='3'/%3E%3Cline x1='3' y1='21' x2='10' y2='14'/%3E%3C/svg%3E"); }
+.fa-check-circle { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 11.08V12a10 10 0 1 1-5.93-9.14'/%3E%3Cpolyline points='22 4 12 14.01 9 11.01'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 11.08V12a10 10 0 1 1-5.93-9.14'/%3E%3Cpolyline points='22 4 12 14.01 9 11.01'/%3E%3C/svg%3E"); }
+.fa-copy { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='9' y='9' width='13' height='13' rx='2' ry='2'/%3E%3Cpath d='M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='9' y='9' width='13' height='13' rx='2' ry='2'/%3E%3Cpath d='M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1'/%3E%3C/svg%3E"); }
+.fa-minus { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='5' y1='12' x2='19' y2='12'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='5' y1='12' x2='19' y2='12'/%3E%3C/svg%3E"); }
+.fa-plus { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='12' y1='5' x2='12' y2='19'/%3E%3Cline x1='5' y1='12' x2='19' y2='12'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='12' y1='5' x2='12' y2='19'/%3E%3Cline x1='5' y1='12' x2='19' y2='12'/%3E%3C/svg%3E"); }
+.fa-folder-open { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z'/%3E%3C/svg%3E"); }
+.fa-expand { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 3h6v6'/%3E%3Cpath d='M9 21H3v-6'/%3E%3Cline x1='21' y1='3' x2='14' y2='10'/%3E%3Cline x1='3' y1='21' x2='10' y2='14'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 3h6v6'/%3E%3Cpath d='M9 21H3v-6'/%3E%3Cline x1='21' y1='3' x2='14' y2='10'/%3E%3Cline x1='3' y1='21' x2='10' y2='14'/%3E%3C/svg%3E"); }
+.fa-compress { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 14h6v6'/%3E%3Cpath d='M20 10h-6V4'/%3E%3Cline x1='14' y1='10' x2='21' y2='3'/%3E%3Cline x1='3' y1='21' x2='10' y2='14'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 14h6v6'/%3E%3Cpath d='M20 10h-6V4'/%3E%3Cline x1='14' y1='10' x2='21' y2='3'/%3E%3Cline x1='3' y1='21' x2='10' y2='14'/%3E%3C/svg%3E"); }
+.fa-search { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E"); }
+.fa-download { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4'/%3E%3Cpolyline points='7 10 12 15 17 10'/%3E%3Cline x1='12' y1='15' x2='12' y2='3'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4'/%3E%3Cpolyline points='7 10 12 15 17 10'/%3E%3Cline x1='12' y1='15' x2='12' y2='3'/%3E%3C/svg%3E"); }
 
 /* Override jsoneditor icon paths to local */
 div.jsoneditor-tree button.jsoneditor-button {
@@ -152,6 +163,43 @@ body.maximized-card { overflow: hidden; }
   color: #64748B;
   margin-top: 4px;
 }
+
+/* ---------- Controller auto-hide: collapsed by default, expand on hover ---------- */
+/* Reclaims horizontal space for the editors; hover reveals full labels + select. */
+#controller {
+  min-width: 46px;
+  max-width: 46px;
+  transition: min-width 0.18s ease, max-width 0.18s ease;
+}
+#controller:hover {
+  min-width: 116px;
+  max-width: 116px;
+}
+/* Grip hint shown when collapsed */
+#controller::before {
+  content: '';
+  display: block;
+  height: 3px;
+  width: 18px;
+  margin: 0 auto 4px;
+  border-radius: 2px;
+  background: rgba(148,163,184,0.3);
+  transition: opacity 0.15s;
+}
+#controller:hover::before { opacity: 0; height: 0; margin: 0; }
+/* Labels + indent select hide when collapsed, reappear on hover */
+#controller .ctrl-label,
+#controller .ctrl-btn span,
+#controller .switch-row label,
+#controller #indent-select {
+  display: none;
+}
+#controller:hover .ctrl-label,
+#controller:hover .ctrl-btn span,
+#controller:hover .switch-row label {
+  display: block;
+}
+#controller:hover #indent-select { display: block; }
 
 /* Live switch */
 .switch-row {
@@ -589,6 +637,25 @@ div.jsoneditor td.jsoneditor-tree {
   font-size: 13px !important;
 }
 
+/* ---------- Single-Pane (read-only viewers) ---------- */
+/* When embedded as a read-only viewer (Network/Console/Template),
+   hide the second editor + controller and let the primary pane fill
+   the whole surface for maximum space. Toggled via TTBridge.setEditable. */
+body.single-pane #controller { display: none !important; }
+body.single-pane #jsoneditor-2 { display: none !important; }
+body.single-pane #jsoneditor-1 {
+  flex: 1 1 100% !important;
+  min-width: 0 !important;
+  border-radius: 0 !important;
+  border: none !important;
+}
+body.single-pane .main-container {
+  padding: 0 !important;
+  gap: 0 !important;
+}
+/* Read-only affordance: dim the editable cursor in code mode */
+body.single-pane .ace_cursor { opacity: 0 !important; }
+
 /* ---------- Responsive ---------- */
 @media (max-width: 700px) {
   .main-container {
@@ -703,6 +770,9 @@ div.jsoneditor td.jsoneditor-tree {
 
 (function() {
   'use strict';
+
+  // Payloads larger than this (bytes) skip tree mode for performance.
+  var LARGE_JSON_THRESHOLD = 512 * 1024;
 
   // ── Toast ──
   var Toast = Swal.mixin({
@@ -1066,16 +1136,52 @@ div.jsoneditor td.jsoneditor-tree {
   });
 
   // ── TTBridge Protocol (Swift ↔ JS) ──
+  function decodeBase64UTF8(base64) {
+    var binary = atob(base64);
+    if (window.TextDecoder) {
+      var bytes = new Uint8Array(binary.length);
+      for (var i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      return new TextDecoder('utf-8').decode(bytes);
+    }
+    return decodeURIComponent(Array.prototype.map.call(binary, function(ch) {
+      return '%' + ('00' + ch.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+  }
+
+  function encodeBase64UTF8(text) {
+    if (window.TextEncoder) {
+      var bytes = new TextEncoder().encode(text);
+      var binary = '';
+      for (var i = 0; i < bytes.length; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      return btoa(binary);
+    }
+    return btoa(unescape(encodeURIComponent(text)));
+  }
+
   window.TTBridge = {
     setContent: function(jsonStr, encodeType) {
       try {
         if (encodeType === 'base64') {
-          jsonStr = atob(jsonStr);
+          jsonStr = decodeBase64UTF8(jsonStr);
         }
         var parsed = JSON.parse(jsonStr);
+        // Large-payload guard: tree mode builds a DOM node per value and is
+        // slow for 10k+ entries. Route big docs to jsoneditor's fast,
+        // virtualized 'preview' mode instead.
+        var big = jsonStr.length > LARGE_JSON_THRESHOLD;
         editor1.set(parsed);
+        if (big && editor1.getMode() === 'tree') {
+          editor1.setMode('preview'); addMenus('preview', 'jsoneditor-1');
+        }
         editor2.set(parsed);
-        notifySwift('contentLoaded', { size: jsonStr.length, valid: true });
+        if (big && editor2.getMode() === 'tree') {
+          editor2.setMode('preview'); addMenus('preview', 'jsoneditor-2');
+        }
+        notifySwift('contentLoaded', { size: jsonStr.length, valid: true, large: big });
       } catch(e) {
         // If not valid JSON, set as text
         editor1.setText(jsonStr);
@@ -1092,20 +1198,37 @@ div.jsoneditor td.jsoneditor-tree {
     },
 
     getContentBase64: function() {
-      return btoa(unescape(encodeURIComponent(this.getContent())));
+      return encodeBase64UTF8(this.getContent());
     },
 
     setMode: function(mode) {
       if (['code', 'tree', 'preview'].includes(mode)) {
         editor1.setMode(mode);
         addMenus(mode, 'jsoneditor-1');
+        // Re-apply read-only — switching to code mode recreates the Ace editor.
+        if (document.body.classList.contains('single-pane') && editor1.aceEditor) {
+          try { editor1.aceEditor.setReadOnly(true); } catch (e) {}
+        }
         notifySwift('modeChanged', { mode: mode });
       }
     },
 
     setEditable: function(editable) {
-      // JSONEditor doesn't have a direct readonly toggle;
-      // We can switch to 'preview' mode for read-only
+      // Read-only viewers (editable === false) collapse to a single pane
+      // and disable the code-mode cursor/typing for a clean, spacious view.
+      var readOnly = (editable === false);
+      try {
+        if (readOnly) {
+          document.body.classList.add('single-pane');
+        } else {
+          document.body.classList.remove('single-pane');
+        }
+        if (editor1 && editor1.aceEditor) {
+          editor1.aceEditor.setReadOnly(readOnly);
+        }
+      } catch (e) {
+        console.log('[TTBridge] setEditable failed:', e);
+      }
     },
 
     search: function(term) {
@@ -1113,6 +1236,14 @@ div.jsoneditor td.jsoneditor-tree {
       if (editor1.aceEditor) {
         editor1.aceEditor.find(term);
       }
+    },
+
+    searchNext: function() {
+      if (editor1.aceEditor) editor1.aceEditor.findNext();
+    },
+
+    searchPrevious: function() {
+      if (editor1.aceEditor) editor1.aceEditor.findPrevious();
     },
 
     format: function() {

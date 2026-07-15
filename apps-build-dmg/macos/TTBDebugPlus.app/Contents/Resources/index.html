@@ -425,11 +425,37 @@ html, body {
   const container = document.getElementById('editor-container');
 
   // ── Bridge: Swift → JS ──
+  function decodeBase64UTF8(base64) {
+    var binary = atob(base64);
+    if (window.TextDecoder) {
+      var bytes = new Uint8Array(binary.length);
+      for (var i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      return new TextDecoder('utf-8').decode(bytes);
+    }
+    return decodeURIComponent(Array.prototype.map.call(binary, function(ch) {
+      return '%' + ('00' + ch.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+  }
+
+  function encodeBase64UTF8(text) {
+    if (window.TextEncoder) {
+      var bytes = new TextEncoder().encode(text);
+      var binary = '';
+      for (var i = 0; i < bytes.length; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      return btoa(binary);
+    }
+    return btoa(unescape(encodeURIComponent(text)));
+  }
+
   window.TTBridge = {
     setContent: function(jsonStr, encodeType) {
       try {
         if (encodeType === 'base64') {
-          jsonStr = atob(jsonStr);
+          jsonStr = decodeBase64UTF8(jsonStr);
         }
         currentContent = jsonStr;
         validate();
@@ -455,7 +481,7 @@ html, body {
     },
 
     getContentBase64: function() {
-      return btoa(unescape(encodeURIComponent(currentContent)));
+      return encodeBase64UTF8(currentContent);
     },
 
     setMode: function(mode) {
