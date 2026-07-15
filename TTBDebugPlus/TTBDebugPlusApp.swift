@@ -23,9 +23,9 @@ struct TTBDebugPlusApp: App {
     /// Default follows macOS System Settings (user can force light/dark in app Settings).
     /// Key `appAppearance` supersedes legacy `appearance` (which defaulted to forced dark).
     @AppStorage("appAppearance") private var appearance: String = "system"
-    /// On by default — start the debug bridge when the app launches so devices can
-    /// connect immediately. Toggle lives in Settings → Connection.
-    @AppStorage("autoStartServer") private var autoStartServer: Bool = true
+    /// Off by default (tools-first): open the app without binding ports / Bonjour.
+    /// Start the debug bridge when you need a device. Toggle lives in Settings → Connection.
+    @AppStorage("autoStartServer") private var autoStartServer: Bool = false
     // Relay Server (Phase 4) — no separate enable toggle; starts automatically with the main
     // Server above. Only its port is a standalone setting, restored on launch.
     @AppStorage("relayServerPort") private var relayServerPort: Int = 51820

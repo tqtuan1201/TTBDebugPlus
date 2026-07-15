@@ -68,6 +68,7 @@
 		67630A5C27F7482E13F952B9 /* DeviceSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BF47A325896B17C13D912AD /* DeviceSession.swift */; };
 		687E77ABAE3FB18C92C87A80 /* NetworkViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 578FFE578E86891B43E861D0 /* NetworkViewModel.swift */; };
 		68DC7AF715FB66E1B72F9B85 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D81A159222000FDF2AF3EF0 /* SettingsView.swift */; };
+		6A1B2C3D4E5F708192A3B4C5 /* LaunchAtLoginService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B2C3D4E5F708192A3B4C5D6 /* LaunchAtLoginService.swift */; };
 		6AFD593B3491DC3C1E1A963A /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DA50E018F6F0556C69671F1 /* Colors.swift */; };
 		6D9E5512B41435010C7F61BC /* SaveTemplateSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC6F23C971D88E1B583220CE /* SaveTemplateSheet.swift */; };
 		6E591CE8E401CCFC4CB02C9E /* JSONWebViewComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C7F8F3CA45FD5A3AA7173FD /* JSONWebViewComponent.swift */; };
@@ -219,6 +220,7 @@
 		51D027D44B05680AC0F506A9 /* ColorPickerToolViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPickerToolViewModel.swift; sourceTree = "<group>"; };
 		533000763E8C723166FA29BB /* JSONDiffView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONDiffView.swift; sourceTree = "<group>"; };
 		5498AD37D97DF498D6D65041 /* SessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionManager.swift; sourceTree = "<group>"; };
+		7B2C3D4E5F708192A3B4C5D6 /* LaunchAtLoginService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginService.swift; sourceTree = "<group>"; };
 		566321A1A79812AAC75DC2C9 /* DateFormatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateFormatters.swift; sourceTree = "<group>"; };
 		578FFE578E86891B43E861D0 /* NetworkViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkViewModel.swift; sourceTree = "<group>"; };
 		57C75075787F06B9162A4200 /* JWTDecodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JWTDecodeView.swift; sourceTree = "<group>"; };
@@ -760,6 +762,7 @@
 				6EC9292C45C772D2D17335BD /* Relay */,
 				9770470EED0EA4F2A4BE8C29 /* Storage */,
 				B604FE30D1F7F6B8D3128EA7 /* JSONWebViewBridge.swift */,
+				7B2C3D4E5F708192A3B4C5D6 /* LaunchAtLoginService.swift */,
 				5498AD37D97DF498D6D65041 /* SessionManager.swift */,
 			);
 			path = Services;
@@ -1079,6 +1082,7 @@
 				BD80EF7C762E4DF56E8F4BFC /* IconSizes.swift in Sources */,
 				0021929AEF5D65624D6898F7 /* IntegrationGuideView.swift in Sources */,
 				ACED8D4B6D65A49D562BD04A /* InterfacePreferences.swift in Sources */,
+				6A1B2C3D4E5F708192A3B4C5 /* LaunchAtLoginService.swift in Sources */,
 				4447E901CF4E5FF0B680C958 /* JSONAutoFixPreviewSheet.swift in Sources */,
 				0F459097989C0C31DB65B635 /* JSONConvertEngine.swift in Sources */,
 				3CEA61DCF973DD99388852BC /* JSONConvertView.swift in Sources */,

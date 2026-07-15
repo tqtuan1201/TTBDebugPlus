@@ -6,7 +6,6 @@
 //  Menu bar extra content — quick access to server status, devices, and actions
 //
 
-import ServiceManagement
 import SwiftUI
 
 struct MenuBarView: View {
@@ -18,8 +17,7 @@ struct MenuBarView: View {
     @State private var toolSearchText = ""
     @State private var selectedPopoverTool: DevTool?
     @State private var isToolPopoverPresented = false
-    @State private var launchAtLoginStatus = SMAppService.mainApp.status
-    @State private var launchAtLoginErrorMessage: String?
+    @State private var launchAtLogin = LaunchAtLoginService.shared
     
     private var availableDevToolCount: Int {
         DevTool.allCases.filter(\.isAvailable).count
@@ -132,7 +130,10 @@ struct MenuBarView: View {
             }
         }
         .onAppear {
-            refreshLaunchAtLoginStatus()
+            launchAtLogin.refresh()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            launchAtLogin.refresh()
         }
     }
     
@@ -488,19 +489,24 @@ struct MenuBarView: View {
             MenuBarToggleRow(
                 icon: "power",
                 title: "Open at Login",
-                detail: launchAtLoginDetail,
-                isOn: isLaunchAtLoginEnabled,
-                isEnabled: isLaunchAtLoginToggleAvailable
+                detail: launchAtLogin.detailMessage,
+                isOn: launchAtLogin.isEnabled,
+                isEnabled: launchAtLogin.isToggleAvailable
             ) {
-                setLaunchAtLoginEnabled(!isLaunchAtLoginEnabled)
+                launchAtLogin.setEnabled(!launchAtLogin.isEnabled)
             }
-            
-            if let launchAtLoginErrorMessage {
-                Text(launchAtLoginErrorMessage)
-                    .font(TTFont.labelSmall)
-                    .foregroundColor(.ttError)
-                    .lineLimit(2)
-                    .padding(.leading, TTSpacing.controlMinHeight)
+
+            if launchAtLogin.shouldOfferSystemSettingsLink {
+                Button {
+                    launchAtLogin.openSystemSettingsLoginItems()
+                } label: {
+                    Text("Open Login Items…")
+                        .font(TTFont.labelSmall)
+                        .foregroundColor(.ttPrimary)
+                }
+                .buttonStyle(.plain)
+                .padding(.leading, TTSpacing.controlMinHeight)
+                .accessibilityLabel("Open System Settings Login Items")
             }
         }
         .padding(.horizontal, TTSpacing.sm)
@@ -549,72 +555,6 @@ struct MenuBarView: View {
         openSettings()
     }
     
-    private var launchAtLoginBinding: Binding<Bool> {
-        Binding(
-            get: {
-                isLaunchAtLoginEnabled
-            },
-            set: { isEnabled in
-                setLaunchAtLoginEnabled(isEnabled)
-            }
-        )
-    }
-    
-    private var isLaunchAtLoginEnabled: Bool {
-        switch launchAtLoginStatus {
-        case .enabled, .requiresApproval:
-            return true
-        case .notRegistered, .notFound:
-            return false
-        @unknown default:
-            return false
-        }
-    }
-
-    private var isLaunchAtLoginToggleAvailable: Bool {
-        switch launchAtLoginStatus {
-        case .notFound:
-            return false
-        case .enabled, .requiresApproval, .notRegistered:
-            return true
-        @unknown default:
-            return true
-        }
-    }
-    
-    private var launchAtLoginDetail: String? {
-        switch launchAtLoginStatus {
-        case .enabled:
-            return "TTBDebugPlus will start when macOS opens."
-        case .requiresApproval:
-            return "Allow this app in System Settings > Login Items."
-        case .notFound:
-            return "Login item is unavailable for this build."
-        case .notRegistered:
-            return nil
-        @unknown default:
-            return nil
-        }
-    }
-    
-    private func setLaunchAtLoginEnabled(_ isEnabled: Bool) {
-        do {
-            if isEnabled {
-                try SMAppService.mainApp.register()
-            } else {
-                try SMAppService.mainApp.unregister()
-            }
-            launchAtLoginErrorMessage = nil
-        } catch {
-            launchAtLoginErrorMessage = error.localizedDescription
-        }
-        
-        refreshLaunchAtLoginStatus()
-    }
-    
-    private func refreshLaunchAtLoginStatus() {
-        launchAtLoginStatus = SMAppService.mainApp.status
-    }
 }
 
 // MARK: - Dev Tool Row

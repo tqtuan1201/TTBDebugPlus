@@ -18,7 +18,7 @@ struct SettingsView: View {
     @AppStorage("maskAuthHeaders") private var maskAuthHeaders: Bool = true
     @AppStorage("showTimestamps") private var showTimestamps: Bool = true
     @AppStorage("jsonIndentation") private var jsonIndentation: Int = 2
-    @AppStorage("autoStartServer") private var autoStartServer: Bool = true
+    @AppStorage("autoStartServer") private var autoStartServer: Bool = false
     // Relay Server no longer has its own enable toggle (Phase 4) — it starts/stops with the
     // main Server above. Only its port remains a separate setting.
     @AppStorage("relayServerPort") private var relayServerPort: Int = 51820
@@ -31,6 +31,7 @@ struct SettingsView: View {
     @State private var draftSpacingScale: Double = 1.0
     @State private var draftLineHeightExtra: Double = 0
     @State private var draftTextEmphasis: TTTextEmphasis = .regular
+    @State private var launchAtLogin = LaunchAtLoginService.shared
 
     var body: some View {
         TabView {
@@ -75,6 +76,21 @@ struct SettingsView: View {
     // MARK: - General
     private var generalSettings: some View {
         Form {
+            Section("Startup") {
+                Toggle("Open at Login", isOn: launchAtLoginBinding)
+                    .disabled(!launchAtLogin.isToggleAvailable)
+                if let detail = launchAtLogin.detailMessage {
+                    Text(detail)
+                        .font(.caption)
+                        .foregroundColor(.ttTextSecondary)
+                }
+                if launchAtLogin.shouldOfferSystemSettingsLink {
+                    Button("Open Login Items…") {
+                        launchAtLogin.openSystemSettingsLoginItems()
+                    }
+                }
+            }
+
             Section("Appearance") {
                 Picker("Theme", selection: $appearance) {
                     Text("System").tag("system")
@@ -108,10 +124,23 @@ struct SettingsView: View {
         }
         .formStyle(.grouped)
         .padding()
-        .onAppear { loadLayoutDraftFromApplied() }
+        .onAppear {
+            loadLayoutDraftFromApplied()
+            launchAtLogin.refresh()
+        }
         .onChange(of: designConfig.appliedRevision) { _, _ in
             loadLayoutDraftFromApplied()
         }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            launchAtLogin.refresh()
+        }
+    }
+
+    private var launchAtLoginBinding: Binding<Bool> {
+        Binding(
+            get: { launchAtLogin.isEnabled },
+            set: { launchAtLogin.setEnabled($0) }
+        )
     }
 
     // MARK: - Typography & Spacing (draft → Apply)
@@ -361,7 +390,7 @@ struct SettingsView: View {
         Form {
             Section("Startup") {
                 Toggle("Start server automatically when TTBDebugPlus opens", isOn: $autoStartServer)
-                Text("On by default so the debug bridge is ready when the app launches. Turn off if you only use local Dev Tools and start the server manually.")
+                Text("Off by default (tools-first). Dev Tools work without the server; turn this on if you want the debug bridge ready as soon as the app launches.")
                     .font(.caption)
                     .foregroundColor(.ttTextSecondary)
             }
