@@ -150,7 +150,7 @@ iOS 14+ requires local network access declarations. Missing this causes **"NoAut
     <string>_ttbdebug._tcp</string>
 </array>
 
-<!-- Only needed if you use the built-in QR pairing scanner (DebugBridgeStatusView) -->
+<!-- Only needed if you use the built-in QR pairing scanner (TTBaseDebugKit → SCAN QR CODE or Debug Bridge → Scan QR) -->
 <key>NSCameraUsageDescription</key>
 <string>Used to scan the TTBDebugPlus pairing QR code.</string>
 ```

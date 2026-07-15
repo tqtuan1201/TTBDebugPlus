@@ -36,8 +36,8 @@ That's it. The rest of this page covers what to do when the automatic path doesn
 |---|---|---|
 | **Bonjour (automatic)** | Default — same Wi-Fi network | Nothing — happens on its own after `start()` |
 | **Manual Connect** | Bonjour blocked (corporate Wi-Fi, VPN) | Debug Bridge panel → **Enter IP** → type Mac's IP:port shown in TTBDebugPlus → Connection Health |
-| **QR — LAN Pairing** | Quick one-time connect, both devices in the same room | TTBDebugPlus → Connection Health → scan the QR with **Scan QR** in the Debug Bridge panel |
-| **QR — Relay Config** *(new)* | Different networks (remote/WFH), or you want it to "just work" every launch without re-typing anything | TTBDebugPlus → Settings → Relay → scan the QR once. Saved permanently — reconnects automatically on every future launch, even after a rebuild |
+| **QR — LAN Pairing** | Quick one-time connect, both devices in the same room | TTBDebugPlus → Connection Health → scan the QR via **TTBaseDebugKit → SCAN QR CODE** (fastest) or **Debug Bridge → Scan QR** |
+| **QR — Relay Config** *(new)* | Different networks (remote/WFH), or you want it to "just work" every launch without re-typing anything | TTBDebugPlus → Settings → Relay → scan once via **TTBaseDebugKit → SCAN QR CODE** or Debug Bridge → Scan QR. Saved permanently — reconnects automatically on every future launch, even after a rebuild |
 
 Manual Connect and both QR types run **alongside** Bonjour, not instead of it — if more than one path finds a route, all of them stay connected (by design, not a bug).
 
