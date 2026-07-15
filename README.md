@@ -1,8 +1,8 @@
 # TTBDebugPlus
 
-**A professional-grade macOS companion app for debugging iOS applications in real-time.**
+**A professional-grade companion app for debugging iOS applications in real-time.**
 
-View logs, inspect network requests, export to Postman, analyze API performance, capture remote screenshots, and manage debug sessions — all from your Mac with zero configuration.
+View logs, inspect network requests, export to Postman, analyze API performance, capture remote screenshots, and manage debug sessions — all from your desktop with zero configuration.
 
 <p align="center">
   <img src="AppDesign/02.png" alt="TTBDebugPlus — macOS Companion Debugger" width="900"/>
@@ -10,24 +10,47 @@ View logs, inspect network requests, export to Postman, analyze API performance,
 
 | | |
 |---|---|
-| **Platform** | macOS 14.0+ |
-| **Architecture** | SwiftUI + Bonjour (mDNS) + WebSocket |
+| **Platform (Native)** | macOS 14.0+ (this repo — SwiftUI) |
+| **Platform (KMP)** | macOS 11.0+, Windows 10+, Linux — [KMP Desktop Edition](https://github.com/tttrung430/ttbdebugplus) |
+| **Architecture** | SwiftUI / Compose Multiplatform + Bonjour (mDNS) + WebSocket |
 | **iOS SDK** | Included in [TTBaseUIKit](https://github.com/tqtuan1201/TTBaseUIKit) (v2.3.0+) |
 | **Download** | [TTBDebugPlus-Installer.dmg](https://github.com/tqtuan1201/TTBDebugPlus/blob/dev/apps-build-dmg/TTBDebugPlus-Installer.dmg) (always latest on `dev`) |
 | **Documentation** | [Official Docs](https://tqtuan1201.github.io/public/docs/ttbaseuikit/ttbdebugplus.html) |
 
 ---
 
+## Editions
+
+| Edition | Repo | Stack | Platforms | Best for |
+|---|---|---|---|---|
+| **Native macOS** (this repo) | [tqtuan1201/TTBDebugPlus](https://github.com/tqtuan1201/TTBDebugPlus) | SwiftUI + AppKit | macOS 14.0+ | Full feature set, DMG install, deepest macOS integration |
+| **KMP Desktop** | [tttrung430/ttbdebugplus](https://github.com/tttrung430/ttbdebugplus) | Compose Multiplatform (Kotlin) | macOS 11.0+, Windows 10+, Linux | Cross-platform teams on Windows / Linux / older macOS |
+
+Both editions speak the same **Bonjour + WebSocket** protocol and use the same **TTBaseUIKit `DebugBridge`** iOS SDK — pick the desktop host that matches your machine; iOS integration steps are identical.
+
+### KMP Desktop Edition (Windows / Linux / macOS)
+
+Cross-platform rewrite in **Compose Multiplatform (Kotlin)** with feature parity for the core debugging experience:
+
+- Live Console, Network Inspector v2, Device Control, Performance Monitor, JSON Editor
+- Build with JDK 17+: `cd TTBDebugPlusKMP && ./gradlew run`
+- Package native installers (`.dmg` / `.msi` / `.deb` / `.rpm`): `./gradlew packageDistributionForCurrentOS`
+- Linux CI packages `.deb` and `.rpm` on every push to `main`
+
+→ Full guide: [github.com/tttrung430/ttbdebugplus](https://github.com/tttrung430/ttbdebugplus)
+
+---
+
 ## How It Works
 
-TTBDebugPlus uses **Bonjour (mDNS)** for zero-configuration discovery and **WebSocket** for real-time, bidirectional communication between your iOS app and macOS. Both devices must be on the same Wi-Fi network — auto-connects in < 2 seconds.
+TTBDebugPlus uses **Bonjour (mDNS)** for zero-configuration discovery and **WebSocket** for real-time, bidirectional communication between your iOS app and the desktop companion. Both devices must be on the same Wi-Fi network — auto-connects in < 2 seconds.
 
 ```
-┌──────────────┐     Bonjour Discovery     ┌──────────────────┐
-│   iOS App    │ ◄──────────────────────► │  TTBDebugPlus    │
-│  (iPhone /   │     WebSocket Stream      │  (macOS App)     │
-│  Simulator)  │ ──────────────────────► │                  │
-└──────────────┘   Logs / API / Device     └──────────────────┘
+┌──────────────┐     Bonjour Discovery     ┌──────────────────────────┐
+│   iOS App    │ ◄──────────────────────► │  TTBDebugPlus            │
+│  (iPhone /   │     WebSocket Stream      │  Native macOS (SwiftUI)  │
+│  Simulator)  │ ──────────────────────► │  or KMP (Win/Linux/macOS)│
+└──────────────┘   Logs / API / Device     └──────────────────────────┘
 ```
 
 ---
@@ -91,12 +114,22 @@ TTBDebugPlus uses **Bonjour (mDNS)** for zero-configuration discovery and **WebS
 
 ---
 
-## Installation (macOS App)
+## Installation (Native macOS App)
 
 1. **Download** — [TTBDebugPlus-Installer.dmg](https://github.com/tqtuan1201/TTBDebugPlus/blob/dev/apps-build-dmg/TTBDebugPlus-Installer.dmg)  
    (always the latest build from the `dev` branch)
 2. **Install** — Open the DMG, drag **TTBDebugPlus** to your Applications folder
 3. **Launch** — Open TTBDebugPlus from Applications. It sits in the menu bar ready to go
+
+### Windows / Linux / cross-platform macOS
+
+Use the **KMP Desktop Edition** instead:
+
+1. Clone [tttrung430/ttbdebugplus](https://github.com/tttrung430/ttbdebugplus)
+2. Requires **JDK 17+**
+3. Run: `cd TTBDebugPlusKMP && ./gradlew run`
+4. Or package for your OS: `./gradlew packageDistributionForCurrentOS`  
+   Output: `TTBDebugPlusKMP/build/compose/binaries/main/`
 
 ---
 
@@ -372,10 +405,11 @@ Always wrap bridge code in `#if DEBUG ... #endif`. The compiler strips it entire
 - 📖 [Official Documentation](https://tqtuan1201.github.io/public/docs/ttbaseuikit/ttbdebugplus.html)
 - 📦 [TTBaseUIKit on GitHub](https://github.com/tqtuan1201/TTBaseUIKit)
 - 🚀 [Getting Started with TTBaseUIKit](https://tqtuan1201.github.io/public/docs/ttbaseuikit/getting-started.html)
-- ⬇️ [Download macOS App (latest)](https://github.com/tqtuan1201/TTBDebugPlus/blob/dev/apps-build-dmg/TTBDebugPlus-Installer.dmg)
+- ⬇️ [Download Native macOS App (latest)](https://github.com/tqtuan1201/TTBDebugPlus/blob/dev/apps-build-dmg/TTBDebugPlus-Installer.dmg)
+- 🪟 [KMP Desktop Edition (Windows / Linux / macOS)](https://github.com/tttrung430/ttbdebugplus) — Compose Multiplatform by [@tttrung430](https://github.com/tttrung430)
 
 ---
 
 ## License
 
-TTBDebugPlus is included with [TTBaseUIKit](https://github.com/tqtuan1201/TTBaseUIKit). Download the macOS app, add the SDK, and start debugging in under 5 minutes.
+TTBDebugPlus is included with [TTBaseUIKit](https://github.com/tqtuan1201/TTBaseUIKit). Download the native macOS app or the [KMP Desktop Edition](https://github.com/tttrung430/ttbdebugplus), add the SDK, and start debugging in under 5 minutes.
