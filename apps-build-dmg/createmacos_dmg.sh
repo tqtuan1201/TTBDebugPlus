@@ -7,10 +7,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
 # --- CONFIGURATION ---
-APP_NAME="TTBDebugPlus"
+APP_NAME="DebugKit"
 APP_FILE="macos/${APP_NAME}.app"
 DMG_NAME="${APP_NAME}-Installer.dmg"
-VOL_NAME="TTBDebugPlus — Smart debugs"
+VOL_NAME="DebugKit — Explore. Diagnose. Debug."
 README_FILE="README.txt"
 HELP_URL="https://tqtuan1201.github.io/public/docs/ttbaseuikit/"
 BACKGROUND_IMG="installer_background.png"
@@ -51,7 +51,9 @@ prepare_staging() {
 
     log "Writing ${README_FILE}..."
     cat > "$STAGING_DIR/$README_FILE" <<EOF
---- TTBaseDebug Plus ---
+--- DebugKit ---
+
+Explore. Diagnose. Debug.
 
 INSTALLATION:
 1. Drag the '${APP_NAME}' icon into the 'Applications' folder shortcut.

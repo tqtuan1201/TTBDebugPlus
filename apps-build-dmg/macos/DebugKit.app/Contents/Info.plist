@@ -7,9 +7,9 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>TTBDebugPlus</string>
+	<string>DebugKit</string>
 	<key>CFBundleExecutable</key>
-	<string>TTBDebugPlus</string>
+	<string>DebugKit</string>
 	<key>CFBundleIconFile</key>
 	<string>AppIcon</string>
 	<key>CFBundleIconName</key>
@@ -19,17 +19,17 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>TTBDebugPlus</string>
+	<string>DebugKit</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.1.0</string>
+	<string>1.2.1</string>
 	<key>CFBundleSupportedPlatforms</key>
 	<array>
 		<string>MacOSX</string>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>10</string>
+	<string>14</string>
 	<key>DTCompiler</key>
 	<string>com.apple.compilers.llvm.clang.1_0</string>
 	<key>DTPlatformBuild</key>
@@ -59,9 +59,9 @@
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © 2026 TuanTruong. All rights reserved.</string>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>TTBDebugPlus discovers iOS devices on your local network for real-time debugging.</string>
+	<string>DebugKit discovers iOS devices on your local network for real-time debugging.</string>
 	<key>NSScreenCaptureUsageDescription</key>
-	<string>TTBDebugPlus samples on-screen pixel colors in the Color Picker Dev Tool so you can export accurate Hex and Swift color code while debugging UI.</string>
+	<string>DebugKit samples on-screen pixel colors in the Color Picker Dev Tool so you can export accurate Hex and Swift color code while debugging UI.</string>
 	<key>NSSupportsAutomaticTermination</key>
 	<false/>
 	<key>NSSupportsSuddenTermination</key>

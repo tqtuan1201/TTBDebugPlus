@@ -24,10 +24,11 @@ targets:
       - path: TTBDebugPlus
         excludes:
           - "**/.DS_Store"
+          - "Resources/Assets.xcassets"
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.tuantruong.TTBDebugPlus
-        PRODUCT_NAME: TTBDebugPlus
+        PRODUCT_NAME: DebugKit
         INFOPLIST_FILE: TTBDebugPlus/Info.plist
         CODE_SIGN_ENTITLEMENTS: TTBDebugPlus/TTBDebugPlus.entitlements
         CODE_SIGN_STYLE: Automatic

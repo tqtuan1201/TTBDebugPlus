@@ -1,6 +1,6 @@
 //
 //  NetworkView.swift
-//  TTBDebugPlus
+//  DebugKit
 //
 //  Created by TuanTruong on 2026-03-27.
 //  Network traffic inspector with device-aware filtering, pro UI, live/pause, keyboard nav
@@ -778,7 +778,7 @@ struct NetworkView: View {
     private func exportPostman() {
         let json = viewModel.generatePostmanExport()
         let panel = NSSavePanel()
-        panel.nameFieldStringValue = "TTBDebugPlus_Collection.postman_collection.json"
+        panel.nameFieldStringValue = "DebugKit_Collection.postman_collection.json"
         panel.allowedContentTypes = [.json]
         panel.begin { response in
             if response == .OK, let url = panel.url {
@@ -797,7 +797,7 @@ struct NetworkView: View {
         let stripAuth = UserDefaults.standard.object(forKey: "maskAuthHeaders") as? Bool ?? true
         let har = viewModel.generateHARExport(stripAuth: stripAuth)
         let panel = NSSavePanel()
-        panel.nameFieldStringValue = "TTBDebugPlus_Export.har"
+        panel.nameFieldStringValue = "DebugKit_Export.har"
         panel.allowedContentTypes = [.json]
         panel.begin { response in
             if response == .OK, let url = panel.url {

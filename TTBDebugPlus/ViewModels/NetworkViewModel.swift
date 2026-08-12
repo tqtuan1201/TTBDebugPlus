@@ -1,6 +1,6 @@
 //
 //  NetworkViewModel.swift
-//  TTBDebugPlus
+//  DebugKit
 //
 //  Created by TuanTruong on 2026-03-27.
 //  Manages network request state, filtering, search, device tracking, and detail views
@@ -463,7 +463,7 @@ final class NetworkViewModel {
                     sizeBytes: entry.sizeBytes
                 )
             },
-            name: "TTBDebugPlus Export (\(grouped.count) device\(grouped.count == 1 ? "" : "s"))"
+            name: "DebugKit Export (\(grouped.count) device\(grouped.count == 1 ? "" : "s"))"
         )
     }
     
@@ -753,7 +753,7 @@ enum HARGenerator {
             "log": [
                 "version": "1.2",
                 "creator": [
-                    "name": "TTBDebugPlus",
+                    "name": "DebugKit",
                     "version": "1.0"
                 ] as [String: Any],
                 "entries": harEntries

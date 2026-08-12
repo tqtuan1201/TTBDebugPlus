@@ -15,6 +15,7 @@ import SwiftUI
 struct NetworkInterfaceMenuButton: View {
     @Environment(ConnectionManager.self) var connectionManager
     @State private var showPopover = false
+    var showsLabel = false
 
     private var activeCount: Int {
         connectionManager.activeInterfaces.filter {
@@ -24,21 +25,37 @@ struct NetworkInterfaceMenuButton: View {
 
     var body: some View {
         Button(action: { showPopover.toggle() }) {
-            Image(systemName: "network.badge.shield.half.filled")
-                .font(TTFont.labelMedium)
-                .foregroundColor(activeCount > 0 ? .ttPrimary : .ttTextTertiary)
-                .frame(width: 28, height: 28)
-                .background(
-                    RoundedRectangle(cornerRadius: TTRadius.sm)
-                        .fill(Color.ttSurface.opacity(showPopover ? 0.9 : 1.0))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: TTRadius.sm)
-                                .stroke(Color.ttBorder.opacity(0.5), lineWidth: 1)
-                        )
-                )
+            Group {
+                if showsLabel {
+                    Label("Network", systemImage: "network.badge.shield.half.filled")
+                } else {
+                    Image(systemName: "network.badge.shield.half.filled")
+                }
+            }
+            .font(TTFont.labelSmall)
+            .foregroundColor(activeCount > 0 ? .ttPrimary : .ttTextTertiary)
+            .frame(
+                minWidth: showsLabel ? 0 : TTSpacing.controlHit,
+                maxWidth: showsLabel ? .infinity : TTSpacing.controlHit,
+                minHeight: showsLabel ? TTSpacing.accessibleControlHit : TTSpacing.controlHit,
+                maxHeight: showsLabel ? TTSpacing.accessibleControlHit : TTSpacing.controlHit
+            )
+            .background(
+                RoundedRectangle(cornerRadius: TTRadius.sm)
+                    .fill(Color.ttSurface.opacity(showPopover ? 0.9 : 1.0))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: TTRadius.sm)
+                            .stroke(Color.ttBorder.opacity(0.5), lineWidth: 1)
+                    )
+            )
         }
         .buttonStyle(.plain)
-        .frame(width: 28, height: 28)
+        .frame(
+            minWidth: showsLabel ? 0 : TTSpacing.controlHit,
+            maxWidth: showsLabel ? .infinity : TTSpacing.controlHit,
+            minHeight: showsLabel ? TTSpacing.accessibleControlHit : TTSpacing.controlHit,
+            maxHeight: showsLabel ? TTSpacing.accessibleControlHit : TTSpacing.controlHit
+        )
         .help(
             connectionManager.activeInterfaces.isEmpty
                 ? "Manage Network Interfaces"

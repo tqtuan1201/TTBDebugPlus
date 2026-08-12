@@ -35,7 +35,7 @@ struct ContentView: View {
                 // Top Tab Bar
                 TabBarView()
 
-                if showServerStoppedTip || appState.serverRequiredHint != nil {
+                if showServerStoppedTip {
                     serverGateBanner
                 }
 
@@ -95,15 +95,22 @@ struct ContentView: View {
         .onChange(of: connectionManager.selectedDeviceId) {
             syncAppStateFromConnectionManager()
         }
-        .onChange(of: connectionManager.isServerRunning) {
+        .onChange(of: connectionManager.isServerRunning) { _, serverRunning in
+            if !serverRunning {
+                appState.preferDevToolsWhenServerStopped(serverActive: false)
+            }
             syncAppStateFromConnectionManager()
         }
         .onChange(of: connectionManager.isLifecycleActive) { _, active in
             if active {
                 showServerStoppedTip = false
-                appState.serverRequiredHint = nil
             }
             syncAppStateFromConnectionManager()
+        }
+        .onChange(of: appState.selectedTab) { _, selectedTab in
+            guard !connectionManager.isServerRunning,
+                  selectedTab.requiresLiveServer else { return }
+            appState.openDevToolsMenu()
         }
         // Shared connection clock — refreshes isOnline / metrics without a private Timer
         .onChange(of: connectionManager.uiNow) {
@@ -114,11 +121,9 @@ struct ContentView: View {
     // MARK: - Server-off banners
 
     private var serverGateBanner: some View {
-        let message = appState.serverRequiredHint
-            ?? "Server stopped — Start when you need device debug. Dev Tools work without the server."
         return TTBanner(
             kind: .info,
-            message: message,
+            message: "Server stopped — Start when you need device debug. Dev Tools work without the server.",
             title: connectionManager.isLifecycleActive ? nil : "Tools ready",
             trailing: AnyView(
                 HStack(spacing: TTSpacing.sm) {
@@ -149,12 +154,11 @@ struct ContentView: View {
     private func dismissServerBanners() {
         showServerStoppedTip = false
         hasSeenServerStoppedTip = true
-        appState.serverRequiredHint = nil
     }
 
     /// Tool-first defaults when the debug bridge is not running.
     private func applyServerStoppedDefaultsIfNeeded() {
-        guard !connectionManager.isLifecycleActive else { return }
+        guard !connectionManager.isServerRunning else { return }
         appState.preferDevToolsWhenServerStopped(serverActive: false)
         if !hasSeenServerStoppedTip {
             showServerStoppedTip = true

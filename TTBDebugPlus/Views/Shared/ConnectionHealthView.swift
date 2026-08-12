@@ -1,6 +1,6 @@
 //
 //  ConnectionHealthView.swift
-//  TTBDebugPlus
+//  DebugKit
 //
 //  Created by TuanTruong on 2026-03-30.
 //  Connection diagnostics & waiting screen — replaces empty state when no device connected
@@ -336,7 +336,7 @@ struct ConnectionHealthView: View {
             VStack(alignment: .leading, spacing: TTSpacing.sm) {
                 checklistItem(
                     checked: connectionManager.isServerRunning,
-                    text: "TTBDebugPlus server is running"
+                    text: "DebugKit server is running"
                 )
                 
                 checklistItem(

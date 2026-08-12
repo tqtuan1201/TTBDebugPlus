@@ -13,27 +13,44 @@ import SwiftUI
 struct DeviceSessionMenuButton: View {
     @Environment(ConnectionManager.self) var connectionManager
     @State private var showPopover = false
+    var showsLabel = false
 
     private var onlineCount: Int { connectionManager.onlineDevices.count }
     private var totalCount:  Int { connectionManager.connectedDevices.count }
 
     var body: some View {
         Button(action: { showPopover.toggle() }) {
-            Image(systemName: AppIcon.deviceSessions)
-                .font(TTFont.labelMedium)
-                .foregroundColor(onlineCount > 0 ? .ttSuccess : .ttTextTertiary)
-                .frame(width: 28, height: 28)
-                .background(
-                    RoundedRectangle(cornerRadius: TTRadius.sm)
-                        .fill(Color.ttSurface.opacity(showPopover ? 0.9 : 1.0))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: TTRadius.sm)
-                                .stroke(Color.ttBorder.opacity(0.5), lineWidth: 1)
-                        )
-                )
+            Group {
+                if showsLabel {
+                    Label("Devices", systemImage: AppIcon.deviceSessions)
+                } else {
+                    Image(systemName: AppIcon.deviceSessions)
+                }
+            }
+            .font(TTFont.labelSmall)
+            .foregroundColor(onlineCount > 0 ? .ttSuccess : .ttTextTertiary)
+            .frame(
+                minWidth: showsLabel ? 0 : TTSpacing.controlHit,
+                maxWidth: showsLabel ? .infinity : TTSpacing.controlHit,
+                minHeight: showsLabel ? TTSpacing.accessibleControlHit : TTSpacing.controlHit,
+                maxHeight: showsLabel ? TTSpacing.accessibleControlHit : TTSpacing.controlHit
+            )
+            .background(
+                RoundedRectangle(cornerRadius: TTRadius.sm)
+                    .fill(Color.ttSurface.opacity(showPopover ? 0.9 : 1.0))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: TTRadius.sm)
+                            .stroke(Color.ttBorder.opacity(0.5), lineWidth: 1)
+                    )
+            )
         }
         .buttonStyle(.plain)
-        .frame(width: 28, height: 28)
+        .frame(
+            minWidth: showsLabel ? 0 : TTSpacing.controlHit,
+            maxWidth: showsLabel ? .infinity : TTSpacing.controlHit,
+            minHeight: showsLabel ? TTSpacing.accessibleControlHit : TTSpacing.controlHit,
+            maxHeight: showsLabel ? TTSpacing.accessibleControlHit : TTSpacing.controlHit
+        )
         .help(totalCount > 0 ? "Device Sessions (\(onlineCount)/\(totalCount))" : "Manage Device Sessions")
         .accessibilityLabel("Device Sessions")
         .accessibilityValue("\(onlineCount) online of \(totalCount)")

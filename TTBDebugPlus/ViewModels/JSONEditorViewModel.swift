@@ -1,6 +1,6 @@
 //
 //  JSONEditorViewModel.swift
-//  TTBDebugPlus
+//  DebugKit
 //
 //  Created by TuanTruong on 2026-03-29.
 //  Core state management for JSON Editor — validate, format, minify, undo/redo, auto-fix.
@@ -425,7 +425,7 @@ class JSONEditorViewModel {
     func loadSample() {
         let sample = """
         {
-          "name": "TTBDebugPlus",
+          "name": "DebugKit",
           "version": "1.0.0",
           "description": "Professional iOS debugging companion for macOS",
           "features": [

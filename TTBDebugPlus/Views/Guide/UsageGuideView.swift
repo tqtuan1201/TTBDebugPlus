@@ -1,6 +1,6 @@
 //
 //  UsageGuideView.swift
-//  TTBDebugPlus
+//  DebugKit
 //
 //  Created by TuanTruong on 2026-03-27.
 //  macOS app feature guide, keyboard shortcuts, tips & export reference
@@ -25,7 +25,7 @@ struct UsageGuideView: View {
                         }
                         
                         VStack(alignment: .leading, spacing: TTSpacing.xxxs) {
-                            Text("How to Use TTBDebugPlus")
+                            Text("How to Use DebugKit")
                                 .font(TTFont.displayMedium)
                                 .foregroundColor(.ttTextPrimary)
                             Text("Learn what each feature does and how to get the most out of it")
@@ -181,7 +181,7 @@ struct UsageGuideView: View {
                     tipCard(
                         icon: AppIcon.localhostServers,
                         title: "Free a stuck port without Terminal",
-                        description: "Open Dev Tools → Localhost → Live Ports, select the process on :3000 (or any port), Soft Stop first, then Force Kill only if needed. Protected TTBDebugPlus ports cannot be killed here.",
+                        description: "Open Dev Tools → Localhost → Live Ports, select the process on :3000 (or any port), Soft Stop first, then Force Kill only if needed. Protected DebugKit ports cannot be killed here.",
                         color: .ttWarning
                     )
 
@@ -216,7 +216,7 @@ struct UsageGuideView: View {
                     tipCard(
                         icon: AppIcon.connectionHealth,
                         title: "Multiple Devices",
-                        description: "TTBDebugPlus supports multiple connected devices simultaneously. Use the sidebar to switch between devices and view their individual logs.",
+                        description: "DebugKit supports multiple connected devices simultaneously. Use the sidebar to switch between devices and view their individual logs.",
                         color: .purple
                     )
                 }

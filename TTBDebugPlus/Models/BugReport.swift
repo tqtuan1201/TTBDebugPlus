@@ -242,7 +242,7 @@ struct DeviceInfoSnapshot: Codable {
     func formattedStamp(_ date: Date) -> String { Self.stampFormatter.string(from: date) }
 
     /// One-line / multi-line metadata text for "copy image + info" in the chosen format.
-    func metadataText(format: MetadataFormat, timestamp: Date, appTitle: String = "TTBDebugPlus") -> String {
+    func metadataText(format: MetadataFormat, timestamp: Date, appTitle: String = "DebugKit") -> String {
         let stamp = formattedStamp(timestamp)
         let typeBadge = isSimulator ? "Simulator" : "Real Device"
         var fields = displayPairs

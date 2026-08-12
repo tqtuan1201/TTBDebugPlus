@@ -27,7 +27,7 @@ struct TabBarView: View {
             HStack(spacing: 0) {
                 ForEach(Array(AppTab.tabBarCases.enumerated()), id: \.element.id) { index, tab in
                     let needsServer = tab.requiresLiveServer
-                    let serverOff = !connectionManager.isLifecycleActive
+                    let serverOff = !connectionManager.isServerRunning
                     let isGated = needsServer && serverOff
 
                     TabItemView(
@@ -37,14 +37,9 @@ struct TabBarView: View {
                         isGated: isGated
                     ) {
                         withAnimation(.easeInOut(duration: TTAnimation.durationSlow)) {
-                            if isGated {
-                                appState.serverRequiredHint =
-                                    "Start Server to use \(tab.rawValue). Dev Tools stay available without the server."
-                            } else if tab == .devtools {
-                                appState.serverRequiredHint = nil
+                            if tab == .devtools {
                                 appState.openDevToolsMenu()
                             } else {
-                                appState.serverRequiredHint = nil
                                 appState.selectedTab = tab
                             }
                         }
@@ -125,13 +120,16 @@ struct TabItemView: View {
             }
             .padding(.horizontal, TTSpacing.lg)
             .padding(.vertical, TTSpacing.xs)
+            .contentShape(Rectangle())
             .opacity(isGated ? 0.55 : 1)
             // Selected state via text/icon color only — no underline
         }
         .buttonStyle(.plain)
         .keyboardShortcut(shortcutKey, modifiers: .command)
+        .disabled(isGated)
         .help(isGated ? "Start Server to use \(tab.rawValue)" : tab.rawValue)
         .accessibilityLabel(isGated ? "\(tab.rawValue), requires server" : tab.rawValue)
+        .accessibilityHint(isGated ? "Unavailable while the server is stopped" : "Open \(tab.rawValue)")
     }
 }
 

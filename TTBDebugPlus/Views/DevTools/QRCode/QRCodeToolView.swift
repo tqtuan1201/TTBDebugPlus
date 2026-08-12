@@ -1,6 +1,6 @@
 //
 //  QRCodeToolView.swift
-//  TTBDebugPlus
+//  DebugKit
 //
 //  Created by Codex on 2026-05-27.
 //  Professional QR code generator and decoder for Dev Tools
@@ -16,7 +16,7 @@ struct QRCodeToolView: View {
     @AppStorage("devTools.qrCode.foregroundColor") private var foregroundColor: QRCodeColorPreset = .black
     @AppStorage("devTools.qrCode.backgroundColor") private var backgroundColor: QRCodeColorPreset = .white
     
-    @AppStorage("devTools.qrCode.textValue") private var textValue = "TTBDebugPlus"
+    @AppStorage("devTools.qrCode.textValue") private var textValue = "DebugKit"
     @AppStorage("devTools.qrCode.urlValue") private var urlValue = "https://"
     @AppStorage("devTools.qrCode.wifiSSID") private var wifiSSID = ""
     @AppStorage("devTools.qrCode.wifiPassword") private var wifiPassword = ""

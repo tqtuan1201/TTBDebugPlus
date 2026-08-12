@@ -707,7 +707,7 @@ struct ScreenshotInfoFooterView: View {
     let timestamp: Date
     /// Raster / image export scale (independent of app density).
     var scale: CGFloat = 1.0
-    var appTitle: String = "TTBDebugPlus"
+    var appTitle: String = "DebugKit"
 
     /// Composite: export scale × applied design metrics (Phase 5).
     private var fontMul: CGFloat {
@@ -721,8 +721,11 @@ struct ScreenshotInfoFooterView: View {
         VStack(alignment: .leading, spacing: 8 * spaceMul) {
             // Row 1 — brand · capture time · device-type badge
             HStack(alignment: .center, spacing: 10 * spaceMul) {
-                Image(systemName: AppIcon.app)
-                    .font(.system(size: 19 * fontMul, weight: .semibold))
+                Image("DebugKitMenuBar")
+                    .resizable()
+                    .renderingMode(.template)
+                    .scaledToFit()
+                    .frame(width: 19 * fontMul, height: 19 * fontMul)
                     .foregroundColor(.ttError)
                 Text(appTitle)
                     .font(.system(size: 15 * fontMul, weight: .bold))

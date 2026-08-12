@@ -38,9 +38,6 @@ class AppState {
     var devToolsMenuRequestID = UUID()
     var devToolsToolRequestID = UUID()
 
-    /// Short-lived banner when user taps a tab that needs the debug server while it is stopped.
-    var serverRequiredHint: String? = nil
-    
     /// Navigate to the Dev Tools menu screen.
     func openDevToolsMenu() {
         requestedDevTool = nil

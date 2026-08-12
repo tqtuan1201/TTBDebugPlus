@@ -1,11 +1,13 @@
-# TTBDebugPlus
+# DebugKit
+
+**Explore. Diagnose. Debug.**
 
 **A professional-grade companion app for debugging iOS applications in real-time.**
 
 View logs, inspect network requests, export to Postman, analyze API performance, capture remote screenshots, and manage debug sessions — all from your desktop with zero configuration.
 
 <p align="center">
-  <img src="AppDesign/02.png" alt="TTBDebugPlus — macOS Companion Debugger" width="900"/>
+  <img src="AppDesign/02.png" alt="DebugKit — macOS Companion Debugger" width="900"/>
 </p>
 
 | | |
@@ -14,7 +16,7 @@ View logs, inspect network requests, export to Postman, analyze API performance,
 | **Platform (KMP)** | macOS 11.0+, Windows 10+, Linux — [KMP Desktop Edition](https://github.com/tttrung430/ttbdebugplus) |
 | **Architecture** | SwiftUI / Compose Multiplatform + Bonjour (mDNS) + WebSocket |
 | **iOS SDK** | Included in [TTBaseUIKit](https://github.com/tqtuan1201/TTBaseUIKit) (v2.3.0+) |
-| **Download** | [TTBDebugPlus-Installer.dmg](https://github.com/tqtuan1201/TTBDebugPlus/blob/dev/apps-build-dmg/TTBDebugPlus-Installer.dmg) (always latest on `dev`) |
+| **Download** | [DebugKit-Installer.dmg](https://github.com/tqtuan1201/TTBDebugPlus/blob/dev/apps-build-dmg/DebugKit-Installer.dmg) (always latest on `dev`) |
 | **Documentation** | [Official Docs](https://tqtuan1201.github.io/public/docs/ttbaseuikit/ttbdebugplus.html) |
 
 ---
@@ -43,11 +45,11 @@ Cross-platform rewrite in **Compose Multiplatform (Kotlin)** with feature parity
 
 ## How It Works
 
-TTBDebugPlus uses **Bonjour (mDNS)** for zero-configuration discovery and **WebSocket** for real-time, bidirectional communication between your iOS app and the desktop companion. Both devices must be on the same Wi-Fi network — auto-connects in < 2 seconds.
+DebugKit uses **Bonjour (mDNS)** for zero-configuration discovery and **WebSocket** for real-time, bidirectional communication between your iOS app and the desktop companion. Both devices must be on the same Wi-Fi network — auto-connects in < 2 seconds.
 
 ```
 ┌──────────────┐     Bonjour Discovery     ┌──────────────────────────┐
-│   iOS App    │ ◄──────────────────────► │  TTBDebugPlus            │
+│   iOS App    │ ◄──────────────────────► │  DebugKit                │
 │  (iPhone /   │     WebSocket Stream      │  Native macOS (SwiftUI)  │
 │  Simulator)  │ ──────────────────────► │  or KMP (Win/Linux/macOS)│
 └──────────────┘   Logs / API / Device     └──────────────────────────┘
@@ -102,7 +104,7 @@ TTBDebugPlus uses **Bonjour (mDNS)** for zero-configuration discovery and **WebS
 - Discover TCP listeners on your Mac (port, PID, process name)
 - Save project servers (command + working directory + preferred port)
 - Start / stop / restart with live log tail
-- Soft-stop or force-kill with confirmation; protect TTBDebugPlus debug ports
+- Soft-stop or force-kill with confirmation; protect DebugKit debug ports
 - Port conflict sheet when a preferred port is already in use
 
 ### 🎨 Dev Tools — Color Picker
@@ -110,16 +112,16 @@ TTBDebugPlus uses **Bonjour (mDNS)** for zero-configuration discovery and **WebS
 - Export developer-ready formats: Hex, RGB, HSL, SwiftUI, UIColor, NSColor, CSS
 - Session palette (today’s colors) with export as JSON
 - WCAG contrast checker (foreground / background → AA / AAA)
-- Design token match against TTBDebugPlus semantic colors (e.g. `.ttPrimary`)
+- Design token match against DebugKit semantic colors (e.g. `.ttPrimary`)
 
 ---
 
 ## Installation (Native macOS App)
 
-1. **Download** — [TTBDebugPlus-Installer.dmg](https://github.com/tqtuan1201/TTBDebugPlus/blob/dev/apps-build-dmg/TTBDebugPlus-Installer.dmg)  
+1. **Download** — [DebugKit-Installer.dmg](https://github.com/tqtuan1201/TTBDebugPlus/blob/dev/apps-build-dmg/DebugKit-Installer.dmg)
    (always the latest build from the `dev` branch)
-2. **Install** — Open the DMG, drag **TTBDebugPlus** to your Applications folder
-3. **Launch** — Open TTBDebugPlus from Applications. It sits in the menu bar ready to go
+2. **Install** — Open the DMG, drag **DebugKit** to your Applications folder
+3. **Launch** — Open DebugKit from Applications. It sits in the menu bar ready to go
 
 ### Windows / Linux / cross-platform macOS
 
@@ -139,7 +141,7 @@ Use the **KMP Desktop Edition** instead:
      TTBDebugPlus/source/TTBDebugPlus/Views/Guide/IntegrationGuideView.swift's `steps` array
      (same content, shown inside the macOS app too). Keep both in sync when editing either one. -->
 
-The iOS SDK is included in the **TTBaseUIKit** package via the `DebugBridge` module. Connect your iOS app to TTBDebugPlus in minutes.
+The iOS SDK is included in the **TTBaseUIKit** package via the `DebugBridge` module. Connect your iOS app to DebugKit in minutes.
 
 ### Step 1 — Add TTBaseUIKit via SPM
 
@@ -167,7 +169,7 @@ iOS 14+ requires local network access declarations. Missing this causes **"NoAut
 
 <!-- Required: Describe why local network access is needed -->
 <key>NSLocalNetworkUsageDescription</key>
-<string>Required for connecting to TTBDebugPlus on macOS to stream debug logs.</string>
+<string>Required for connecting to DebugKit on macOS to stream debug logs.</string>
 
 <!-- Required: Declare Bonjour service type -->
 <key>NSBonjourServices</key>
@@ -177,7 +179,7 @@ iOS 14+ requires local network access declarations. Missing this causes **"NoAut
 
 <!-- Only needed if you use the built-in QR pairing scanner (TTBaseDebugKit → SCAN QR CODE or Debug Bridge → Scan QR) -->
 <key>NSCameraUsageDescription</key>
-<string>Used to scan the TTBDebugPlus pairing QR code.</string>
+<string>Used to scan the DebugKit pairing QR code.</string>
 ```
 
 ### Step 3 — Start the Debug Bridge
@@ -280,7 +282,7 @@ LogInterceptor.shared.interceptConsoleLog(
 ### Step 6 — Run & Verify
 
 1. Ensure Mac and iPhone/Simulator are on the **same Wi-Fi network**
-2. Open **TTBDebugPlus** on Mac
+2. Open **DebugKit** on Mac
 3. Build & Run your iOS app
 
 **Expected console output:**
@@ -291,7 +293,7 @@ LogInterceptor.shared.interceptConsoleLog(
 [TTDebugBridge] 📡 Found service: xxx._ttbdebug._tcp.local.
 [TTDebugBridge] ✅ Connected to macOS app!
 
-// ✅ TTBDebugPlus macOS:
+// ✅ DebugKit macOS:
 [TTBDebug] 🚀 Connection manager started
 [TTBDebug] ✅ Bonjour advertiser ready on port 50689
 // Sidebar: iPhone appears with name + version
@@ -335,7 +337,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     ) -> Bool {
 
         #if DEBUG
-        // 1. Start bridge — auto-discover macOS TTBDebugPlus
+        // 1. Start bridge — auto-discover macOS DebugKit
         TTDebugBridge.shared.start()
 
         // 2. Install log interceptor — auto-forward console logs
@@ -405,11 +407,11 @@ Always wrap bridge code in `#if DEBUG ... #endif`. The compiler strips it entire
 - 📖 [Official Documentation](https://tqtuan1201.github.io/public/docs/ttbaseuikit/ttbdebugplus.html)
 - 📦 [TTBaseUIKit on GitHub](https://github.com/tqtuan1201/TTBaseUIKit)
 - 🚀 [Getting Started with TTBaseUIKit](https://tqtuan1201.github.io/public/docs/ttbaseuikit/getting-started.html)
-- ⬇️ [Download Native macOS App (latest)](https://github.com/tqtuan1201/TTBDebugPlus/blob/dev/apps-build-dmg/TTBDebugPlus-Installer.dmg)
+- ⬇️ [Download Native macOS App (latest)](https://github.com/tqtuan1201/TTBDebugPlus/blob/dev/apps-build-dmg/DebugKit-Installer.dmg)
 - 🪟 [KMP Desktop Edition (Windows / Linux / macOS)](https://github.com/tttrung430/ttbdebugplus) — Compose Multiplatform by [@tttrung430](https://github.com/tttrung430)
 
 ---
 
 ## License
 
-TTBDebugPlus is included with [TTBaseUIKit](https://github.com/tqtuan1201/TTBaseUIKit). Download the native macOS app or the [KMP Desktop Edition](https://github.com/tttrung430/ttbdebugplus), add the SDK, and start debugging in under 5 minutes.
+DebugKit is included with [TTBaseUIKit](https://github.com/tqtuan1201/TTBaseUIKit). Download the native macOS app or the [KMP Desktop Edition](https://github.com/tttrung430/ttbdebugplus), add the SDK, and start debugging in under 5 minutes.

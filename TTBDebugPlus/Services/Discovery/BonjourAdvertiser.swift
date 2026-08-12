@@ -1,6 +1,6 @@
 //
 //  BonjourAdvertiser.swift
-//  TTBDebugPlus
+//  DebugKit
 //
 //  Created by TuanTruong on 2026-03-27.
 //  Advertises the macOS debug service via Bonjour for iOS device discovery.
@@ -20,7 +20,7 @@ final class BonjourAdvertiser {
     static let serviceType   = "_ttbdebug._tcp"
     static let serviceDomain = "local"
 
-    /// Unique per-machine advertise name (Phase 4). Previously hardcoded `"TTBDebugPlus"` on
+    /// Unique per-machine advertise name (Phase 4). Previously hardcoded `"DebugKit"` on
     /// every Mac — when 2+ Macs on the same LAN advertised the identical name, mDNS's
     /// identical-name conflict resolution (RFC 6762 §9) had to auto-rename one of them, which
     /// works but is a timing-dependent race with no UI to tell instances apart afterward.
@@ -31,7 +31,7 @@ final class BonjourAdvertiser {
     static let advertiseName: String = {
         let machine = Host.current().localizedName ?? "Mac"
         let truncated = machine.count > 40 ? String(machine.prefix(40)) : machine
-        return "TTBDebugPlus – \(truncated)"
+        return "DebugKit – \(truncated)"
     }()
 
     /// Preferred fixed port for the LAN listener (Phase 7). Previously always ephemeral

@@ -1,6 +1,6 @@
 //
 //  ConnectionManager.swift
-//  TTBDebugPlus
+//  DebugKit
 //
 //  Created by TuanTruong on 2026-03-27.
 //  Central manager for all device connections, Bonjour advertising, and message routing.
@@ -202,7 +202,7 @@ final class ConnectionManager {
         if appNapActivityToken == nil {
             appNapActivityToken = ProcessInfo.processInfo.beginActivity(
                 options: [.userInitiatedAllowingIdleSystemSleep],
-                reason: "TTBDebugPlus keeps debug bridge connections alive"
+                reason: "DebugKit keeps debug bridge connections alive"
             )
         }
 

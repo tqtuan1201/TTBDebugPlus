@@ -1,6 +1,6 @@
 //
 //  LibraryDataManagementView.swift
-//  TTBDebugPlus
+//  DebugKit
 //
 //  Created by TuanTruong on 2026-06-16.
 //  Dedicated data-management screen for the Template Library:
@@ -224,7 +224,7 @@ struct LibraryDataManagementView: View {
         }
         let panel = NSSavePanel()
         let stamp = TTDateFormatter.iso8601.string(from: Date()).replacingOccurrences(of: ":", with: "-")
-        panel.nameFieldStringValue = "TTBDebugPlus-Library-\(stamp).\(LibraryBackupService.fileExtension)"
+        panel.nameFieldStringValue = "DebugKit-Library-\(stamp).\(LibraryBackupService.fileExtension)"
         panel.allowedContentTypes = [libraryUTType]
         panel.begin { response in
             if response == .OK, let url = panel.url {

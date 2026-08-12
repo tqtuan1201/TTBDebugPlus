@@ -1,6 +1,6 @@
 //
 //  LocalhostServersView.swift
-//  TTBDebugPlus
+//  DebugKit
 //
 //  Dev Tools workbench: Live Ports + My Servers lifecycle manager.
 //
@@ -289,7 +289,7 @@ struct LocalhostServersView: View {
                     if endpoint.classification == .ttbdebug {
                         TTBanner(
                             kind: .info,
-                            message: "Protected — TTBDebugPlus debug bridge or this app. Use sidebar Server controls to stop the debug stack."
+                            message: "Protected — DebugKit debug bridge or this app. Use sidebar Server controls to stop the debug stack."
                         )
                     } else if endpoint.classification == .system {
                         TTBanner(

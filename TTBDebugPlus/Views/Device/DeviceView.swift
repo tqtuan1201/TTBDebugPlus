@@ -346,7 +346,7 @@ struct DeviceView: View {
             
             // ── Bug report ──
             Button(action: { captureVM.openBugReport() }) {
-                Image(systemName: AppIcon.app)
+                Image(systemName: AppIcon.bugReport)
                     .font(.ttIcon(TTIcon.lg))
                     .foregroundColor(captureVM.currentScreenshot != nil ? .ttWarning : .ttTextTertiary)
             }
@@ -389,7 +389,7 @@ struct DeviceView: View {
                     Divider()
                     Button(action: { copyMetadataText(.markdown) }) { Label("Info as Markdown", systemImage: "doc.plaintext") }
                     Button(action: { copyMetadataText(.slack) }) { Label("Info for Slack", systemImage: "bubble.left.and.bubble.right") }
-                    Button(action: { copyMetadataText(.jira) }) { Label("Info for Jira", systemImage: "ladybug") }
+                    Button(action: { copyMetadataText(.jira) }) { Label("Info for Jira", systemImage: AppIcon.bugReport) }
                 } label: {
                     Image(systemName: "chevron.down")
                         .font(.ttIcon(TTIcon.sm))
@@ -1455,7 +1455,7 @@ struct DeviceView: View {
     private func galleryItemContextMenu(_ item: ScreenshotItem) -> some View {
         Button { captureVM.selectItem(item) } label: { Label("View", systemImage: "eye") }
         Button { captureVM.selectItem(item); captureVM.isAnnotating = true } label: { Label("Draw / Annotate", systemImage: "pencil.tip.crop.circle") }
-        Button { captureVM.openBugReport(with: [item.image]) } label: { Label("Bug Report", systemImage: "ladybug") }
+        Button { captureVM.openBugReport(with: [item.image]) } label: { Label("Bug Report", systemImage: AppIcon.bugReport) }
         Divider()
         Button {
             let pasteboard = NSPasteboard.general
@@ -1492,7 +1492,7 @@ struct DeviceView: View {
                     Spacer()
                     
                     Button(action: { captureVM.openBugReportFromSelected() }) {
-                        Image(systemName: "ladybug").font(.ttIcon(TTIcon.sm))
+                        Image(systemName: AppIcon.bugReport).font(.ttIcon(TTIcon.sm))
                     }
                     .buttonStyle(.ttGhost)
                     .help("Create bug report from selected")

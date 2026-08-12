@@ -1,6 +1,6 @@
 //
 //  TutorialGuideView.swift
-//  TTBDebugPlus
+//  DebugKit
 //
 //  Phase 9 — beginner-friendly "how to connect" walkthrough, placed before Integration
 //  Guide in the tab order. Distinct scope from Integration Guide on purpose: this is about
@@ -221,7 +221,7 @@ struct TutorialGuideView: View {
             )
             TTBanner(
                 kind: .warning,
-                message: "Check both devices share the same Wi-Fi network, and that Server is On in TTBDebugPlus (sidebar or menu bar).",
+                message: "Check both devices share the same Wi-Fi network, and that Server is On in DebugKit (sidebar or menu bar).",
                 title: "Device never appears"
             )
             TTBanner(
@@ -245,7 +245,7 @@ struct TutorialGuideView: View {
                 ),
                 TutorialStep(
                     title: "Turn on the Server",
-                    detail: "In TTBDebugPlus, make sure Server is On (sidebar toggle or menu bar icon).",
+                    detail: "In DebugKit, make sure Server is On (sidebar toggle or menu bar icon).",
                     icon: "power"
                 ),
                 TutorialStep(
@@ -258,7 +258,7 @@ struct TutorialGuideView: View {
             return [
                 TutorialStep(
                     title: "Relay turns on with the Server",
-                    detail: "In TTBDebugPlus: Settings → Relay — it's already listening once the main Server is on, no separate switch.",
+                    detail: "In DebugKit: Settings → Relay — it's already listening once the main Server is on, no separate switch.",
                     icon: "arrow.triangle.2.circlepath"
                 ),
                 TutorialStep(

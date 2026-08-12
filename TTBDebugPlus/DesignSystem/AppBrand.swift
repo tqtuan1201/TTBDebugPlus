@@ -8,10 +8,10 @@
 import Foundation
 
 enum AppBrand {
-    static let name = "TTBDebugPlus"
+    static let name = "DebugKit"
 
     /// Short professional tagline (window subtitle / sidebar).
-    static let tagline = "Real-time iOS Debug Companion"
+    static let tagline = "Explore. Diagnose. Debug."
 
     /// One-line value proposition for empty states / welcome.
     static let valueProposition =

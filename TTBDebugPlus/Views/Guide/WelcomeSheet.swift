@@ -113,11 +113,11 @@ struct WelcomeSheet: View {
             }
             
             VStack(spacing: TTSpacing.sm) {
-                Text("TTBDebugPlus")
+                Text(AppBrand.name)
                     .font(TTFont.displayLarge)
                     .foregroundColor(.ttTextPrimary)
                 
-                Text("Real-time iOS Debugging Companion")
+                Text(AppBrand.tagline)
                     .font(TTFont.heading3)
                     .foregroundColor(.ttTextSecondary)
             }
@@ -217,7 +217,7 @@ struct WelcomeSheet: View {
                 quickStartStep(
                     number: 3,
                     title: "Run both apps on the same network",
-                    subtitle: "TTBDebugPlus auto-discovers your iOS device via Bonjour"
+                    subtitle: "DebugKit auto-discovers your iOS device via Bonjour"
                 )
             }
             .padding(.horizontal, TTSpacing.sheetWidePadding)

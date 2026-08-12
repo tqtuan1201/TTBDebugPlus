@@ -6,7 +6,7 @@
 //
 
 enum AppIcon {
-    static let app = "ladybug.fill"
+    static let bugReport = "exclamationmark.bubble.fill"
 
     static let console = "terminal"
     static let network = "network"

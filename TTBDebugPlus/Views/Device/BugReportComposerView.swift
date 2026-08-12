@@ -69,7 +69,7 @@ struct BugReportComposerView: View {
     // MARK: - Header
     private var header: some View {
         HStack {
-            Image(systemName: AppIcon.app)
+            Image(systemName: AppIcon.bugReport)
                 .font(.ttIcon(TTIcon.xxl))
                 .foregroundColor(.ttError)
             Text("BUG REPORT")
@@ -355,7 +355,7 @@ struct BugReportComposerView: View {
             Menu {
                 Button(action: { copyText(.markdown) }) { Label("Copy as Markdown", systemImage: "doc.plaintext") }
                 Button(action: { copyText(.slack) }) { Label("Copy for Slack", systemImage: "bubble.left.and.bubble.right") }
-                Button(action: { copyText(.jira) }) { Label("Copy for Jira", systemImage: "ladybug") }
+                Button(action: { copyText(.jira) }) { Label("Copy for Jira", systemImage: AppIcon.bugReport) }
             } label: {
                 HStack(spacing: TTSpacing.xs) {
                     Image(systemName: "doc.on.clipboard")

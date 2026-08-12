@@ -1,6 +1,6 @@
 //
 //  LaunchAtLoginService.swift
-//  TTBDebugPlus
+//  DebugKit
 //
 //  Thin wrapper around SMAppService.mainApp for Open at Login.
 //  Keeps registration logic out of views; surfaces actionable status/errors.
@@ -49,13 +49,13 @@ final class LaunchAtLoginService {
         }
         switch status {
         case .enabled:
-            return "TTBDebugPlus will start when you log in to macOS."
+            return "DebugKit will start when you log in to macOS."
         case .requiresApproval:
-            return "Allow TTBDebugPlus in System Settings → Login Items."
+            return "Allow DebugKit in System Settings → Login Items."
         case .notFound:
             return installHint ?? "Could not register this app as a login item. Install to /Applications and try again."
         case .notRegistered:
-            return "Start TTBDebugPlus automatically at login."
+            return "Start DebugKit automatically at login."
         @unknown default:
             return nil
         }
@@ -84,12 +84,12 @@ final class LaunchAtLoginService {
         let inApplications = path.hasPrefix("/Applications/")
             || path.hasPrefix(NSHomeDirectory() + "/Applications/")
         if !inApplications {
-            return "Move TTBDebugPlus to /Applications (do not run from a DMG or external volume), then try again."
+            return "Move DebugKit to /Applications (do not run from a DMG or external volume), then try again."
         }
         // Renamed side-by-side copies often confuse Launch Services / BTM for the same bundle ID.
         let name = (path as NSString).lastPathComponent
         if name.localizedCaseInsensitiveContains(".dev") || name.contains("(") {
-            return "Use the standard app name in /Applications (TTBDebugPlus.app), not a renamed copy."
+            return "Use the standard app name in /Applications (DebugKit.app), not a renamed copy."
         }
         return "If registration fails, remove other copies of this app, reinstall from the DMG into /Applications, then try again."
     }

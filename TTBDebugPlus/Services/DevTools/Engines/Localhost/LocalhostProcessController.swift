@@ -1,6 +1,6 @@
 //
 //  LocalhostProcessController.swift
-//  TTBDebugPlus
+//  DebugKit
 //
 //  Soft/force process signals with protection policy.
 //
@@ -17,9 +17,9 @@ enum LocalhostProcessControlError: LocalizedError, Equatable {
     var errorDescription: String? {
         switch self {
         case .protectedProcess:
-            return "This process is protected (TTBDebugPlus debug bridge or the app itself)."
+            return "This process is protected (DebugKit debug bridge or the app itself)."
         case .systemProcessBlocked:
-            return "System processes cannot be force-killed from TTBDebugPlus."
+            return "System processes cannot be force-killed from DebugKit."
         case .invalidPID:
             return "Invalid process ID."
         case .signalFailed(let code):

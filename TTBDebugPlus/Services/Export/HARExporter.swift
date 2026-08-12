@@ -1,6 +1,6 @@
 //
 //  HARExporter.swift
-//  TTBDebugPlus
+//  DebugKit
 //
 //  Created by TuanTruong on 2026-03-27.
 //  Export API logs as HAR 1.2 (HTTP Archive) format, compatible with Chrome DevTools & Proxyman
@@ -13,7 +13,7 @@ import AppKit
 enum HARExporter {
     
     /// Generate HAR 1.2 JSON string from API log entries
-    static func generate(from entries: [APILogPayload], creatorName: String = "TTBDebugPlus", creatorVersion: String = "2.3.0") -> String {
+    static func generate(from entries: [APILogPayload], creatorName: String = "DebugKit", creatorVersion: String = "2.3.0") -> String {
         let harLog = HARLog(
             version: "1.2",
             creator: HARCreator(name: creatorName, version: creatorVersion),

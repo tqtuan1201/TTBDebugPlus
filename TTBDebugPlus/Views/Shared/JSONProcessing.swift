@@ -1,6 +1,6 @@
 //
 //  JSONProcessing.swift
-//  TTBDebugPlus
+//  DebugKit
 //
 //  Created by TuanTruong on 2026-03-29.
 //  cURL/Postman export generation from API log payloads
@@ -37,7 +37,7 @@ enum CURLGenerator {
     }
     
     /// Generate Postman collection JSON from API logs
-    static func generatePostmanCollection(from logs: [APILogPayload], name: String = "TTBDebugPlus Export") -> String {
+    static func generatePostmanCollection(from logs: [APILogPayload], name: String = "DebugKit Export") -> String {
         var items: [[String: Any]] = []
         
         for log in logs {
@@ -85,7 +85,7 @@ enum CURLGenerator {
                 "_postman_id": UUID().uuidString,
                 "name": name,
                 "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-                "description": "Exported from TTBDebugPlus"
+                "description": "Exported from DebugKit"
             ] as [String: Any],
             "item": items
         ]

@@ -79,6 +79,12 @@ enum TTSpacing {
     static var controlHit: CGFloat { s(28) }
     /// Primary action min height in sidebar (legacy 36pt)
     static var controlMinHeight: CGFloat { s(36) }
+    /// Accessible control target. Never shrinks below the macOS/iOS 44pt baseline.
+    static var accessibleControlHit: CGFloat { max(44, s(44)) }
+    /// DebugKit brand artwork in compact chrome.
+    static var compactBrandIcon: CGFloat { max(40, s(40)) }
+    /// Compact menu bar console width. May grow with user spacing preferences.
+    static var menuBarPanelWidth: CGFloat { max(320, s(320)) }
     /// Empty / hero icon circle (legacy 80pt)
     static var emptyStateIcon: CGFloat { s(80) }
     /// Dev tool card icon tile (legacy 42pt)

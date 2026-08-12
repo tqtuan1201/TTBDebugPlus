@@ -1,6 +1,6 @@
 //
 //  PermissionsView.swift
-//  TTBDebugPlus
+//  DebugKit
 //
 //  Created by TuanTruong on 2026-03-29.
 //  Settings tab showing permission status and system settings links
@@ -46,7 +46,7 @@ struct PermissionsView: View {
                     .font(.caption)
                 }
                 
-                Text("TTBDebugPlus uses the local network to discover and communicate with iOS devices running the debug bridge SDK via Bonjour (_ttbdebug._tcp).")
+                Text("DebugKit uses the local network to discover and communicate with iOS devices running the debug bridge SDK via Bonjour (_ttbdebug._tcp).")
                     .font(.caption)
                     .foregroundColor(.ttTextSecondary)
             }
@@ -62,7 +62,7 @@ struct PermissionsView: View {
                         Text("Firewall Configuration")
                             .font(.body)
                         
-                        Text("If the firewall is enabled, ensure TTBDebugPlus is allowed to receive incoming connections.")
+                        Text("If the firewall is enabled, ensure DebugKit is allowed to receive incoming connections.")
                             .font(.caption)
                             .foregroundColor(.ttTextSecondary)
                     }

@@ -89,18 +89,24 @@ struct TTBDebugPlusApp: App {
             CommandMenu("Navigate") {
                 Button("Console") { appState.selectedTab = .console }
                     .keyboardShortcut("1", modifiers: .command)
+                    .disabled(!connectionManager.isServerRunning)
                 Button("Network") { appState.selectedTab = .network }
                     .keyboardShortcut("2", modifiers: .command)
+                    .disabled(!connectionManager.isServerRunning)
                 Button("Device") { appState.selectedTab = .device }
                     .keyboardShortcut("3", modifiers: .command)
+                    .disabled(!connectionManager.isServerRunning)
                 Button("Performance") { appState.selectedTab = .performance }
                     .keyboardShortcut("4", modifiers: .command)
+                    .disabled(!connectionManager.isServerRunning)
                 Button("Dev Tools") { appState.openDevToolsMenu() }
                     .keyboardShortcut("5", modifiers: .command)
                 Button("Feedback") { appState.selectedTab = .feedback }
                     .keyboardShortcut("6", modifiers: .command)
+                    .disabled(!connectionManager.isServerRunning)
                 Button("Connection Health") { appState.selectedTab = .connectionHealth }
                     .keyboardShortcut("7", modifiers: .command)
+                    .disabled(!connectionManager.isServerRunning)
             }
 
             CommandMenu("Debug") {
@@ -160,13 +166,13 @@ struct TTBDebugPlusApp: App {
 
         MenuBarExtra(
             connectionManager.isServerRunning
-                ? "TTBDebugPlus Server Running"
+                ? "DebugKit Server Running"
                 : (connectionManager.isLifecycleActive
-                   ? "TTBDebugPlus Server Starting"
-                   : "TTBDebugPlus · Tools ready · Server stopped"),
+                   ? "DebugKit Server Starting"
+                   : "DebugKit · Tools ready · Server stopped"),
             systemImage: connectionManager.isServerRunning
                 ? AppIcon.connectionHealth
-                : (connectionManager.isLifecycleActive ? AppIcon.reconnect : AppIcon.devToolsMode)
+                : AppIcon.devToolsMode
         ) {
             MenuBarView()
                 .environment(appState)

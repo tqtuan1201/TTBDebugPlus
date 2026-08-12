@@ -1,6 +1,6 @@
 //
 //  SettingsView.swift
-//  TTBDebugPlus
+//  DebugKit
 //
 //  Created by TuanTruong on 2026-03-27.
 //  Production hardening: honest connection settings (no dead controls), accurate shortcuts.
@@ -389,7 +389,7 @@ struct SettingsView: View {
     private var connectionSettings: some View {
         Form {
             Section("Startup") {
-                Toggle("Start server automatically when TTBDebugPlus opens", isOn: $autoStartServer)
+                Toggle("Start server automatically when DebugKit opens", isOn: $autoStartServer)
                 Text("Off by default (tools-first). Dev Tools work without the server; turn this on if you want the debug bridge ready as soon as the app launches.")
                     .font(.caption)
                     .foregroundColor(.ttTextSecondary)
@@ -623,7 +623,7 @@ struct SettingsView: View {
             }
 
             Section("Security") {
-                Text("All device communication is local network only — no telemetry or remote analytics are sent by TTBDebugPlus.")
+                Text("All device communication is local network only — no telemetry or remote analytics are sent by DebugKit.")
                     .font(.caption)
                     .foregroundColor(.ttTextSecondary)
 

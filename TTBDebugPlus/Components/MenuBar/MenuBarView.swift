@@ -6,6 +6,7 @@
 //  Menu bar extra content — quick access to server status, devices, and actions
 //
 
+import AppKit
 import SwiftUI
 
 struct MenuBarView: View {
@@ -73,6 +74,12 @@ struct MenuBarView: View {
         }
         return .ttError
     }
+
+    private var headerAccessibilityLabel: String {
+        let onlineCount = connectionManager.onlineDevices.count
+        let deviceStatus = onlineCount == 0 ? "No devices online" : "\(onlineCount) devices online"
+        return "\(AppBrand.name). \(AppBrand.tagline). \(AppBrand.versionLabel). \(deviceStatus)"
+    }
     
     var body: some View {
         // Re-render when layout metrics are Applied (typography / spacing).
@@ -108,12 +115,9 @@ struct MenuBarView: View {
             // MARK: - App Actions
             appActionsSection
         }
-        .padding(.top, TTSpacing.chromeInsetV)
-        .padding(.bottom, TTIcon.xl)
-        .frame(width: 300)
-        // Force the VStack to claim its full natural height so macOS
-        // MenuBarExtra .window style doesn't clip the bottom on first open.
-        .fixedSize(horizontal: false, vertical: true)
+        .padding(.top, TTSpacing.sm)
+        .padding(.bottom, TTSpacing.lg)
+        .frame(width: TTSpacing.menuBarPanelWidth)
         // Match app canvas — solid design token (no system/primary wash)
         .background(Color.ttBackground)
         .popover(isPresented: $isToolPopoverPresented, arrowEdge: .trailing) {
@@ -140,23 +144,12 @@ struct MenuBarView: View {
     // MARK: - Header
     
     private var headerSection: some View {
-        HStack(spacing: TTSpacing.inputPaddingH) {
-            ZStack {
-                RoundedRectangle(cornerRadius: TTRadius.md)
-                    .fill(
-                        LinearGradient(
-                            colors: [Color.ttPrimary, Color.ttPrimaryDark],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 32, height: 32)
-                
-                Image(systemName: AppIcon.app)
-                    .font(.ttIcon(TTIcon.xl))
-                    .fontWeight(.semibold)
-                    .foregroundColor(.ttTextOnAccent)
-            }
+        HStack(spacing: TTSpacing.md) {
+            Image(nsImage: NSApplication.shared.applicationIconImage)
+                .resizable()
+                .interpolation(.high)
+                .frame(width: TTSpacing.compactBrandIcon, height: TTSpacing.compactBrandIcon)
+                .accessibilityHidden(true)
             
             VStack(alignment: .leading, spacing: TTSpacing.xxxs) {
                 Text(AppBrand.name)
@@ -164,26 +157,34 @@ struct MenuBarView: View {
                     .foregroundColor(.ttTextPrimary)
                     .lineLimit(1)
                 
-                Text(AppBrand.versionLabel)
-                    .font(TTFont.codeSmall)
-                    .foregroundColor(.ttTextTertiary)
+                Text(AppBrand.tagline)
+                    .font(TTFont.bodySmall)
+                    .foregroundColor(.ttTextSecondary)
                     .lineLimit(1)
             }
             
             Spacer(minLength: 0)
-            
-            // Connection count badge
-            if connectionManager.onlineDevices.count > 0 {
-                Text("\(connectionManager.onlineDevices.count)")
-                    .font(TTFont.labelMedium)
-                    .foregroundColor(.ttTextOnAccent)
+
+            VStack(alignment: .trailing, spacing: TTSpacing.xxs) {
+                Text(AppBrand.versionLabel)
+                    .font(TTFont.codeSmall)
+                    .foregroundColor(.ttTextSecondary)
                     .padding(.horizontal, TTSpacing.xs)
                     .padding(.vertical, TTSpacing.xxxs)
-                    .background(Capsule().fill(Color.ttSuccess))
+                    .background(Capsule().fill(Color.ttSurface))
+
+                if connectionManager.onlineDevices.count > 0 {
+                    Label("\(connectionManager.onlineDevices.count)", systemImage: AppIcon.device)
+                        .font(TTFont.labelSmall)
+                        .foregroundColor(.ttSuccess)
+                        .accessibilityLabel("\(connectionManager.onlineDevices.count) devices online")
+                }
             }
         }
-        .padding(.horizontal, TTSpacing.chromeInsetH)
-        .padding(.bottom, TTSpacing.chromeInsetV)
+        .padding(.horizontal, TTSpacing.md)
+        .padding(.bottom, TTSpacing.sm)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(headerAccessibilityLabel)
     }
     
     // MARK: - Server Status
@@ -191,26 +192,34 @@ struct MenuBarView: View {
     // title → status line → full-width Start/Stop → icon tool row (never clipped).
     
     private var serverStatusSection: some View {
-        VStack(alignment: .leading, spacing: TTSpacing.inputPaddingH) {
+        VStack(alignment: .leading, spacing: TTSpacing.md) {
             VStack(alignment: .leading, spacing: TTSpacing.xxs) {
-                Text(serverModeTitle)
-                    .font(TTFont.labelLarge)
-                    .foregroundColor(.ttTextPrimary)
-                    .lineLimit(1)
-                
-                HStack(alignment: .top, spacing: TTSpacing.xs) {
-                    Circle()
-                        .fill(serverModeColor)
-                        .frame(width: 8, height: 8)
-                        .padding(.top, TTSpacing.inlineGapSmall)
-                    
-                    Text(serverStatusDetail)
-                        .font(TTFont.bodySmall)
-                        .foregroundColor(.ttTextSecondary)
-                        .lineLimit(2)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                HStack(spacing: TTSpacing.xs) {
+                    Image(systemName: serverModeIcon)
+                        .font(TTFont.labelMedium)
+                        .foregroundColor(serverModeColor)
+                        .frame(width: TTIcon.lg)
+
+                    Text(serverModeTitle)
+                        .font(TTFont.labelLarge)
+                        .foregroundColor(.ttTextPrimary)
+                        .lineLimit(1)
+
+                    Spacer(minLength: 0)
+
+                    Text(serverStatusLabel)
+                        .font(TTFont.badge)
+                        .foregroundColor(serverModeColor)
+                        .padding(.horizontal, TTSpacing.xs)
+                        .padding(.vertical, TTSpacing.xxxs)
+                        .background(Capsule().fill(serverModeColor.opacity(0.12)))
                 }
+
+                Text(serverStatusDetail)
+                    .font(TTFont.bodySmall)
+                    .foregroundColor(.ttTextSecondary)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
             }
             
             // Primary Start / Stop — reserved height for both styles (stable cold start)
@@ -233,40 +242,68 @@ struct MenuBarView: View {
                     .help("Start the debug bridge when you need a device connection")
                 }
             }
-            .frame(maxWidth: .infinity, minHeight: 36, alignment: .center)
+            .frame(maxWidth: .infinity, minHeight: TTSpacing.accessibleControlHit, alignment: .center)
             
             // Secondary server tools — fixed min height so icons never clip at panel edge
             HStack(spacing: TTSpacing.xs) {
-                DeviceSessionMenuButton()
-                NetworkInterfaceMenuButton()
+                DeviceSessionMenuButton(showsLabel: true)
+                NetworkInterfaceMenuButton(showsLabel: true)
                 
                 Button(action: { connectionManager.forceReconnect() }) {
-                    Image(systemName: AppIcon.reconnect)
-                        .font(.ttIcon(TTIcon.md))
-                    .fontWeight(.medium)
+                    Label("Reconnect", systemImage: AppIcon.reconnect)
+                        .font(TTFont.labelSmall)
                         .foregroundColor(connectionManager.isLifecycleActive ? .ttWarning : .ttTextMuted)
-                        .frame(width: 28, height: 28)
-                        .background(
-                            RoundedRectangle(cornerRadius: TTRadius.sm)
-                                .fill(Color.ttSurface)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: TTRadius.sm)
-                                        .stroke(Color.ttBorder.opacity(0.5), lineWidth: 1)
-                                )
-                        )
+                        .frame(maxWidth: .infinity, minHeight: TTSpacing.accessibleControlHit)
+                        .background(menuBarSecondaryControlBackground)
                 }
                 .buttonStyle(.plain)
                 .disabled(!connectionManager.isLifecycleActive)
                 .help("Force Reconnect (restart Bonjour, keep logs)")
                 .accessibilityLabel("Force Reconnect")
-                
-                Spacer(minLength: 0)
             }
-            .frame(height: 28, alignment: .center)
         }
         .padding(.horizontal, TTSpacing.md)
-        .padding(.vertical, TTSpacing.chromeInsetV)
-        .background(Color.ttSurface.opacity(0.45))
+        .padding(.vertical, TTSpacing.md)
+        .background(
+            RoundedRectangle(cornerRadius: TTRadius.lg)
+                .fill(Color.ttSurface.opacity(0.72))
+                .overlay(
+                    RoundedRectangle(cornerRadius: TTRadius.lg)
+                        .stroke(Color.ttBorder.opacity(0.65), lineWidth: 1)
+                )
+        )
+        .padding(.horizontal, TTSpacing.md)
+        .padding(.bottom, TTSpacing.xxs)
+        .accessibilityElement(children: .contain)
+    }
+
+    private var serverModeIcon: String {
+        if connectionManager.isServerRunning {
+            return AppIcon.connectionHealth
+        }
+        if connectionManager.isLifecycleActive {
+            return AppIcon.reconnect
+        }
+        return AppIcon.connectionOffline
+    }
+
+    private var serverStatusLabel: String {
+        if connectionManager.isServerRunning {
+            return "ONLINE"
+        }
+        if connectionManager.isLifecycleActive {
+            return "STARTING"
+        }
+        return "OFFLINE"
+    }
+
+    private var menuBarSecondaryControlBackground: some View {
+        RoundedRectangle(cornerRadius: TTRadius.sm)
+            .fill(Color.ttBackground.opacity(0.72))
+            .overlay(
+                RoundedRectangle(cornerRadius: TTRadius.sm)
+                    .stroke(Color.ttBorder.opacity(0.5), lineWidth: 1)
+            )
     }
     
     // MARK: - Devices
@@ -475,7 +512,7 @@ struct MenuBarView: View {
             
             MenuBarActionButton(
                 icon: AppIcon.quit,
-                title: "Quit TTBDebugPlus",
+                title: "Quit DebugKit",
                 shortcut: "⌘Q",
                 isDestructive: true
             ) {

@@ -1,6 +1,6 @@
 //
 //  LocalhostModels.swift
-//  TTBDebugPlus
+//  DebugKit
 //
 //  Data models for Localhost Server Manager (Dev Tools).
 //
@@ -23,7 +23,7 @@ enum ProcessClass: String, Codable, CaseIterable, Identifiable {
         case .user: return "User"
         case .system: return "System"
         case .docker: return "Docker"
-        case .ttbdebug: return "TTBDebugPlus"
+        case .ttbdebug: return "DebugKit"
         case .unknown: return "Unknown"
         }
     }

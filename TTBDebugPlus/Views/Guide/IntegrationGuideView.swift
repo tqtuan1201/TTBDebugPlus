@@ -1,6 +1,6 @@
 //
 //  IntegrationGuideView.swift
-//  TTBDebugPlus
+//  DebugKit
 //
 //  Created by TuanTruong on 2026-03-27.
 //  iOS SDK setup guide with numbered steps and copyable code snippets
@@ -69,7 +69,7 @@ struct IntegrationGuideView: View {
                     Text("iOS SDK Integration")
                         .font(TTFont.displayMedium)
                         .foregroundColor(.ttTextPrimary)
-                    Text("Set up your iOS app to send logs to TTBDebugPlus")
+                    Text("Set up your iOS app to send logs to DebugKit")
                         .font(TTFont.bodyMedium)
                         .foregroundColor(.ttTextSecondary)
                 }
@@ -152,7 +152,7 @@ struct IntegrationGuideView: View {
     }
     
     // MARK: - Steps Data
-    // NOTE: These 6 steps mirror TTBDebugPlus/source/README.md's "iOS SDK Integration"
+    // NOTE: These 6 steps mirror DebugKit/source/README.md's "iOS SDK Integration"
     // section (same content, shown in-app here). Keep both in sync when editing either one.
     private var steps: [IntegrationStep] {
         [
@@ -189,7 +189,7 @@ struct IntegrationGuideView: View {
                 
                 <!-- Required: Describe why local network access is needed -->
                 <key>NSLocalNetworkUsageDescription</key>
-                <string>Required for connecting to TTBDebugPlus on macOS to stream debug logs.</string>
+                <string>Required for connecting to DebugKit on macOS to stream debug logs.</string>
                 
                 <!-- Required: Declare Bonjour service type -->
                 <key>NSBonjourServices</key>
@@ -199,7 +199,7 @@ struct IntegrationGuideView: View {
 
                 <!-- Only needed if you use the built-in QR pairing scanner -->
                 <key>NSCameraUsageDescription</key>
-                <string>Used to scan the TTBDebugPlus pairing QR code.</string>
+                <string>Used to scan the DebugKit pairing QR code.</string>
                 """,
                 language: "xml",
                 note: "⚠️ IMPORTANT: Without these 2 keys, iOS will block NWBrowser with a NoAuth error. After adding them, delete the app from the device and Build & Run again so iOS shows the permission prompt."

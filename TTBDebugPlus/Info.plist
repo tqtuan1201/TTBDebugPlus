@@ -6,7 +6,7 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>$(DEVELOPMENT_LANGUAGE)</string>
     <key>CFBundleDisplayName</key>
-    <string>TTBDebugPlus</string>
+    <string>DebugKit</string>
     <key>CFBundleExecutable</key>
     <string>$(EXECUTABLE_NAME)</string>
     <key>CFBundleIdentifier</key>
@@ -24,11 +24,11 @@
 
     <!-- Privacy - Local Network -->
     <key>NSLocalNetworkUsageDescription</key>
-    <string>TTBDebugPlus discovers iOS devices on your local network for real-time debugging.</string>
+    <string>DebugKit discovers iOS devices on your local network for real-time debugging.</string>
 
     <!-- Privacy - Screen capture / color sampling (NSColorSampler) -->
     <key>NSScreenCaptureUsageDescription</key>
-    <string>TTBDebugPlus samples on-screen pixel colors in the Color Picker Dev Tool so you can export accurate Hex and Swift color code while debugging UI.</string>
+    <string>DebugKit samples on-screen pixel colors in the Color Picker Dev Tool so you can export accurate Hex and Swift color code while debugging UI.</string>
 
     <!-- Bonjour Services -->
     <key>NSBonjourServices</key>
